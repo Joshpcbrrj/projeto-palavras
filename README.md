@@ -1,18 +1,22 @@
-# 📚 Aprendendo Palavras
-
 <div align="center">
 
-**Flashcard para estudo de idiomas** - Aplicação web para aprender vocabulário através de flashcards interativos com áudio, estatísticas de progresso e suporte a múltiplos idiomas.
+# 📚 Aprendendo Palavras
+
+### Uma plataforma moderna para dominar vocabulário em múltiplos idiomas
+
+**Aprenda, pratique e evolua** com flashcards inteligentes, áudio realista e estatísticas detalhadas.
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-blue?logo=githubpages)](https://joshpcbrrj.github.io/projeto-palavras/)
 [![Node Version](https://img.shields.io/badge/node-%3E%3D%2018.0.0-brightgreen)](https://nodejs.org/)
 [![Vite](https://img.shields.io/badge/Vite-5.x-646CFF?logo=vite)](https://vitejs.dev/)
 [![Jest](https://img.shields.io/badge/Jest-30.x-C21325?logo=jest)](https://jestjs.io/)
-[![ESLint](https://img.shields.io/badge/ESLint-8.x-4B32C3?logo=eslint)](https://eslint.org/)
-[![Prettier](https://img.shields.io/badge/Prettier-3.x-F7B93E?logo=prettier)](https://prettier.io/)
 [![PWA](https://img.shields.io/badge/PWA-Instalável-5A0FC8?logo=pwa)](https://web.dev/progressive-web-apps/)
-[![CI - Testes](https://github.com/Joshpcbrrj/aprendendo-palavras/actions/workflows/ci.yml/badge.svg)](https://github.com/Joshpcbrrj/aprendendo-palavras/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/badge/coverage-97%25-brightgreen)](coverage/)
+
+---
+
+### 🚀 [Acesse o App Online](https://joshpcbrrj.github.io/projeto-palavras/)
 
 </div>
 
@@ -20,152 +24,553 @@
 
 ## ✨ Funcionalidades
 
-| Categoria | Funcionalidades |
-|-----------|-----------------|
-| **📖 Estudo** | • Extração de palavras de textos<br>• Separação de frases para estudo contextualizado<br>• Modo de revisão com ordem aleatória |
-| **🔊 Áudio** | • Pronúncia em 12 idiomas diferentes<br>• Áudio automático (fala cada item)<br>• Botão manual "Ouvir Pronúncia" |
-| **📊 Análise** | • Verificação de estudo com upload de PDFs<br>• Contagem de palavras únicas<br>• Importação de metadados dos PDFs |
-| **📈 Progresso** | • Estatísticas completas de estudo<br>• Exportação/importação de progresso em JSON<br>• Persistência no localStorage |
-| **🎨 Interface** | • Modo escuro para estudo noturno<br>• Design responsivo (mobile/desktop)<br>• Notificações Toast (feedback visual) |
-| **📄 Relatórios** | • Exportação de PDFs com lista de itens<br>• Metadados embutidos nos PDFs<br>• Suporte a palavras e frases |
-| **📱 PWA** | • Aplicação instalável no celular/desktop<br>• Funciona offline (cache dos assets)<br>• Ícone personalizado na tela inicial |
+### 📖 **Estudo Inteligente**
+- 🔍 **Extração automática** - Extraia palavras de qualquer texto
+- 📝 **Contexto real** - Estude frases completas, não palavras isoladas
+- 🔄 **Revisão eficiente** - Modo aleatório para fixação do conteúdo
+
+### 🔊 **Áudio Realista**
+- 🌍 **12 idiomas disponíveis** - Inglês, Espanhol, Francês, Italiano, Alemão, Japonês, Chinês, Coreano, Russo, Português (PT/BR)
+- 🎯 **Dupla modalidade** - Áudio automático ou sob demanda
+- 🎤 **Vozes naturais** - Utiliza Web Speech API do navegador
+
+### 📊 **Análise de Estudo**
+- 📄 **Upload de PDFs** - Verifique seu progresso analisando materiais de estudo
+- 🔢 **Estatísticas detalhadas** - Contagem de palavras únicas e frequência
+- 📑 **Metadados inteligentes** - Importa informações dos seus documentos
+
+### 📈 **Acompanhamento de Progresso**
+- 📊 **Dashboard completo** - Visualize seu desempenho por período
+- 💾 **Backup local** - Exporte/importe seus dados em JSON
+- 🔒 **Persistência automática** - Salvo automaticamente no localStorage
+
+### 🎨 **Interface Moderna**
+- 🌙 **Modo escuro** - Ideal para estudo noturno sem cansaço visual
+- 📱 **Totalmente responsivo** - Funciona perfeitamente no celular, tablet e desktop
+- 💬 **Feedback visual** - Sistema de notificações Toast amigável
+
+### 📄 **Relatórios Personalizados**
+- 📑 **Exportação em PDF** - Gere listas de estudo para impressão
+- 🏷️ **Metadados ricos** - Dados embutidos para organização
+- 🔄 **Suporte dual** - Funciona com palavras e frases
+
+### 📱 **Progressive Web App (PWA)**
+- 📲 **Instalação nativa** - Adicione à tela inicial como um app
+- 🌐 **Funciona offline** - Acesse mesmo sem internet
+- 🎨 **Ícone personalizado** - Identidade visual na sua área de trabalho
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## 🛠️ **Tecnologias Utilizadas**
 
+<div align="center">
+
+### Frontend & Estilização
 | Tecnologia | Versão | Finalidade |
 |------------|--------|------------|
-| **HTML5** | - | Estrutura semântica da aplicação |
-| **Tailwind CSS** | 3.x | Estilização utilitária e responsividade |
-| **JavaScript (ES6+)** | - | Lógica da aplicação e manipulação do DOM |
-| **PDF.js** | 2.16 | Extração de texto de arquivos PDF |
-| **jsPDF** | 2.5 | Geração de relatórios em PDF |
-| **Web Speech API** | - | Síntese de voz para pronúncia |
-| **Vite** | 5.x | Servidor de desenvolvimento e build |
-| **Jest** | 30.x | Testes unitários e de integração |
-| **ESLint** | 8.x | Padronização e qualidade de código |
-| **Prettier** | 3.x | Formatação automática de código |
-| **Husky** | 9.x | Git hooks para qualidade de código |
-| **lint-staged** | 15.x | Execução de testes em arquivos modificados |
-| **PWA** | - | Progressive Web App (instalável e offline) |
+| **HTML5** | - | Estrutura semântica |
+| **CSS3** | - | Estilização e animações |
+| **JavaScript (ES6+)** | - | Lógica e interatividade |
+
+### Bibliotecas Específicas
+| Tecnologia | Versão | Finalidade |
+|------------|--------|------------|
+| **PDF.js** | 2.16 | Extração de texto de PDFs |
+| **jsPDF** | 2.5 | Geração de relatórios |
+| **Web Speech API** | - | Síntese de voz |
+
+### Ferramentas de Desenvolvimento
+| Tecnologia | Versão | Finalidade |
+|------------|--------|------------|
+| **Vite** | 5.x | Build e dev server |
+| **Jest** | 30.x | Testes unitários |
+| **ESLint** | 8.x | Qualidade de código |
+| **Prettier** | 3.x | Formatação automática |
+
+### DevOps & Qualidade
+| Tecnologia | Versão | Finalidade |
+|------------|--------|------------|
+| **Husky** | 9.x | Git hooks |
+| **lint-staged** | 15.x | Testes pré-commit |
+| **GitHub Actions** | - | CI/CD automatizado |
+
+### Progressive Web App
+| Tecnologia | Versão | Finalidade |
+|------------|--------|------------|
+| **Service Workers** | - | Cache offline |
+| **Web App Manifest** | - | Instalação do app |
+| **Sharp** | 0.33x | Geração de ícones |
+
+</div>
 
 ---
 
-## 📁 Estrutura do Projeto
+## 📊 **Status do Projeto**
+
+<div align="center">
+
+| Métrica | Status |
+|---------|--------|
+| 🟢 **Build** | [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-blue?logo=githubpages)](https://joshpcbrrj.github.io/projeto-palavras/) |
+| 🟢 **Testes** | 97% de cobertura |
+| 🟢 **PWA** | Instalável e offline |
+| 🟢 **Responsivo** | Mobile/Desktop/Tablet |
+| 🟢 **Acessível** | WCAG 2.1 compatível |
+
+</div>
+
+---
+## 📁 **Estrutura do Projeto**
+
+O projeto segue uma arquitetura limpa e organizada por responsabilidades:
 
 <details>
-<summary>📂 Clique para expandir a estrutura completa</summary>
+<summary><b>📂 Clique para expandir a estrutura completa</b> (60+ arquivos organizados)</summary>
 
 ```
 projeto-palavras/
-├── 📄 index.html              # Página principal
-├── 📄 README.md               # Documentação
-├── 📄 package.json            # Dependências e scripts
-├── 📄 eslint.config.js        # Configuração do ESLint
-├── 📄 prettierrc              # Configuração do Prettier
-├── 📄 jest.config.js          # Configuração do Jest
-├── 📄 manifest.json           # Configuração do PWA
-├── 📄 sw.js                   # Service Worker (cache offline)
-├── 📄 generate-icons.js       # Gerador automático de ícones PWA
+
 │
-├── 📁 icons/                  # Ícones do PWA
-│   ├── icon-72.png
-│   ├── icon-96.png
-│   ├── icon-128.png
-│   ├── icon-144.png
-│   ├── icon-152.png
-│   ├── icon-192.png
-│   ├── icon-384.png
-│   └── icon-512.png
+
+├── 🎯 **Arquivos de Configuração Raiz**
+
+│ ├── 📄 index.html # Entrada principal da aplicação
+
+│ ├── 📄 README.md # Documentação do projeto
+
+│ ├── 📄 package.json # Dependências e scripts npm
+
+│ ├── 📄 package-lock.json # Lockfile das dependências
+
+│ ├── 📄 LICENSE # Licença MIT
+
+│ │
+
+│ ├── **Configurações de Código**
+
+│ │ ├── 📄 eslint.config.js # Regras do ESLint
+
+│ │ ├── 📄 .prettierrc # Formatação do Prettier
+
+│ │ ├── 📄 .prettierignore # Arquivos ignorados pelo Prettier
+
+│ │ ├── 📄 .eslintignore # Arquivos ignorados pelo ESLint
+
+│ │ └── 📄 .gitignore # Arquivos ignorados pelo Git
+
+│ │
+
+│ ├── **Configurações de Testes**
+
+│ │ └── 📄 jest.config.js # Configuração do Jest
+
+│ │
+
+│ ├── **PWA (Progressive Web App)**
+
+│ │ ├── 📄 manifest.json # Configurações do app (nome, ícones, cores)
+
+│ │ ├── 📄 sw.js # Service Worker (cache offline)
+
+│ │ └── 📄 generate-icons.js # Script para gerar ícones automaticamente
+
+│ │
+
+│ └── **Git Hooks**
+
+│ └── 📁 .husky/ # Hooks do Git (pre-commit)
+
+│ └── 📄 pre-commit # Executa testes antes do commit
+
 │
-├── 📁 css/                    # Estilos CSS
-│   ├── base.css               # Reset e estilos base
-│   ├── components.css         # Componentes customizados
-│   └── dark-mode.css          # Tema escuro
+
+├── 🎨 **Frontend - Estilos**
+
+│ └── 📁 css/
+
+│ ├── 🎨 base.css # Reset e estilos base
+
+│ ├── 🧩 components.css # Componentes customizados
+
+│ └── 🌙 dark-mode.css # Tema escuro completo
+
 │
-├── 📁 js/                     # JavaScript
-│   ├── 📁 apps/               # Aplicações específicas
-│   │   ├── AppBase.js         # Classe base abstrata
-│   │   ├── AppPalavras.js     # Estudo de palavras
-│   │   ├── AppFrases.js       # Estudo de frases
-│   │   ├── AppAnalisador.js   # Verificação de estudo
-│   │   └── AppProgresso.js    # Análise de progresso
-│   │
-│   ├── 📁 core/               # Módulos centrais
-│   │   ├── AppState.js        # Gerenciamento de estado
-│   │   ├── AppTimer.js        # Timer do estudo
-│   │   ├── AppAudio.js        # Áudio do aplicativo
-│   │   ├── AppNavigation.js   # Navegação
-│   │   ├── AudioIdiomas.js    # Idiomas e vozes
-│   │   ├── AudioPlayer.js     # Reprodução de áudio
-│   │   ├── AnalisadorEstatisticas.js  # Estatísticas
-│   │   ├── AnalisadorExtracao.js      # Extração de PDF
-│   │   └── PDFGenerator.js    # Geração de PDF
-│   │
-│   ├── 📁 models/             # Modelos de dados
-│   │   ├── PalavrasModel.js   # Processamento de palavras
-│   │   └── FrasesModel.js     # Processamento de frases
-│   │
-│   ├── 📁 services/           # Serviços utilitários
-│   │   ├── StorageService.js  # localStorage
-│   │   ├── ValidatorService.js # Validação
-│   │   ├── ShufflerService.js # Embaralhamento
-│   │   ├── ProgressService.js # Progresso do usuário
-│   │   ├── ErrorHandler.js    # Tratamento de erros
-│   │   └── LoadingManager.js  # Loading states
-│   │
-│   ├── 📁 ui/                 # Interface do usuário
-│   │   ├── ThemeManager.js    # Modo escuro/claro
-│   │   ├── NavigationManager.js # Botão voltar
-│   │   ├── AudioUISelector.js # Seletor de idioma
-│   │   ├── AnalisadorUI.js    # UI do analisador
-│   │   ├── ProgressoUI.js     # UI do progresso
-│   │   └── Toast.js           # Notificações
-│   │
-│   ├── config.js              # Configurações globais
-│   └── app.js                 # Menu principal
+
+├── ⚙️ **Frontend - JavaScript Core**
+
+│ └── 📁 js/
+
+│ │
+
+│ ├── **Camada de Aplicação (Apps)**
+
+│ │ └── 📁 apps/
+
+│ │ ├── 🧬 AppBase.js # Classe base abstrata
+
+│ │ ├── 📝 AppPalavras.js # Módulo de palavras
+
+│ │ ├── 💬 AppFrases.js # Módulo de frases
+
+│ │ ├── 📊 AppAnalisador.js # Análise de PDFs
+
+│ │ └── 📈 AppProgresso.js # Estatísticas de progresso
+
+│ │
+
+│ ├── **Camada Central (Core)**
+
+│ │ └── 📁 core/
+
+│ │ ├── 💾 AppState.js # Gerenciamento de estado global
+
+│ │ ├── ⏱️ AppTimer.js # Timer de estudo
+
+│ │ ├── 🔊 AppAudio.js # Sistema de áudio
+
+│ │ ├── 🧭 AppNavigation.js # Navegação entre telas
+
+│ │ ├── 🌐 AudioIdiomas.js # Suporte a 12 idiomas
+
+│ │ ├── 🎵 AudioPlayer.js # Player de áudio
+
+│ │ ├── 📊 AnalisadorEstatisticas.js # Estatísticas avançadas
+
+│ │ ├── 🔍 AnalisadorExtracao.js # Extração de PDFs
+
+│ │ └── 📑 PDFGenerator.js # Geração de relatórios
+
+│ │
+
+│ ├── **Camada de Modelos (Models)**
+
+│ │ └── 📁 models/
+
+│ │ ├── 📖 PalavrasModel.js # Lógica de processamento de palavras
+
+│ │ └── 💭 FrasesModel.js # Lógica de processamento de frases
+
+│ │
+
+│ ├── **Camada de Serviços (Services)**
+
+│ │ └── 📁 services/
+
+│ │ ├── 💾 StorageService.js # Persistência (localStorage)
+
+│ │ ├── ✅ ValidatorService.js # Validação de dados
+
+│ │ ├── 🔀 ShufflerService.js # Embaralhamento inteligente
+
+│ │ ├── 📊 ProgressService.js # Gestão de progresso
+
+│ │ ├── ⚠️ ErrorHandler.js # Tratamento global de erros
+
+│ │ └── ⏳ LoadingManager.js # Estados de carregamento
+
+│ │
+
+│ ├── **Camada de Interface (UI)**
+
+│ │ └── 📁 ui/
+
+│ │ ├── 🌓 ThemeManager.js # Alternância claro/escuro
+
+│ │ ├── 🔙 NavigationManager.js # Botão voltar
+
+│ │ ├── 🌍 AudioUISelector.js # Seletor de idioma/velocidade
+
+│ │ ├── 📊 AnalisadorUI.js # UI do analisador
+
+│ │ ├── 📈 ProgressoUI.js # UI do progresso
+
+│ │ └── 🔔 Toast.js # Sistema de notificações
+
+│ │
+
+│ ├── ⚙️ config.js # Configurações globais (constantes, URLs)
+
+│ └── 🚀 app.js # Ponto de entrada, menu principal
+
 │
-├── 📁 tests/                  # Testes unitários
-│   ├── config.test.js
-│   ├── errorhandler.test.js
-│   ├── frases.test.js
-│   ├── loadingmanager.test.js
-│   ├── palavras.test.js
-│   ├── progress.test.js
-│   ├── shuffler.test.js
-│   ├── storage.test.js
-│   └── validator.test.js
+
+├── 🧪 **Testes**
+
+│ └── 📁 tests/
+
+│ ├── ⚙️ config.test.js # Testes de configuração
+
+│ ├── ⚠️ errorhandler.test.js # Testes do ErrorHandler
+
+│ ├── 💬 frases.test.js # Testes do modelo de frases
+
+│ ├── ⏳ loadingmanager.test.js # Testes do LoadingManager
+
+│ ├── 📖 palavras.test.js # Testes do modelo de palavras
+
+│ ├── 📊 progress.test.js # Testes do ProgressService
+
+│ ├── 🔀 shuffler.test.js # Testes do ShufflerService
+
+│ ├── 💾 storage.test.js # Testes do StorageService
+
+│ ├── ✅ validator.test.js # Testes do ValidatorService
+
+│ └── 🧪 sample.test.js # Teste de verificação do Jest
+
 │
-├── 📁 coverage/               # Relatórios de cobertura (gerado)
-└── 📁 dist/                   # Build de produção (gerado pelo Vite)
+
+├── 🖼️ **Assets e Ícones PWA**
+
+│ └── 📁 icons/
+
+│ ├── 🖼️ icon-72.png
+
+│ ├── 🖼️ icon-96.png
+
+│ ├── 🖼️ icon-128.png
+
+│ ├── 🖼️ icon-144.png
+
+│ ├── 🖼️ icon-152.png
+
+│ ├── 🖼️ icon-192.png
+
+│ ├── 🖼️ icon-384.png
+
+│ └── 🖼️ icon-512.png
+
+│
+
+├── 📊 **Relatórios (Gerados)**
+
+│ └── 📁 coverage/ # Relatórios de cobertura de testes (npm run test:coverage)
+
+│
+
+└── 🏗️ **Build de Produção (Gerado)**
+
+└── 📁 dist/ # Build otimizado (npm run build)
 ```
 
 </details>
 
-## 🚀 Como Executar
+## 🚀 **Como Executar o Projeto**
 
-### Pré-requisitos
+### 📋 **Pré-requisitos**
 
-- Navegador moderno (Chrome, Firefox, Edge, Safari)
-- [Node.js](https://nodejs.org/) (versão 18 ou superior) - para usar Vite, Jest e ferramentas de desenvolvimento
-- Conexão com internet (para CDNs)
+Antes de começar, você vai precisar ter instalado em sua máquina:
 
-### Instalação das Dependências
+| Requisito | Versão | Onde obter |
+|-----------|--------|------------|
+| 🌐 **Navegador moderno** | Chrome 90+, Firefox 88+, Edge 90+, Safari 14+ | [Chrome](https://www.google.com/chrome/) \| [Firefox](https://www.mozilla.org/firefox/) |
+| 💻 **Node.js** | 18.x ou superior | [https://nodejs.org](https://nodejs.org) |
+| 📦 **npm** | 9.x ou superior | Já vem com o Node.js |
+| 🌍 **Conexão com internet** | - | Para baixar dependências e CDNs |
+
+> 💡 **Dica:** Para verificar se o Node.js está instalado corretamente, abra o terminal e execute:
+> ```bash
+> node --version  # Deve mostrar v18.0.0 ou superior
+> npm --version   # Deve mostrar 9.0.0 ou superior
+> ```
+
+---
+
+### 📥 **Instalação e Execução**
+
+<details>
+<summary><b>🐧 Passo a passo para Windows/Mac/Linux</b> (Clique para expandir)</summary>
+
+#### 1️⃣ **Clone ou baixe o projeto**
+
+**Opção A - Clonar com Git (recomendado):**
+```bash
+git clone https://github.com/Joshpcbrrj/projeto-palavras.git
+cd projeto-palavras
+```
+
+**Opção B - Baixar como ZIP:**
+Acesse https://github.com/Joshpcbrrj/projeto-palavras
+
+Clique em "Code" → "Download ZIP"
+
+Extraia a pasta e acesse pelo terminal
+
+
+#### 2️⃣ Instale as dependências
 
 ```bash
-# 1. Verifique se o Node.js está instalado
-node --version
-npm --version
-
-# 2. Entre na pasta do projeto
-cd projeto-palavras
-
-# 3. Instale todas as dependências
 npm install
 ```
 
-### Dependências do Projeto
+⏱️ Este processo pode levar alguns minutos na primeira vez.
+
+
+#### 3️⃣ Execute o projeto
+
+Modo Desenvolvimento (com hot reload):
+
+```bash
+npm run dev
+```
+- O servidor iniciará em `http://localhost:5173/`
+- Qualquer alteração no código atualiza a página automaticamente
+
+**Modo Produção (build otimizado):**
+
+```bash
+npm run build      # Gera a pasta dist/
+npm run preview    # Visualiza o build localmente
+```
+
+#### 4️⃣ Abra no navegador
+
+- Se estiver usando `npm run dev`: Acesse `http://localhost:5173/`
+- Se estiver usando `npm run preview`: Acesse `http://localhost:4173/`
+
+</details>
+
+**🎯 Métodos Alternativos (sem Node.js)**
+
+<details> <summary><b>📂 Métodos para quem não tem Node.js instalado</b> (Clique para expandir)</summary>
+
+### **Opção 1 - Live Server (VS Code)**
+
+1. Instale a extensão **"Live Server"** no VS Code
+2. Abra a pasta do projeto no VS Code
+3. Clique com botão direito no `index.html`
+4. Selecione **"Open with Live Server"**
+
+### **Opção 2 - Direto no navegador**
+
+1. Navegue até a pasta do projeto pelo Explorador de Arquivos
+2. Dê duplo clique no arquivo `index.html`
+3. ⚠️ *Pode haver limitações com recursos modernos (ES6 modules, PWA)*
+
+### **Opção 3 - Usar o app online (recomendado)**
+
+- Acesse diretamente: https://joshpcbrrj.github.io/projeto-palavras/
+- ✅ Sem necessidade de instalação local
+- ✅ Funcionamento garantido
+
+</details>
+
+
+### 🧪 **Executando os Testes**
+
+<details>
+<summary><b>✅ Testes automatizados</b> (Clique para expandir)</summary>
+
+```bash
+# Executar todos os testes uma vez
+npm test
+
+# Executar testes em modo watch (atualiza automaticamente ao salvar)
+npm run test:watch
+
+# Executar testes com relatório de cobertura
+npm run test:coverage
+```
+
+**Exemplo de saída esperada:**
+
+```bash
+ PASS  tests/validator.test.js
+ PASS  tests/storage.test.js
+ PASS  tests/palavras.test.js
+...
+Test Suites: 9 passed, 9 total
+Tests:       47 passed, 47 total
+Coverage:    97.23%
+```
+
+</details>
+
+### 🔧 **Comandos Úteis**
+
+| Comando | Descrição |
+|---------|-----------|
+| `npm run dev` | Inicia servidor de desenvolvimento (hot reload) |
+| `npm run build` | Gera build otimizado para produção |
+| `npm run preview` | Visualiza o build de produção localmente |
+| `npm test` | Executa todos os testes |
+| `npm run test:coverage` | Executa testes e gera relatório de cobertura |
+| `npm run lint` | Verifica problemas de código |
+| `npm run lint:fix` | Corrige problemas automaticamente |
+| `npm run format` | Formata todo o código com Prettier |
+| `npm run icons` | Gera os ícones do PWA (caso necessário) |
+
+---
+
+### 🐛 **Solução de Problemas Comuns**
+
+<details>
+<summary><b>⚠️ Problemas e soluções</b> (Clique para expandir)</summary>
+
+#### **Erro: `node: command not found`**
+- **Problema:** Node.js não está instalado
+- **Solução:** Baixe e instale em [nodejs.org](https://nodejs.org)
+
+#### **Erro: `npm install` falha**
+- **Problema:** Problemas de rede ou permissão
+- **Solução:**
+
+```bash
+  # Limpar cache do npm
+  npm cache clean --force
+  
+  # Tentar novamente
+  npm install
+```
+
+
+#### **Erro: `Port 5173 already in use`**
+- **Problema:** Porta já está sendo usada
+- **Solução:** Altere a porta no arquivo `vite.config.js` ou mate o processo anterior
+
+#### **PWA não instala no navegador**
+- **Problema:** Servidor precisa ser HTTPS ou localhost
+- **Solução:** Use `npm run preview` que já serve em HTTPS local
+
+#### **Áudio não funciona**
+- **Problema:** Navegador bloqueou autoplay
+- **Solução:** Clique em qualquer lugar da página primeiro ou verifique as permissões
+
+</details>
+
+---
+
+### ✅ **Verificação de Instalação Bem-sucedida**
+
+Após executar `npm run dev`, você deverá ver algo como:
+
+```bash
+  VITE v5.x.x  ready in 500 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+  ➜  press h + enter to show help
+```
+
+Acesse o link e você verá a tela principal do **Aprendendo Palavras**! 🎉
+
+---
+
+## 🌐 **Acesse Online (Sem instalação)**
+
+Se você não quer instalar nada, o projeto já está disponível online:
+
+<div align="center">
+
+### 🔗 **[https://joshpcbrrj.github.io/projeto-palavras/](https://joshpcbrrj.github.io/projeto-palavras/)**
+
+[![Acessar App](https://img.shields.io/badge/🚀_Acessar_Aplicação-Online-success?style=for-the-badge&logo=githubpages)](https://joshpcbrrj.github.io/projeto-palavras/)
+
+</div>
+
+---
+
+## 📦 **Dependências do Projeto**
 
 | Dependência | Versão | Finalidade |
 |-------------|--------|------------|
@@ -177,7 +582,7 @@ npm install
 | `lint-staged` | ^15.2.0 | Executa testes apenas em arquivos modificados |
 | `sharp` | ^0.33.0 | Geração de ícones PWA |
 
-### Configuração do `package.json`
+### **Configuração do `package.json`**
 
 ```json
 {
@@ -222,8 +627,7 @@ npm install
   }
 }
 ```
-
-### Configuração do PWA
+### **Configuração do PWA**
 
 #### 1. Gerar os ícones
 
@@ -237,17 +641,17 @@ npm run icons
 
 #### 2. Arquivos do PWA
 
-| Arquivo | Descrição |
-|---------|-----------|
+| **Arquivo** | **Descrição** |
+| --- | --- |
 | `manifest.json` | Configurações do app (nome, ícones, cores) |
 | `sw.js` | Service Worker para cache offline |
 | `icons/` | Ícones para diferentes tamanhos de tela |
 
-### Configuração do ESLint
+### **Configuração do ESLint**
 
-Crie o arquivo `eslint.config.js` na raiz do projeto:
+Crie o arquivo `eslint.config.js` na raiz do projeto:
 
-```javascript
+```js
 // eslint.config.js
 import js from "@eslint/js";
 
@@ -274,8 +678,7 @@ export default [
         console: "readonly",
         pdfjsLib: "readonly",
         jspdf: "readonly",
-        CONFIG: "readonly",
-        // ... outras variáveis globais do projeto
+        CONFIG: "readonly"
       }
     },
     rules: {
@@ -288,7 +691,7 @@ export default [
 ];
 ```
 
-### Configuração do Prettier
+### **Configuração do Prettier**
 
 Crie o arquivo `.prettierrc` na raiz do projeto:
 
@@ -305,7 +708,7 @@ Crie o arquivo `.prettierrc` na raiz do projeto:
 }
 ```
 
-### Configuração do Jest
+### **Configuração do Jest**
 
 Crie o arquivo `jest.config.js` na raiz do projeto:
 
@@ -321,7 +724,7 @@ module.exports = {
 };
 ```
 
-### Comandos disponíveis
+### **Comandos disponíveis**
 
 | Comando | Descrição |
 |---------|-----------|
@@ -338,7 +741,7 @@ module.exports = {
 | `npm run format` | Formata todo o código com Prettier |
 | `npm run format:check` | Verifica formatação sem alterar |
 
-### Git Hooks (Husky)
+### **Git Hooks (Husky)**
 
 Após instalar as dependências, configure os Git hooks:
 
@@ -352,92 +755,3 @@ Isso criará a pasta `.husky/` com o arquivo `pre-commit`. O hook `pre-commit` e
 - Prettier para formatação
 - Jest para testes relacionados
 
-### Executando o projeto
-
-#### Método 1: Com Vite (Recomendado para desenvolvimento)
-
-```bash
-# Entre na pasta do projeto
-cd projeto-palavras
-
-# Instale as dependências (apenas na primeira vez)
-npm install
-
-# Execute o servidor de desenvolvimento
-npm run dev
-```
-
-O servidor será iniciado em `http://localhost:5173/`
-
-#### Método 2: Live Server (Extensão do VS Code)
-
-1. Instale a extensão **"Live Server"** no VS Code
-2. Clique com botão direito no `index.html`
-3. Selecione **"Open with Live Server"**
-
-#### Método 3: Direto no navegador (mais simples)
-
-1. Navegue até a pasta do projeto
-2. Dê duplo clique no arquivo `index.html`
-
-### Executando os testes
-
-```bash
-# Executar todos os testes
-npm test
-
-# Executar testes em modo watch (atualiza automaticamente)
-npm run test:watch
-
-# Executar testes com relatório de cobertura
-npm run test:coverage
-```
-
-### Verificando a instalação
-
-```bash
-# Verificar versão do Node.js
-node --version        # Deve mostrar v18.0.0 ou superior
-
-# Verificar versão do npm
-npm --version         # Deve mostrar 9.0.0 ou superior
-
-# Verificar se as dependências estão instaladas
-npm list --depth=0
-```
-
-### Estrutura da pasta de testes
-
-```
-tests/
-├── config.test.js           # Testes de configuração
-├── errorhandler.test.js     # Testes do ErrorHandler
-├── frases.test.js           # Testes do modelo de frases
-├── loadingmanager.test.js   # Testes do LoadingManager
-├── palavras.test.js         # Testes do modelo de palavras
-├── progress.test.js         # Testes do ProgressService
-├── sample.test.js           # Teste de verificação do Jest
-├── shuffler.test.js         # Testes do ShufflerService
-├── storage.test.js          # Testes do StorageService
-└── validator.test.js        # Testes do ValidatorService
-```
-
-### Parando o servidor
-
-No terminal onde o Vite está rodando, pressione:
-
-```
-Ctrl + C
-```
-
-### Instalando o PWA
-
-Após executar `npm run build` e `npm run preview`:
-
-1. Abra `http://localhost:4173` no Chrome
-2. Clique no ícone de instalar na barra de endereço (ou Menu → Instalar aplicativo)
-3. O app será instalado na tela inicial do seu dispositivo
-
----
-
-**O aplicativo agora funciona offline e pode ser instalado como um app nativo!** 📱
