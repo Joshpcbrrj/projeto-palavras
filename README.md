@@ -1,10 +1,22 @@
-<div align="center">
 
 # 📚 Aprendendo Palavras
 
 ### Uma plataforma moderna para dominar vocabulário em múltiplos idiomas
 
 **Aprenda, pratique e evolua** com flashcards inteligentes, áudio realista e estatísticas detalhadas.
+
+## 🖥️ **Demonstração**
+
+<div align="center">
+
+![Tela principal do Aprendendo Palavras](screenshots/tela-principal.png)
+
+*Interface principal do Aplicativo*
+
+</div>
+
+<div align="center">
+
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-blue?logo=githubpages)](https://joshpcbrrj.github.io/projeto-palavras/)
@@ -755,3 +767,46 @@ Isso criará a pasta `.husky/` com o arquivo `pre-commit`. O hook `pre-commit` e
 - Prettier para formatação
 - Jest para testes relacionados
 
+## 👨‍💻 **Autor**
+
+<div align="center">
+
+**Desenvolvido com dedicação para facilitar o aprendizado de idiomas.**
+
+---
+
+### 📫 **Contato e Redes**
+
+[![GitHub](https://img.shields.io/badge/GitHub-Joshpcbrrj-181717?logo=github&logoColor=white)](https://github.com/Joshpcbrrj)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Josualmeida-0A66C2?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/josualmeida/)
+[![Email](https://img.shields.io/badge/Email-joshpcbrrj@gmail.com-D14836?logo=gmail&logoColor=white)](mailto:joshpcbrrj@gmail.com)
+
+</div>
+
+---
+
+## 🙏 **Agradecimentos**
+
+- 🌟 **A todos que testaram e deram feedback** durante o desenvolvimento
+- 📚 **À comunidade open source** pelas ferramentas incríveis (Vite, Jest, PDF.js, jsPDF)
+- 🎓 **Aos professores e mentores** que incentivaram o projeto
+- 🚀 **A você, usuário** por utilizar e valorizar o projeto
+
+---
+
+## ⭐ **Contribua com o projeto**
+
+Se este projeto te ajudou de alguma forma:
+
+- 🔗 **Compartilhe com alguém** que esteja aprendendo idiomas
+- 🐛 **Reporte bugs** abrindo uma [issue](https://github.com/Joshpcbrrj/projeto-palavras/issues)
+- ⭐ **Dê uma estrela** no repositório para ajudar na divulgação
+- 💡 **Sugira melhorias** através das issues
+
+---
+
+<div align="center">
+
+**Feito com ☕ e JavaScript**
+
+</div>
