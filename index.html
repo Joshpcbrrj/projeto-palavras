@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aprendendo Palavras - Flashcard</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#667eea" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Aprender" />
+    <link rel="apple-touch-icon" href="icons/icon-152.png" />
+
+    <!-- CSS personalizados -->
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/dark-mode.css" />
+    <link rel="stylesheet" href="css/components.css" />
+
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- PDF.js para ler arquivos PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
+    <!-- jsPDF para gerar PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  </head>
+  <body class="bg-gradient-to-br from-purple-600 to-blue-500 min-h-screen py-8">
+    <!-- Botão Modo Escuro -->
+    <button id="themeToggle" class="theme-toggle" style="background: white">🌙</button>
+
+    <div class="container mx-auto max-w-4xl px-4">
+      <div class="bg-white rounded-2xl shadow-xl p-8 mb-6">
+        <h1 class="text-4xl font-bold text-center text-gray-800 mb-2">📚 Aprendendo Palavras</h1>
+        <p class="text-center text-gray-600">Flashcard para estudo de idiomas</p>
+      </div>
+      <div id="app"></div>
+    </div>
+
+    <!-- Botão fixo Voltar ao Início -->
+    <button
+      id="btnVoltarInicio"
+      class="fixed bottom-6 right-6 bg-purple-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-purple-700 transition flex items-center gap-2 z-50 font-semibold"
+    >
+      🏠 Voltar ao Início
+    </button>
+
+    <!-- ============================================ -->
+    <!-- JAVASCRIPT MODULES - ESTRUTURA ORGANIZADA     -->
+    <!-- ============================================ -->
+
+    <!-- Configuração (raiz) -->
+    <script src="js/config.js"></script>
+
+    <!-- Serviços (services/) -->
+    <script src="js/services/StorageService.js"></script>
+    <script src="js/services/ValidatorService.js"></script>
+    <script src="js/services/ShufflerService.js"></script>
+    <script src="js/services/ProgressService.js"></script>
+    <script src="js/services/ErrorHandler.js"></script>
+    <script src="js/services/LoadingManager.js"></script>
+
+    <!-- Modelos (models/) -->
+    <script src="js/models/PalavrasModel.js"></script>
+    <script src="js/models/FrasesModel.js"></script>
+
+    <!-- Núcleo (core/) -->
+    <script src="js/core/AppState.js"></script>
+    <script src="js/core/AppTimer.js"></script>
+    <script src="js/core/AppAudio.js"></script>
+    <script src="js/core/AppNavigation.js"></script>
+    <script src="js/core/AudioIdiomas.js"></script>
+    <script src="js/core/AudioPlayer.js"></script>
+    <script src="js/core/AnalisadorEstatisticas.js"></script>
+    <script src="js/core/AnalisadorExtracao.js"></script>
+    <script src="js/core/PDFGenerator.js"></script>
+
+    <!-- Interface do usuário (ui/) -->
+    <script src="js/ui/ThemeManager.js"></script>
+    <script src="js/ui/NavigationManager.js"></script>
+    <script src="js/ui/AudioUISelector.js"></script>
+    <script src="js/ui/AnalisadorUI.js"></script>
+    <script src="js/ui/ProgressoUI.js"></script>
+    <script src="js/ui/Toast.js"></script>
+
+    <!-- Aplicações (apps/) -->
+    <script src="js/apps/AppBase.js"></script>
+    <script src="js/apps/AppPalavras.js"></script>
+    <script src="js/apps/AppFrases.js"></script>
+    <script src="js/apps/AppAnalisador.js"></script>
+    <script src="js/apps/AppProgresso.js"></script>
+
+    <!-- Menu principal (raiz) -->
+    <script src="js/app.js"></script>
+
+    <!-- ============================================ -->
+    <!-- SERVICE WORKER PARA PWA                      -->
+    <!-- ============================================ -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker
+            .register('/sw.js')
+            .then((registration) => {
+              console.log('✅ Service Worker registrado com sucesso:', registration);
+            })
+            .catch((error) => {
+              console.log('❌ Falha ao registrar Service Worker:', error);
+            });
+        });
+      }
+    </script>
+  </body>
+</html>

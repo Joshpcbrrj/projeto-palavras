@@ -1,0 +1,63 @@
+{
+  "name": "aprendendo-palavras",
+  "version": "2.0.0",
+  "type": "module",
+  "description": "Flashcard para estudo de idiomas",
+  "main": "index.html",
+  "jest": {
+    "testEnvironment": "jsdom",
+    "verbose": true,
+    "collectCoverage": true,
+    "coverageDirectory": "coverage",
+    "coverageReporters": [
+      "text",
+      "lcov"
+    ],
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ]
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "npx live-server --port=3000",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint js/**/*.js --ignore-pattern '**/tests/**'",
+    "lint:fix": "eslint js/**/*.js --fix --ignore-pattern '**/tests/**'",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix --ignore-pattern '**/tests/**'",
+      "prettier --write",
+      "jest --bail --findRelatedTests --passWithNoTests"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
+  },
+  "keywords": [
+    "flashcard",
+    "language-learning",
+    "education",
+    "tailwind",
+    "pdf"
+  ],
+  "author": "Josué B. Almeida",
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.4.0",
+    "husky": "^9.0.0",
+    "jest": "^30.4.2",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.2.0",
+    "sharp": "^0.34.5",
+    "vite": "^5.0.0"
+  }
+}

@@ -1,0 +1,310 @@
+/**
+ * dark-mode.css
+ * Estilos específicos para o modo escuro
+ */
+
+/* Variáveis do tema claro (padrão) */
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #f3f4f6;
+  --text-primary: #1f2937;
+  --text-secondary: #4b5563;
+  --text-tertiary: #6b7280;
+  --border-light: #e5e7eb;
+  --border-medium: #d1d5db;
+  --shadow: rgba(0, 0, 0, 0.1);
+  --gradient-start: #667eea;
+  --gradient-end: #764ba2;
+}
+
+/* Variáveis do tema escuro */
+.dark-mode {
+  --bg-primary: #1f2937;
+  --bg-secondary: #374151;
+  --bg-tertiary: #4b5563;
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-tertiary: #9ca3af;
+  --border-light: #4b5563;
+  --border-medium: #6b7280;
+  --shadow: rgba(0, 0, 0, 0.3);
+  --gradient-start: #4c1d95;
+  --gradient-end: #5b21b6;
+}
+
+/* Aplicação das variáveis */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+}
+
+/* Cards e containers */
+.bg-white,
+.bg-gray-50,
+.bg-blue-50,
+.bg-green-50 {
+  background-color: var(--bg-primary) !important;
+}
+
+/* CORREÇÃO: Cards coloridos no modo escuro */
+.dark-mode .bg-purple-100,
+.dark-mode .bg-blue-100,
+.dark-mode .bg-green-100,
+.dark-mode .bg-teal-100,
+.dark-mode .bg-yellow-100,
+.dark-mode .bg-red-100,
+.dark-mode .bg-indigo-100 {
+  background-color: var(--bg-tertiary) !important;
+}
+
+/* CORREÇÃO: Textos dentro dos cards coloridos */
+.dark-mode .bg-purple-100 .text-purple-600,
+.dark-mode .bg-purple-100 .text-purple-700,
+.dark-mode .bg-blue-100 .text-blue-600,
+.dark-mode .bg-blue-100 .text-blue-700,
+.dark-mode .bg-green-100 .text-green-600,
+.dark-mode .bg-green-100 .text-green-700,
+.dark-mode .bg-teal-100 .text-teal-600,
+.dark-mode .bg-teal-100 .text-teal-700,
+.dark-mode .bg-yellow-100 .text-yellow-600,
+.dark-mode .bg-yellow-100 .text-yellow-700,
+.dark-mode .bg-yellow-50 .text-yellow-800,
+.dark-mode .bg-red-100 .text-red-600,
+.dark-mode .bg-red-100 .text-red-700 {
+  color: var(--text-primary) !important;
+}
+
+/* CORREÇÃO: Números grandes nos cards */
+.dark-mode .text-3xl.font-bold {
+  color: var(--text-primary) !important;
+}
+
+/* CORREÇÃO: Textos secundários nos cards */
+.dark-mode .text-sm.text-gray-600,
+.dark-mode .text-xs.text-gray-500 {
+  color: var(--text-secondary) !important;
+}
+
+/* CORREÇÃO: Cards de resumo (purple, blue, green, teal) */
+.dark-mode .bg-purple-100,
+.dark-mode .bg-blue-100,
+.dark-mode .bg-green-100,
+.dark-mode .bg-teal-100 {
+  background-color: #2d3748 !important;
+}
+
+.dark-mode .bg-purple-100 .text-purple-600,
+.dark-mode .bg-blue-100 .text-blue-600,
+.dark-mode .bg-green-100 .text-green-600,
+.dark-mode .bg-teal-100 .text-teal-600 {
+  color: #a78bfa !important;
+}
+
+/* Textos gerais */
+.text-gray-800,
+.text-gray-700,
+.text-gray-600,
+.text-blue-800,
+.text-green-800 {
+  color: var(--text-primary) !important;
+}
+
+.text-gray-500,
+.text-gray-400 {
+  color: var(--text-secondary) !important;
+}
+
+/* Títulos */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.font-bold {
+  color: var(--text-primary) !important;
+}
+
+/* Labels */
+label {
+  color: var(--text-primary) !important;
+}
+
+/* Botões de idioma no modo escuro */
+.dark-mode .idioma-btn {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-light);
+}
+
+.dark-mode .idioma-btn:hover {
+  background-color: #5b21b6 !important;
+  color: white !important;
+}
+
+.dark-mode .idioma-btn.bg-purple-600 {
+  background-color: #6d28d9 !important;
+  color: white !important;
+}
+
+/* Botão de áudio no modo escuro */
+.dark-mode #btnAudio {
+  background-color: var(--bg-primary) !important;
+  color: #8b5cf6 !important;
+  border: 1px solid var(--border-light);
+}
+
+.dark-mode #btnAudio:hover {
+  background-color: var(--bg-tertiary) !important;
+}
+
+/* Inputs e textareas */
+.dark-mode input,
+.dark-mode textarea {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-medium);
+}
+
+.dark-mode input:focus,
+.dark-mode textarea:focus {
+  border-color: var(--gradient-start);
+  outline: none;
+}
+
+.dark-mode input::placeholder,
+.dark-mode textarea::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* Botões padrão no modo escuro */
+.dark-mode button:not(.idioma-btn):not(#btnAudio):not(#btnVoltarInicio):not(#themeToggle) {
+  color: white !important;
+}
+
+/* Botão de alternar tema */
+.theme-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--bg-primary);
+  border: 2px solid var(--border-light);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  z-index: 1000;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px var(--shadow);
+}
+
+.theme-toggle:hover {
+  transform: scale(1.1);
+}
+
+/* Área de revisão no modo escuro */
+.dark-mode .revisao-container,
+.dark-mode #listaRevisao,
+.dark-mode #itensArea .bg-gray-50 {
+  background-color: var(--bg-secondary) !important;
+}
+
+.dark-mode .palavra-item,
+.dark-mode #listaRevisao div {
+  color: var(--text-primary) !important;
+  border-bottom-color: var(--border-light) !important;
+}
+
+.dark-mode .palavra-item:hover,
+.dark-mode #listaRevisao div:hover {
+  background-color: var(--bg-tertiary) !important;
+}
+
+/* Tabela de histórico no modo escuro */
+.dark-mode table {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .bg-gray-50 {
+  background-color: var(--bg-secondary) !important;
+}
+
+.dark-mode .bg-gray-100 {
+  background-color: var(--bg-tertiary) !important;
+}
+
+.dark-mode .border-b {
+  border-bottom-color: var(--border-light) !important;
+}
+
+.dark-mode .hover\:bg-gray-100:hover {
+  background-color: var(--bg-tertiary) !important;
+}
+
+/* Scrollbar no modo escuro */
+.dark-mode ::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+.dark-mode ::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+}
+
+.dark-mode ::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* Alertas e feedback no modo escuro */
+.dark-mode .bg-yellow-50 {
+  background-color: #713f12 !important;
+}
+
+.dark-mode .bg-yellow-50 .text-yellow-800 {
+  color: #fde047 !important;
+}
+
+.dark-mode .bg-green-50 {
+  background-color: #064e3b !important;
+}
+
+.dark-mode .bg-green-50 .text-green-800 {
+  color: #a7f3d0 !important;
+}
+
+.dark-mode .bg-blue-50 {
+  background-color: #1e3a5f !important;
+}
+
+.dark-mode .bg-blue-50 .text-blue-800 {
+  color: #93c5fd !important;
+}
+
+.dark-mode .bg-red-50 {
+  background-color: #7f1d1d !important;
+}
+
+/* Container de preview no modo escuro */
+.dark-mode .border-dashed {
+  border-color: var(--border-medium) !important;
+}
+
+.dark-mode .border-gray-300 {
+  border-color: var(--border-light) !important;
+}
+
+/* Responsividade */
+@media (max-width: 640px) {
+  .theme-toggle {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    top: 10px;
+    right: 10px;
+  }
+}
