@@ -14,11 +14,11 @@ class AppAudio {
    */
   carregarPreferencia() {
     let saved;
-if (typeof StorageService !== 'undefined') {
-    saved = StorageService.carregar('audioAutomatico');
-} else {
-    saved = localStorage.getItem('audioAutomatico');
-}
+    if (typeof StorageService !== 'undefined') {
+      saved = StorageService.carregar('audioAutomatico');
+    } else {
+      saved = localStorage.getItem('audioAutomatico');
+    }
 
     if (saved !== null) {
       this.audioAutomatico = saved === 'true';

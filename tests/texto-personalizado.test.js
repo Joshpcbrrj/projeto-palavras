@@ -1,4 +1,7 @@
-const { criarConteudoPadrao, extrairTextoImportado } = require('../js/services/TextoPersonalizadoService.js');
+const {
+  criarConteudoPadrao,
+  extrairTextoImportado,
+} = require('../js/services/TextoPersonalizadoService.js');
 
 describe('TextoPersonalizadoService', () => {
   test('deve criar um conteúdo padronizado para exportação em PDF', () => {

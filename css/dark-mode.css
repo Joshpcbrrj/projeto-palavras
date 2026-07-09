@@ -38,7 +38,16 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   transition: all 0.3s ease;
+  /* base.css define um gradiente fixo; no modo escuro removemos para evitar "layout quebrado" */
+  background-image: none !important;
 }
+
+/* Garantir contraste do container principal no dark mode */
+.dark-mode .bg-white {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-light) !important;
+}
+
 
 /* Cards e containers */
 .bg-white,

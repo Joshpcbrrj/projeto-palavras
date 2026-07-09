@@ -1,0 +1,3 @@
+ESBOCO - Não é parte do código final.
+Aguardando: implementar UI de player (velocidade, pause/retomar, voltar) em AppTextoPersonalizado e AppRevisaoTexto.
+

@@ -9,7 +9,7 @@ const AudioPlayer = {
    * @param {string} texto - Texto a ser falado
    * @returns {boolean}
    */
-  falar(texto) {
+  falar(texto, { rate } = {}) {
     if (!texto) {
       console.warn('Nenhum texto para falar');
       return false;
@@ -21,14 +21,18 @@ const AudioPlayer = {
     }
 
     // Cancela qualquer fala em andamento
-      window.speechSynthesis.cancel();
+    window.speechSynthesis.cancel();
 
-      const idiomaAtual = AudioIdiomas ? (AudioIdiomas.getIdiomaAtual?.() || AudioIdiomas.idiomaAtual || 'pt-BR') : 'pt-BR';
-      const vozDisponivel = AudioIdiomas ? (AudioIdiomas.getVozDisponivel?.() || AudioIdiomas.vozDisponivel || null) : null;
+    const idiomaAtual = AudioIdiomas
+      ? AudioIdiomas.getIdiomaAtual?.() || AudioIdiomas.idiomaAtual || 'pt-BR'
+      : 'pt-BR';
+    const vozDisponivel = AudioIdiomas
+      ? AudioIdiomas.getVozDisponivel?.() || AudioIdiomas.vozDisponivel || null
+      : null;
 
     const utterance = new SpeechSynthesisUtterance(texto);
     utterance.lang = idiomaAtual;
-    utterance.rate = 0.85; // Velocidade um pouco mais lenta para aprendizado
+    utterance.rate = typeof rate === 'number' ? rate : 0.85; // Velocidade configurável
     utterance.pitch = 1; // Tom normal
 
     // Usa a voz específica se disponível
@@ -46,7 +50,7 @@ const AudioPlayer = {
    * @param {Function} callback - Função chamada ao terminar
    * @returns {boolean}
    */
-  falarComCallback(texto, callback) {
+  falarComCallback(texto, callback, { rate } = {}) {
     if (!texto) {
       if (callback) callback(false);
       return false;
@@ -61,12 +65,16 @@ const AudioPlayer = {
     // Cancela qualquer fala em andamento
     window.speechSynthesis.cancel();
 
-    const idiomaAtual = AudioIdiomas ? (AudioIdiomas.getIdiomaAtual?.() || AudioIdiomas.idiomaAtual || 'pt-BR') : 'pt-BR';
-    const vozDisponivel = AudioIdiomas ? (AudioIdiomas.getVozDisponivel?.() || AudioIdiomas.vozDisponivel || null) : null;
+    const idiomaAtual = AudioIdiomas
+      ? AudioIdiomas.getIdiomaAtual?.() || AudioIdiomas.idiomaAtual || 'pt-BR'
+      : 'pt-BR';
+    const vozDisponivel = AudioIdiomas
+      ? AudioIdiomas.getVozDisponivel?.() || AudioIdiomas.vozDisponivel || null
+      : null;
 
     const utterance = new SpeechSynthesisUtterance(texto);
     utterance.lang = idiomaAtual;
-    utterance.rate = 0.85;
+    utterance.rate = typeof rate === 'number' ? rate : 0.85;
     utterance.pitch = 1;
 
     if (vozDisponivel) {
@@ -90,7 +98,7 @@ const AudioPlayer = {
    * @param {string} texto - Texto a ser falado
    * @returns {Promise<boolean>}
    */
-  falarComPromise(texto) {
+  falarComPromise(texto, { rate } = {}) {
     return new Promise((resolve) => {
       if (!texto) {
         resolve(false);
@@ -105,12 +113,17 @@ const AudioPlayer = {
 
       window.speechSynthesis.cancel();
 
-    const idiomaAtual = AudioIdiomas ? (AudioIdiomas.getIdiomaAtual?.() || AudioIdiomas.idiomaAtual || 'pt-BR') : 'pt-BR';
-    const vozDisponivel = AudioIdiomas ? (AudioIdiomas.getVozDisponivel?.() || AudioIdiomas.vozDisponivel || null) : null;
+      const idiomaAtual = AudioIdiomas
+        ? AudioIdiomas.getIdiomaAtual?.() || AudioIdiomas.idiomaAtual || 'pt-BR'
+        : 'pt-BR';
+      const vozDisponivel = AudioIdiomas
+        ? AudioIdiomas.getVozDisponivel?.() || AudioIdiomas.vozDisponivel || null
+        : null;
 
       const utterance = new SpeechSynthesisUtterance(texto);
       utterance.lang = idiomaAtual;
-      utterance.rate = 0.85;
+      utterance.rate = typeof rate === 'number' ? rate : 0.85;
+
       utterance.pitch = 1;
 
       if (vozDisponivel) {
@@ -135,6 +148,18 @@ const AudioPlayer = {
   parar() {
     if (window.speechSynthesis) {
       window.speechSynthesis.cancel();
+    }
+  },
+
+  pausar() {
+    if (window.speechSynthesis && window.speechSynthesis.speaking) {
+      window.speechSynthesis.pause();
+    }
+  },
+
+  retomar() {
+    if (window.speechSynthesis && window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
     }
   },
 

@@ -8,7 +8,3 @@
 - [ ] Validar manualmente o layout no Chrome nas telas: “Estude e gere seu texto” e “Revise texto já estudado” com dark mode ativo
 
 - [x] Rodar testes (`npm test`) e lint (`npm run lint`) se aplicável
-
-
-
-

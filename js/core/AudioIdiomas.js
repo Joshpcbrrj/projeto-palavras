@@ -64,11 +64,11 @@ const AudioIdiomas = {
    */
   carregarIdiomaSalvo() {
     let saved;
-if (typeof StorageService !== 'undefined') {
-    saved = StorageService.carregar(this.STORAGE_KEY);
-} else {
-    saved = localStorage.getItem(this.STORAGE_KEY);
-}
+    if (typeof StorageService !== 'undefined') {
+      saved = StorageService.carregar(this.STORAGE_KEY);
+    } else {
+      saved = localStorage.getItem(this.STORAGE_KEY);
+    }
 
     if (saved && this.idiomas[saved]) {
       this.idiomaAtual = saved;

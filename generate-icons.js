@@ -13,7 +13,7 @@ const iconsDir = path.join(__dirname, 'icons');
 function createSvgIcon(size) {
   const emojiSize = Math.floor(size * 0.55);
   const emojiY = Math.floor(size * 0.68);
-  
+
   return `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}">
       <rect width="${size}" height="${size}" fill="#667eea" rx="${Math.floor(size * 0.15)}"/>
@@ -33,12 +33,12 @@ function createSvgIcon(size) {
 
 async function generateIcons() {
   console.log('🎨 Gerando ícones PWA...\n');
-  
+
   // Garante que a pasta icons existe
   if (!fs.existsSync(iconsDir)) {
     fs.mkdirSync(iconsDir, { recursive: true });
   }
-  
+
   for (const size of sizes) {
     const svg = createSvgIcon(size);
     await sharp(Buffer.from(svg))
@@ -46,7 +46,7 @@ async function generateIcons() {
       .toFile(path.join(iconsDir, `icon-${size}.png`));
     console.log(`✅ icons/icon-${size}.png`);
   }
-  
+
   console.log('\n✨ Todos os 8 ícones foram gerados!');
 }
 

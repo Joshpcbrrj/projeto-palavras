@@ -17,11 +17,11 @@ const ThemeManager = {
 
   loadSavedTheme() {
     let savedTheme;
-if (typeof StorageService !== 'undefined') {
-    savedTheme = StorageService.carregar(this.STORAGE_KEY);
-} else {
-    savedTheme = localStorage.getItem(this.STORAGE_KEY);
-}
+    if (typeof StorageService !== 'undefined') {
+      savedTheme = StorageService.carregar(this.STORAGE_KEY);
+    } else {
+      savedTheme = localStorage.getItem(this.STORAGE_KEY);
+    }
 
     if (savedTheme === 'dark') {
       this.enableDarkMode();

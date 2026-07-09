@@ -20,7 +20,8 @@
       tipo = 'texto-personalizado',
       criadoEm = new Date().toISOString(),
     }) {
-      const tituloLimpo = (titulo || 'Texto personalizado').toString().trim() || 'Texto personalizado';
+      const tituloLimpo =
+        (titulo || 'Texto personalizado').toString().trim() || 'Texto personalizado';
       const textoLimpo = (texto || '').toString().trim();
 
       return [

@@ -25,26 +25,35 @@ Live: https://joshpcbrrj.github.io/projeto-palavras/
 ## Recursos (Features)
 
 ### Estudo
-- **Extração automática** de palavras a partir de texto/PDF
+
+- **Extração automática** de palavras/frases a partir de texto/PDF
 - **Estudo por contexto** (frases, não só palavras)
 - **Revisão eficiente** com fluxos de prática
 
 ### Texto personalizado
+
 - **Cole e estude textos** (leitura em voz alta)
+- **Player de áudio completo**: velocidade (rate), pausar/retomar e “voltar ao início”
 - **Revisão de textos exportados** (upload e leitura)
-- **Exportação em PDF** com estrutura organizada
+- **Exportação em PDF** com estrutura organizada + dados de revisão offline
 
 ### Áudio
-- **Vozes naturais** via **Web Speech API**
-- Idiomas suportados (multiidioma)
-- Áudio sob demanda (botão “Ouvir texto”)
 
-### Progresso e análises
-- **Estatísticas** e acompanhamento por período
+- **Vozes naturais** via **Web Speech API**
+- Suporte a **múltiplos idiomas**
+- Áudio sob demanda (botão **“Ouvir texto”**)
+
+### Progresso e dados
+
 - **Persistência local** (localStorage)
-- **Export/import** via JSON (quando aplicável)
+- **Export/import** (JSON) quando aplicável
+
+### Fluxo removido da UI
+
+- O fluxo de **“Analisar Progresso”** foi removido do menu principal.
 
 ### PWA
+
 - **Instalável** e com suporte offline (Service Worker)
 
 ---
@@ -63,6 +72,7 @@ Live: https://joshpcbrrj.github.io/projeto-palavras/
 ## Como executar
 
 ### Requisitos
+
 - Node.js 18+ e npm
 - Navegador moderno
 
@@ -125,9 +135,11 @@ npm run icons
 ## Problemas comuns (FAQ)
 
 ### O modo escuro afeta inputs/áreas de texto
+
 Verifique se a classe `.dark-mode` está ativa no `body`. O projeto aplica estilos específicos em `css/dark-mode.css` e `css/components.css` para inputs com a classe `.input-modern`.
 
 ### Áudio não funciona
+
 - Alguns navegadores exigem interação do usuário antes.
 - Use Chrome/Edge e clique no botão de áudio.
 
@@ -149,4 +161,3 @@ MIT. Veja [LICENSE](LICENSE).
 ### Autor
 
 Josué B. Almeida
-

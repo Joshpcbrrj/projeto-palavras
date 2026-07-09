@@ -9,12 +9,20 @@ class PDFGenerator {
     this.jsPDF = window.jspdf.jsPDF;
   }
 
-  gerarTextoPersonalizadoPDF({ titulo, texto, idioma = 'pt-BR', tipo = 'texto-personalizado' }) {
+  gerarTextoPersonalizadoPDF({
+    titulo,
+    texto,
+    idioma = 'pt-BR',
+    tipo = 'texto-personalizado',
+    // Revisão para incluir no PDF e também ajudar o usuário com arquivos offline
+    revisao = null,
+  }) {
     const doc = new this.jsPDF();
     let y = 20;
 
     const conteudoPadrao =
-      typeof TextoPersonalizadoService !== 'undefined' && TextoPersonalizadoService.criarConteudoPadrao
+      typeof TextoPersonalizadoService !== 'undefined' &&
+      TextoPersonalizadoService.criarConteudoPadrao
         ? TextoPersonalizadoService.criarConteudoPadrao({
             titulo,
             texto,
@@ -37,6 +45,24 @@ class PDFGenerator {
     doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 20, y);
     y += 12;
 
+    // Se houver data de revisão, registramos no PDF em “metadados quase invisíveis”
+    // para não interferir na leitura do conteúdo.
+    if (revisao) {
+      doc.setFontSize(7);
+      doc.setTextColor(200, 200, 200);
+      const revisaoFormatada = revisao.dataBR ? revisao.dataBR : String(revisao);
+      doc.text(`=== REVISÃO (offline) ===`, 20, y);
+      y += 4;
+      doc.text(`DATA_REVISAR: ${revisaoFormatada}`, 20, y);
+      y += 4;
+      doc.text(`=== FIM REVISÃO ===`, 20, y);
+      y += 6;
+
+      // Volta para estilo normal do conteúdo.
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+    }
+
     doc.setDrawColor(200, 200, 200);
     doc.line(20, y, 190, y);
     y += 10;
@@ -55,9 +81,32 @@ class PDFGenerator {
    * @param {string} nomeBase - Nome base do arquivo
    * @returns {string} - Nome do arquivo salvo
    */
-  salvarPDF(doc, nomeBase = 'estudo') {
+  salvarPDF(doc, nomeBase = 'estudo', metadados = {}) {
+    // jsPDF não oferece API 100% padronizada de “metadados” em todos os navegadores.
+    // O que fazemos aqui é:
+    //  - garantir data no nome do arquivo
+    //  - (opcional) gravar tags visíveis/“near-visible” no PDF no conteúdo gerado
+    //  - manter metadados para possível extensão futura.
+
     const data = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
     const nomeArquivo = `${nomeBase}_${data}.pdf`;
+
+    // Tentativa de gravação de metadados via doc.getDocumentProperties (se existir)
+    try {
+      // Alguns builds do jsPDF suportam setProperties/getDocumentProperties.
+      if (typeof doc.setProperties === 'function' && metadados && typeof metadados === 'object') {
+        doc.setProperties({
+          title: metadados.title || metadados.titulo,
+          subject: metadados.subject,
+          keywords: metadados.keywords,
+          author: metadados.author,
+          creator: metadados.creator,
+        });
+      }
+    } catch (e) {
+      // sem impacto no fluxo principal
+    }
+
     doc.save(nomeArquivo);
     return nomeArquivo;
   }
@@ -72,7 +121,12 @@ class PDFGenerator {
   async gerarESalvar(itens, config, tipo = 'palavras') {
     try {
       const doc = this.gerarPDF(itens, config, tipo);
-      const nomeBase = tipo === 'frases' ? 'frases_estudadas' : tipo === 'texto-personalizado' ? 'texto_personalizado' : 'palavras_estudadas';
+      const nomeBase =
+        tipo === 'frases'
+          ? 'frases_estudadas'
+          : tipo === 'texto-personalizado'
+            ? 'texto_personalizado'
+            : 'palavras_estudadas';
       const nomeArquivo = this.salvarPDF(doc, nomeBase);
 
       // Registra o arquivo exportado no progresso

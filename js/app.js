@@ -77,10 +77,7 @@ function renderizarMenu() {
                     <div class="text-xl">📝</div>
                     <div>Verificar Estudo de Frases</div>
                 </button>
-                <button id="btnProgresso" class="bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-6 py-4 rounded-2xl hover:opacity-95 transition text-lg font-semibold shadow-lg shadow-indigo-200 col-span-1 md:col-span-2 text-left">
-                    <div class="text-xl">📈</div>
-                    <div>Analisar Progresso</div>
-                </button>
+
             </div>
             
             <p class="text-center text-gray-500 text-sm mt-4">
@@ -95,7 +92,7 @@ function renderizarMenu() {
   const btnRevisaoTexto = document.getElementById('btnRevisaoTexto');
   const btnAnalisadorPalavras = document.getElementById('btnAnalisadorPalavras');
   const btnAnalisadorFrases = document.getElementById('btnAnalisadorFrases');
-  const btnProgresso = document.getElementById('btnProgresso');
+  // const btnProgresso = document.getElementById('btnProgresso');
 
   if (btnPalavras) btnPalavras.addEventListener('click', () => iniciarModo('palavras'));
   if (btnFrases) btnFrases.addEventListener('click', () => iniciarModo('frases'));
@@ -106,7 +103,6 @@ function renderizarMenu() {
     btnAnalisadorPalavras.addEventListener('click', () => iniciarModo('analisadorPalavras'));
   if (btnAnalisadorFrases)
     btnAnalisadorFrases.addEventListener('click', () => iniciarModo('analisadorFrases'));
-  if (btnProgresso) btnProgresso.addEventListener('click', () => iniciarModo('progresso'));
 }
 
 // Iniciar aplicação com o menu principal

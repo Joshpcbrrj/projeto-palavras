@@ -11,6 +11,7 @@ class AppAnalisador {
     this.analisador = new AnalisadorEstatisticas();
     this.analisadorExtracao = new AnalisadorExtracao();
     this.tipoSelecionado = tipoForcado;
+
     this.passo = 1;
 
     if (this.tipoSelecionado) {
