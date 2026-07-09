@@ -21,10 +21,10 @@ const AudioPlayer = {
     }
 
     // Cancela qualquer fala em andamento
-    window.speechSynthesis.cancel();
+      window.speechSynthesis.cancel();
 
-    const idiomaAtual = AudioIdiomas ? AudioIdiomas.getIdiomaAtual() : 'pt-BR';
-    const vozDisponivel = AudioIdiomas ? AudioIdiomas.getVozDisponivel() : null;
+      const idiomaAtual = AudioIdiomas ? (AudioIdiomas.getIdiomaAtual?.() || AudioIdiomas.idiomaAtual || 'pt-BR') : 'pt-BR';
+      const vozDisponivel = AudioIdiomas ? (AudioIdiomas.getVozDisponivel?.() || AudioIdiomas.vozDisponivel || null) : null;
 
     const utterance = new SpeechSynthesisUtterance(texto);
     utterance.lang = idiomaAtual;
@@ -61,8 +61,8 @@ const AudioPlayer = {
     // Cancela qualquer fala em andamento
     window.speechSynthesis.cancel();
 
-    const idiomaAtual = AudioIdiomas ? AudioIdiomas.getIdiomaAtual() : 'pt-BR';
-    const vozDisponivel = AudioIdiomas ? AudioIdiomas.getVozDisponivel() : null;
+    const idiomaAtual = AudioIdiomas ? (AudioIdiomas.getIdiomaAtual?.() || AudioIdiomas.idiomaAtual || 'pt-BR') : 'pt-BR';
+    const vozDisponivel = AudioIdiomas ? (AudioIdiomas.getVozDisponivel?.() || AudioIdiomas.vozDisponivel || null) : null;
 
     const utterance = new SpeechSynthesisUtterance(texto);
     utterance.lang = idiomaAtual;
@@ -105,8 +105,8 @@ const AudioPlayer = {
 
       window.speechSynthesis.cancel();
 
-      const idiomaAtual = AudioIdiomas ? AudioIdiomas.getIdiomaAtual() : 'pt-BR';
-      const vozDisponivel = AudioIdiomas ? AudioIdiomas.getVozDisponivel() : null;
+    const idiomaAtual = AudioIdiomas ? (AudioIdiomas.getIdiomaAtual?.() || AudioIdiomas.idiomaAtual || 'pt-BR') : 'pt-BR';
+    const vozDisponivel = AudioIdiomas ? (AudioIdiomas.getVozDisponivel?.() || AudioIdiomas.vozDisponivel || null) : null;
 
       const utterance = new SpeechSynthesisUtterance(texto);
       utterance.lang = idiomaAtual;
