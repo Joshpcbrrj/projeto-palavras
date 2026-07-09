@@ -18,7 +18,7 @@
   <img src="screenshots/tela-principal.png" alt="Tela principal do Aprendendo Palavras" width="800"/>
 </div>
 
-Live: https://joshpcbrrj.github.io/projeto-palavras/
+#### Live: https://joshpcbrrj.github.io/projeto-palavras/
 
 ---
 
