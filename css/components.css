@@ -7,6 +7,12 @@
 .idioma-btn {
   transition: all 0.2s ease;
   cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.idioma-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
 }
 
 .idioma-btn:hover {
@@ -30,6 +36,25 @@
 .revisao-container {
   max-height: 400px;
   overflow-y: auto;
+}
+
+.card-surface {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 1.25rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.input-modern {
+  border: 1px solid #cbd5e1;
+  border-radius: 0.9rem;
+  background: #fff;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.input-modern:focus {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.18);
 }
 
 .palavra-item {

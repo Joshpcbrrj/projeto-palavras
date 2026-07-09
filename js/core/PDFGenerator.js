@@ -9,6 +9,46 @@ class PDFGenerator {
     this.jsPDF = window.jspdf.jsPDF;
   }
 
+  gerarTextoPersonalizadoPDF({ titulo, texto, idioma = 'pt-BR', tipo = 'texto-personalizado' }) {
+    const doc = new this.jsPDF();
+    let y = 20;
+
+    const conteudoPadrao =
+      typeof TextoPersonalizadoService !== 'undefined' && TextoPersonalizadoService.criarConteudoPadrao
+        ? TextoPersonalizadoService.criarConteudoPadrao({
+            titulo,
+            texto,
+            idioma,
+            tipo,
+          })
+        : `=== TEXTO PERSONALIZADO ===\nTITULO: ${titulo || 'Texto personalizado'}\nIDIOMA: ${idioma}\nTIPO: ${tipo}\n=== CONTEUDO ===\n${texto || ''}\n=== FIM CONTEUDO ===`;
+
+    doc.setFontSize(20);
+    doc.setTextColor(102, 126, 234);
+    doc.text(titulo || 'Texto Personalizado', 20, y);
+    y += 15;
+
+    doc.setFontSize(9);
+    doc.setTextColor(120, 120, 120);
+    doc.text(`Idioma: ${idioma}`, 20, y);
+    y += 8;
+    doc.text(`Tipo: ${tipo}`, 20, y);
+    y += 8;
+    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 20, y);
+    y += 12;
+
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, y, 190, y);
+    y += 10;
+
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    const linhas = doc.splitTextToSize(conteudoPadrao, 170);
+    doc.text(linhas, 20, y);
+
+    return doc;
+  }
+
   /**
    * Salva o PDF no computador
    * @param {Object} doc - Documento PDF
@@ -32,7 +72,7 @@ class PDFGenerator {
   async gerarESalvar(itens, config, tipo = 'palavras') {
     try {
       const doc = this.gerarPDF(itens, config, tipo);
-      const nomeBase = tipo === 'frases' ? 'frases_estudadas' : 'palavras_estudadas';
+      const nomeBase = tipo === 'frases' ? 'frases_estudadas' : tipo === 'texto-personalizado' ? 'texto_personalizado' : 'palavras_estudadas';
       const nomeArquivo = this.salvarPDF(doc, nomeBase);
 
       // Registra o arquivo exportado no progresso

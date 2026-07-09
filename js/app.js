@@ -14,6 +14,12 @@ function iniciarModo(tipo) {
   } else if (tipo === 'frases') {
     aplicativoAtual = new AppFrases();
     aplicativoAtual.renderizar();
+  } else if (tipo === 'textoPersonalizado') {
+    aplicativoAtual = new AppTextoPersonalizado();
+    aplicativoAtual.renderizar();
+  } else if (tipo === 'revisaoTexto') {
+    aplicativoAtual = new AppRevisaoTexto();
+    aplicativoAtual.renderizar();
   } else if (tipo === 'analisadorPalavras') {
     aplicativoAtual = new AppAnalisador('palavras');
     aplicativoAtual.renderizar();
@@ -37,24 +43,43 @@ function renderizarMenu() {
   }
 
   appDiv.innerHTML = `
-        <div class="bg-white rounded-2xl shadow-xl p-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">📚 O que você quer fazer hoje?</h2>
+        <div class="card-surface p-8 md:p-10">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">📚 O que você quer fazer hoje?</h2>
+                    <p class="text-gray-600 mt-1">Escolha um fluxo e continue seus estudos com mais praticidade.</p>
+                </div>
+                <div class="inline-flex items-center px-3 py-2 rounded-full bg-indigo-50 text-indigo-700 text-sm font-semibold">Modo estudo • Web</div>
+            </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <button id="btnPalavras" class="bg-purple-600 text-white px-6 py-4 rounded-lg hover:bg-purple-700 transition text-lg font-semibold">
-                    📖 Estudar Palavras
+                <button id="btnPalavras" class="bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white px-6 py-4 rounded-2xl hover:opacity-95 transition text-lg font-semibold shadow-lg shadow-purple-200 text-left">
+                    <div class="text-xl">📖</div>
+                    <div>Estudar Palavras</div>
                 </button>
-                <button id="btnFrases" class="bg-blue-600 text-white px-6 py-4 rounded-lg hover:bg-blue-700 transition text-lg font-semibold">
-                    💬 Estudar Frases
+                <button id="btnFrases" class="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-4 rounded-2xl hover:opacity-95 transition text-lg font-semibold shadow-lg shadow-blue-200 text-left">
+                    <div class="text-xl">💬</div>
+                    <div>Estudar Frases</div>
                 </button>
-                <button id="btnAnalisadorPalavras" class="bg-green-600 text-white px-6 py-4 rounded-lg hover:bg-green-700 transition text-lg font-semibold">
-                    📊 Verificar Estudo de Palavras
+                <button id="btnTextoPersonalizado" class="bg-gradient-to-r from-amber-600 to-orange-500 text-white px-6 py-4 rounded-2xl hover:opacity-95 transition text-lg font-semibold shadow-lg shadow-amber-200 text-left">
+                    <div class="text-xl">📝</div>
+                    <div>Estude e gere seu texto</div>
                 </button>
-                <button id="btnAnalisadorFrases" class="bg-teal-600 text-white px-6 py-4 rounded-lg hover:bg-teal-700 transition text-lg font-semibold">
-                    📝 Verificar Estudo de Frases
+                <button id="btnRevisaoTexto" class="bg-gradient-to-r from-pink-600 to-rose-500 text-white px-6 py-4 rounded-2xl hover:opacity-95 transition text-lg font-semibold shadow-lg shadow-pink-200 text-left">
+                    <div class="text-xl">📂</div>
+                    <div>Revise texto já estudado</div>
                 </button>
-                <button id="btnProgresso" class="bg-indigo-600 text-white px-6 py-4 rounded-lg hover:bg-indigo-700 transition text-lg font-semibold col-span-1 md:col-span-2">
-                    📈 Analisar Progresso
+                <button id="btnAnalisadorPalavras" class="bg-gradient-to-r from-emerald-600 to-green-500 text-white px-6 py-4 rounded-2xl hover:opacity-95 transition text-lg font-semibold shadow-lg shadow-green-200 text-left">
+                    <div class="text-xl">📊</div>
+                    <div>Verificar Estudo de Palavras</div>
+                </button>
+                <button id="btnAnalisadorFrases" class="bg-gradient-to-r from-teal-600 to-sky-600 text-white px-6 py-4 rounded-2xl hover:opacity-95 transition text-lg font-semibold shadow-lg shadow-teal-200 text-left">
+                    <div class="text-xl">📝</div>
+                    <div>Verificar Estudo de Frases</div>
+                </button>
+                <button id="btnProgresso" class="bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-6 py-4 rounded-2xl hover:opacity-95 transition text-lg font-semibold shadow-lg shadow-indigo-200 col-span-1 md:col-span-2 text-left">
+                    <div class="text-xl">📈</div>
+                    <div>Analisar Progresso</div>
                 </button>
             </div>
             
@@ -66,12 +91,17 @@ function renderizarMenu() {
 
   const btnPalavras = document.getElementById('btnPalavras');
   const btnFrases = document.getElementById('btnFrases');
+  const btnTextoPersonalizado = document.getElementById('btnTextoPersonalizado');
+  const btnRevisaoTexto = document.getElementById('btnRevisaoTexto');
   const btnAnalisadorPalavras = document.getElementById('btnAnalisadorPalavras');
   const btnAnalisadorFrases = document.getElementById('btnAnalisadorFrases');
   const btnProgresso = document.getElementById('btnProgresso');
 
   if (btnPalavras) btnPalavras.addEventListener('click', () => iniciarModo('palavras'));
   if (btnFrases) btnFrases.addEventListener('click', () => iniciarModo('frases'));
+  if (btnTextoPersonalizado)
+    btnTextoPersonalizado.addEventListener('click', () => iniciarModo('textoPersonalizado'));
+  if (btnRevisaoTexto) btnRevisaoTexto.addEventListener('click', () => iniciarModo('revisaoTexto'));
   if (btnAnalisadorPalavras)
     btnAnalisadorPalavras.addEventListener('click', () => iniciarModo('analisadorPalavras'));
   if (btnAnalisadorFrases)

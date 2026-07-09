@@ -4,19 +4,6 @@
   "type": "module",
   "description": "Flashcard para estudo de idiomas",
   "main": "index.html",
-  "jest": {
-    "testEnvironment": "jsdom",
-    "verbose": true,
-    "collectCoverage": true,
-    "coverageDirectory": "coverage",
-    "coverageReporters": [
-      "text",
-      "lcov"
-    ],
-    "testMatch": [
-      "**/tests/**/*.test.js"
-    ]
-  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -55,6 +42,7 @@
     "eslint": "^10.4.0",
     "husky": "^9.0.0",
     "jest": "^30.4.2",
+    "jest-environment-jsdom": "^30.4.1",
     "lint-staged": "^15.2.0",
     "prettier": "^3.2.0",
     "sharp": "^0.34.5",

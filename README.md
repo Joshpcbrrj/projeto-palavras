@@ -1,9 +1,9 @@
 
 # 📚 Aprendendo Palavras
 
-### Uma plataforma moderna para dominar vocabulário em múltiplos idiomas
+### Um app web moderno para estudar idiomas com palavras, frases, textos personalizados e revisão prática
 
-**Aprenda, pratique e evolua** com flashcards inteligentes, áudio realista e estatísticas detalhadas.
+**Aprenda, pratique e evolua** com flashcards inteligentes, áudio em vários idiomas, exportação de materiais em PDF e uma experiência de estudo cada vez mais completa.
 
 ## 🖥️ **Demonstração**
 
@@ -41,6 +41,11 @@
 - 📝 **Contexto real** - Estude frases completas, não palavras isoladas
 - 🔄 **Revisão eficiente** - Modo aleatório para fixação do conteúdo
 
+### � **Novos fluxos de estudo**
+- ✨ **Texto personalizado** - Cole um texto já criado e estude sua leitura em voz alta
+- 📂 **Revisão de textos** - Faça upload de arquivos exportados pelo app para revisar conteúdo depois
+- 📄 **Exportação em PDF** - Salve textos e materiais de estudo com um padrão organizado para revisão posterior
+
 ### 🔊 **Áudio Realista**
 - 🌍 **12 idiomas disponíveis** - Inglês, Espanhol, Francês, Italiano, Alemão, Japonês, Chinês, Coreano, Russo, Português (PT/BR)
 - 🎯 **Dupla modalidade** - Áudio automático ou sob demanda
@@ -64,7 +69,7 @@
 ### 📄 **Relatórios Personalizados**
 - 📑 **Exportação em PDF** - Gere listas de estudo para impressão
 - 🏷️ **Metadados ricos** - Dados embutidos para organização
-- 🔄 **Suporte dual** - Funciona com palavras e frases
+- 🔄 **Suporte dual** - Funciona com palavras, frases e textos personalizados
 
 ### 📱 **Progressive Web App (PWA)**
 - 📲 **Instalação nativa** - Adicione à tela inicial como um app
@@ -224,7 +229,11 @@ projeto-palavras/
 
 │ │ ├── 💬 AppFrases.js # Módulo de frases
 
-│ │ ├── 📊 AppAnalisador.js # Análise de PDFs
+│ │ ├── � AppTextoPersonalizado.js # Estudo e leitura de textos personalizados
+
+│ │ ├── 📂 AppRevisaoTexto.js # Upload e revisão de textos exportados
+
+│ │ ├── �📊 AppAnalisador.js # Análise de PDFs
 
 │ │ └── 📈 AppProgresso.js # Estatísticas de progresso
 
@@ -277,6 +286,8 @@ projeto-palavras/
 │ │ ├── 📊 ProgressService.js # Gestão de progresso
 
 │ │ ├── ⚠️ ErrorHandler.js # Tratamento global de erros
+
+│ │ ├── 📝 TextoPersonalizadoService.js # Formato padronizado para textos exportados/importados
 
 │ │ └── ⏳ LoadingManager.js # Estados de carregamento
 
