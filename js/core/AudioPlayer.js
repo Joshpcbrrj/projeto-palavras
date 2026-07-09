@@ -26,11 +26,14 @@ const AudioPlayer = {
     const idiomaAtual = AudioIdiomas
       ? AudioIdiomas.getIdiomaAtual?.() || AudioIdiomas.idiomaAtual || 'pt-BR'
       : 'pt-BR';
+
     const vozDisponivel = AudioIdiomas
       ? AudioIdiomas.getVozDisponivel?.() || AudioIdiomas.vozDisponivel || null
       : null;
 
     const utterance = new SpeechSynthesisUtterance(texto);
+
+
     utterance.lang = idiomaAtual;
     utterance.rate = typeof rate === 'number' ? rate : 0.85; // Velocidade configurável
     utterance.pitch = 1; // Tom normal
@@ -68,11 +71,31 @@ const AudioPlayer = {
     const idiomaAtual = AudioIdiomas
       ? AudioIdiomas.getIdiomaAtual?.() || AudioIdiomas.idiomaAtual || 'pt-BR'
       : 'pt-BR';
+
+    // getVoices() pode retornar [] no primeiro carregamento em alguns navegadores.
+    // Recarrega se possível.
+    if (
+      AudioIdiomas &&
+      window.speechSynthesis &&
+      typeof window.speechSynthesis.getVoices === 'function' &&
+      typeof AudioIdiomas.carregarVozes === 'function'
+    ) {
+      try {
+        const vozes = window.speechSynthesis.getVoices();
+        if (Array.isArray(vozes) && vozes.length > 0) {
+          AudioIdiomas.carregarVozes();
+        }
+      } catch (e) {
+        // ignora
+      }
+    }
+
     const vozDisponivel = AudioIdiomas
       ? AudioIdiomas.getVozDisponivel?.() || AudioIdiomas.vozDisponivel || null
       : null;
 
     const utterance = new SpeechSynthesisUtterance(texto);
+
     utterance.lang = idiomaAtual;
     utterance.rate = typeof rate === 'number' ? rate : 0.85;
     utterance.pitch = 1;

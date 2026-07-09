@@ -6,7 +6,7 @@
  * Versão 2.0 - Inclui leitura de metadados
  */
 
-class AppAnalisador {
+class _AppAnalisador {
   constructor(tipoForcado = null) {
     this.analisador = new AnalisadorEstatisticas();
     this.analisadorExtracao = new AnalisadorExtracao();
@@ -19,9 +19,6 @@ class AppAnalisador {
       this.analisadorExtracao.setTipoEstudo(this.tipoSelecionado);
     }
 
-    if (window.DEBUG_MODE) {
-      console.log('AppAnalisador criado. Tipo:', this.tipoSelecionado);
-    }
 
     this.uiElements = null;
     this.arquivosSelecionados = [];
@@ -40,7 +37,7 @@ class AppAnalisador {
   }
 
   renderizarUpload() {
-    const tipoTexto = this.tipoSelecionado === 'frases' ? 'Frases' : 'Palavras';
+const _tipoTexto = this.tipoSelecionado === 'frases' ? 'Frases' : 'Palavras';
 
     this.uiElements = AnalisadorUI.renderizarUpload(
       this.analisador,
@@ -159,9 +156,11 @@ class AppAnalisador {
           console.log(`Processado: ${arquivo.name} - ${resultado.itensNoArquivo} itens`);
         }
 
+
         // Verifica se o arquivo tinha metadados
         if (resultado.metadados) {
           metadadosEncontrados++;
+
 
           // Processa os metadados no ProgressService
           if (typeof ProgressService !== 'undefined') {

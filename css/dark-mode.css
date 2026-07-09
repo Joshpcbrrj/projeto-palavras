@@ -307,6 +307,46 @@ label {
   border-color: var(--border-light) !important;
 }
 
+/* Ajuste geral de contraste para layouts que renderizam cards via Tailwind (ex.: tela inicial e texto pessoal.) */
+.dark-mode .card-surface,
+.dark-mode .bg-white,
+.dark-mode .rounded-2xl,
+.dark-mode .shadow-xl {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-light) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .text-gray-800,
+.dark-mode .text-gray-700,
+.dark-mode .text-gray-600,
+.dark-mode .text-gray-500,
+.dark-mode .text-blue-800,
+.dark-mode .text-green-800,
+.dark-mode .text-indigo-700,
+.dark-mode .text-slate-600,
+.dark-mode .text-slate-500 {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .bg-purple-50,
+.dark-mode .bg-sky-50,
+.dark-mode .bg-amber-50,
+.dark-mode .bg-indigo-50,
+.dark-mode .bg-slate-50,
+.dark-mode .bg-emerald-50 {
+  background-color: var(--bg-tertiary) !important;
+}
+
+.dark-mode .bg-purple-50 .text-purple-700,
+.dark-mode .bg-sky-50 .text-sky-700,
+.dark-mode .bg-amber-50 .text-amber-700,
+.dark-mode .bg-indigo-50 .text-indigo-700,
+.dark-mode .bg-slate-50 .text-slate-600,
+.dark-mode .bg-emerald-50 .text-emerald-700 {
+  color: var(--text-primary) !important;
+}
+
 /* Responsividade */
 @media (max-width: 640px) {
   .theme-toggle {
@@ -317,3 +357,4 @@ label {
     right: 10px;
   }
 }
+

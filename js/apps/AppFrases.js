@@ -4,7 +4,7 @@
  * Herda da classe base AppBase
  */
 
-class AppFrases extends AppBase {
+class AppFrases extends _AppBase {
   constructor() {
     super();
     this.state.setTipo('frases');
@@ -18,11 +18,11 @@ class AppFrases extends AppBase {
   }
 
   getMaxItens() {
-    return CONFIG.MAX_FRASES;
+    return _CONFIG.MAX_FRASES;
   }
 
   getTempoPadrao() {
-    return CONFIG.TEMPO_PADRAO_FRASES;
+    return _CONFIG.TEMPO_PADRAO_FRASES;
   }
 
   getBotaoTexto() {

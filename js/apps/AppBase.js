@@ -4,7 +4,7 @@
  * Agora usando ErrorHandler e LoadingManager
  */
 
-class AppBase {
+class _AppBase {
   constructor() {
     // Inicializa os módulos core
     this.state = new AppState();
@@ -62,7 +62,7 @@ class AppBase {
   /**
    * Salva a sessão atual no progresso
    */
-  async salvarSessaoAtual() {
+  salvarSessaoAtual() {
     if (this.state.getTotalItens() === 0 || this.state.getIndiceAtual() === 0) {
       if (typeof ErrorHandler !== 'undefined') {
         ErrorHandler.warning('Nenhum item estudado ainda para salvar!');
@@ -208,6 +208,7 @@ class AppBase {
    * Inicia o timer
    */
   async iniciarTimer() {
+
     const itensValidos = ValidatorService.filtrarValidos(this.state.getItens());
 
     if (itensValidos.length !== this.state.getTotalItens()) {
@@ -369,7 +370,9 @@ class AppBase {
     const revisaoArea = document.getElementById('revisaoArea');
     const listaRevisao = document.getElementById('listaRevisao');
     const btn = document.getElementById('btnVerItens');
-    const tipoTexto = this.getTipo();
+    const _tipoTexto = this.getTipo();
+
+
 
     if (revisaoArea && listaRevisao) {
       if (revisaoArea.classList.contains('hidden')) {
@@ -385,7 +388,8 @@ class AppBase {
           .join('');
         revisaoArea.classList.remove('hidden');
         revisaoArea.scrollIntoView({ behavior: 'smooth' });
-        btn.textContent = `📖 Ocultar ${tipoTexto === 'frases' ? 'Frases' : 'Palavras'}`;
+        btn.textContent = `📖 Ocultar ${_tipoTexto === 'frases' ? 'Frases' : 'Palavras'}`;
+
       } else {
         revisaoArea.classList.add('hidden');
         btn.textContent = `📖 Ver ${tipoTexto === 'frases' ? 'Frases' : 'Palavras'}`;

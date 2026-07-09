@@ -4,11 +4,11 @@
  * Herda da classe base AppBase
  */
 
-class AppPalavras extends AppBase {
+class AppPalavras extends _AppBase {
   constructor() {
     super();
     this.state.setTipo('palavras');
-    this.state.setTempoConfig(CONFIG.TEMPO_PADRAO_PALAVRAS);
+    this.state.setTempoConfig(_CONFIG.TEMPO_PADRAO_PALAVRAS);
     this.audio.carregarPreferencia();
     this.state.setAudioAutomatico(this.audio.isAudioAutomatico());
   }
@@ -18,11 +18,11 @@ class AppPalavras extends AppBase {
   }
 
   getMaxItens() {
-    return CONFIG.MAX_PALAVRAS;
+    return _CONFIG.MAX_PALAVRAS;
   }
 
   getTempoPadrao() {
-    return CONFIG.TEMPO_PADRAO_PALAVRAS;
+    return _CONFIG.TEMPO_PADRAO_PALAVRAS;
   }
 
   getBotaoTexto() {
