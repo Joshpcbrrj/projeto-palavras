@@ -1,51 +1,67 @@
 {
   "name": "aprendendo-palavras",
-  "version": "2.0.0",
+  "version": "3.0.0",
+  "private": true,
   "type": "module",
-  "description": "Flashcard para estudo de idiomas",
-  "main": "index.html",
+  "description": "PWA para estudar idiomas com flashcards, leitura em voz alta e PDFs revisáveis.",
+  "homepage": "https://joshpcbrrj.github.io/projeto-palavras/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Joshpcbrrj/projeto-palavras.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Joshpcbrrj/projeto-palavras/issues"
+  },
+  "author": "Josué B. Almeida",
+  "license": "MIT",
+  "keywords": [
+    "flashcard",
+    "language-learning",
+    "text-to-speech",
+    "web-speech-api",
+    "pdf",
+    "pwa",
+    "education"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "start": "npx live-server --port=3000",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "lint": "eslint js/**/*.js --ignore-pattern '**/tests/**'",
-    "lint:fix": "eslint js/**/*.js --fix --ignore-pattern '**/tests/**'",
+    "start": "vite --open",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "check": "npm run lint && npm run format:check && npm test",
+    "icons": "node scripts/generate-icons.js",
     "prepare": "husky"
   },
   "lint-staged": {
     "*.js": [
-      "eslint --fix --ignore-pattern '**/tests/**'",
-      "prettier --write",
-      "jest --bail --findRelatedTests --passWithNoTests"
+      "eslint --fix",
+      "prettier --write"
     ],
-    "*.{json,md}": [
+    "*.{json,md,css,html,yml}": [
       "prettier --write"
     ]
   },
-  "keywords": [
-    "flashcard",
-    "language-learning",
-    "education",
-    "tailwind",
-    "pdf"
-  ],
-  "author": "Josué B. Almeida",
-  "license": "MIT",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@vitest/coverage-v8": "^3.2.4",
     "eslint": "^10.4.0",
-    "husky": "^9.0.0",
-    "jest": "^30.4.2",
-    "jest-environment-jsdom": "^30.4.1",
+    "globals": "^16.3.0",
+    "husky": "^9.1.7",
+    "jsdom": "^26.1.0",
+    "jspdf": "3.0.1",
     "lint-staged": "^15.2.0",
-    "prettier": "^3.2.0",
+    "pdfjs-dist": "2.16.105",
+    "prettier": "^3.6.2",
     "sharp": "^0.34.5",
-    "vite": "^5.0.0"
+    "vite": "^6.3.5",
+    "vitest": "^3.2.4"
   }
 }

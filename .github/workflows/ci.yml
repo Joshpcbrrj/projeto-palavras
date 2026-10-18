@@ -1,40 +1,47 @@
-name: CI - Testes
+name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
   pull_request:
-    branches: [main, master]
+    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
-  test:
+  verificar:
+    name: Lint, formatação e testes (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [20.x, 22.x]
 
     steps:
-      - name: 📥 Checkout do código
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 🔧 Setup Node.js ${{ matrix.node-version }}
+      - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          cache: npm
 
-      - name: 📦 Instalar dependências
+      - name: Instalar dependências
         run: npm ci
 
-      - name: 🧪 Executar testes
-        run: npm test
+      - name: Lint
+        run: npm run lint
 
-      - name: 📊 Relatório de cobertura
+      - name: Formatação
+        run: npm run format:check
+
+      - name: Testes com cobertura
         run: npm run test:coverage
 
-      - name: 📤 Upload do relatório de cobertura
+      - name: Publicar relatório de cobertura
+        if: matrix.node-version == '22.x'
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report-node-${{ matrix.node-version }}
+          name: cobertura
           path: coverage/

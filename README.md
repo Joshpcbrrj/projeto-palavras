@@ -1,163 +1,179 @@
+<div align="center">
+
+<img src="icons/icon.svg" alt="" width="96" height="96" />
+
 # Aprendendo Palavras
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-blue?logo=githubpages)](https://joshpcbrrj.github.io/projeto-palavras/)
-[![Node.js](https://img.shields.io/badge/node-%3E%3D%2018.0.0-brightgreen)](https://nodejs.org/)
-[![Vite](https://img.shields.io/badge/Vite-5.x-646CFF?logo=vite)](https://vitejs.dev/)
-[![Jest](https://img.shields.io/badge/Jest-30.x-C21325?logo=jest)](https://jestjs.io/)
-[![PWA](https://img.shields.io/badge/PWA-Instalável-5A0FC8?logo=pwa)](https://web.dev/progressive-web-apps/)
-[![Coverage](https://img.shields.io/badge/coverage-97%25-brightgreen)](coverage/)
+**Estude idiomas com flashcards, leitura em voz alta e PDFs que o próprio app consegue revisar.**
 
-> Web app para estudar idiomas com flashcards, áudio via Web Speech API e geração de PDFs.
+[![CI](https://github.com/Joshpcbrrj/projeto-palavras/actions/workflows/ci.yml/badge.svg)](https://github.com/Joshpcbrrj/projeto-palavras/actions/workflows/ci.yml)
+[![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-green.svg)](LICENSE)
+[![PWA](https://img.shields.io/badge/PWA-instal%C3%A1vel%20e%20offline-5A0FC8)](https://web.dev/progressive-web-apps/)
+[![Sem build](https://img.shields.io/badge/ES%20modules-sem%20etapa%20de%20build-f7df1e)](#arquitetura)
 
----
+[**Abrir o app →**](https://joshpcbrrj.github.io/projeto-palavras/)
 
-## Demo
+<img src="docs/screenshots/menu.png" alt="Tela inicial do Aprendendo Palavras" width="820" />
 
-<div align="center">
-  <img src="screenshots/tela-principal.png" alt="Tela principal do Aprendendo Palavras" width="800"/>
 </div>
 
-#### Live: https://joshpcbrrj.github.io/projeto-palavras/
-
 ---
 
-## Recursos (Features)
+## Sumário
 
-### Estudo
+- [Recursos](#recursos)
+- [Como usar](#como-usar)
+- [PDFs revisáveis](#pdfs-revisáveis)
+- [Áudio e vozes](#áudio-e-vozes)
+- [Executar localmente](#executar-localmente)
+- [Arquitetura](#arquitetura)
+- [Testes e qualidade](#testes-e-qualidade)
+- [Compatibilidade](#compatibilidade)
+- [Contribuindo](#contribuindo)
+- [Licença e créditos](#licença-e-créditos)
 
-- **Extração automática** de palavras/frases a partir de texto/PDF
-- **Estudo por contexto** (frases, não só palavras)
-- **Revisão eficiente** com fluxos de prática
+## Recursos
 
-### Texto personalizado
+|                                        |                                                                                                                                                |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| 📖 **Flashcards de palavras e frases** | Cole um texto e o app extrai as palavras (sem repetições) ou as frases. Funciona com qualquer alfabeto, inclusive japonês e chinês.            |
+| 🔊 **Pronúncia automática**            | Cada item é falado ao aparecer, com repetição de 1× a 3×, velocidade ajustável e escolha da voz.                                               |
+| ⏯️ **Controle total do estudo**        | Pausar, voltar, avançar e ouvir de novo — com atalhos de teclado.                                                                              |
+| 🎧 **Leitura de textos**               | O texto é lido frase a frase com destaque na tela; clique em qualquer frase para ouvir a partir dela, repita a frase atual ou adicione pausas. |
+| 📄 **PDFs revisáveis**                 | Os PDFs exportados guardam os dados exatos do estudo e a data da próxima revisão. Abra-os depois em “Revisar arquivo” para continuar.          |
+| 🗓️ **Revisão espaçada**                | Cada revisão concluída agenda a próxima (1 → 3 → 7 → 14 → 30 → 60 dias). Revisões pendentes aparecem na tela inicial.                          |
+| 📈 **Progresso**                       | Sessões, tempo de estudo, palavras mais estudadas, dias seguidos e backup em JSON.                                                             |
+| 🌙 **Tema claro e escuro**             | Segue o sistema automaticamente ou pela sua escolha.                                                                                           |
+| 📱 **PWA**                             | Instale no celular ou no computador e use offline.                                                                                             |
 
-- **Cole e estude textos** (leitura em voz alta)
-- **Player de áudio completo**: velocidade (rate), pausar/retomar e “voltar ao início”
-- **Revisão de textos exportados** (upload e leitura)
-- **Exportação em PDF** com estrutura organizada + dados de revisão offline
+<table>
+  <tr>
+    <td><img src="docs/screenshots/flashcard.png" alt="Flashcard durante o estudo" /></td>
+    <td><img src="docs/screenshots/leitura.png" alt="Leitura de texto com a frase atual destacada" /></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/revisar.png" alt="Revisão de um PDF exportado" /></td>
+    <td><img src="docs/screenshots/flashcard-escuro.png" alt="Flashcard no tema escuro" /></td>
+  </tr>
+</table>
 
-### Áudio
+## Como usar
 
-- **Vozes naturais** via **Web Speech API**
-- Suporte a **múltiplos idiomas**
-- Áudio sob demanda (botão **“Ouvir texto”**)
+1. **Estudar palavras ou frases** — cole um texto (ou abra um `.txt`), escolha idioma, voz, velocidade e a pausa entre os itens e clique em **Iniciar estudo**.
+2. **Durante o estudo** — use os botões ou o teclado:
 
-### Progresso e dados
+   | Tecla                     | Ação                    |
+   | ------------------------- | ----------------------- |
+   | <kbd>Espaço</kbd>         | Pausar / continuar      |
+   | <kbd>←</kbd> <kbd>→</kbd> | Item anterior / próximo |
+   | <kbd>Enter</kbd>          | Ouvir de novo           |
+   | <kbd>Esc</kbd>            | Encerrar                |
 
-- **Persistência local** (localStorage)
-- **Export/import** (JSON) quando aplicável
+3. **Ao terminar** — exporte o PDF escolhendo quando quer revisar. O progresso da sessão é salvo automaticamente.
+4. **Revisar** — no dia marcado, abra **Revisar arquivo**, selecione o PDF e clique em **Estudar** (ou **Ouvir**, para textos). Vários PDFs do mesmo tipo podem ser combinados num único estudo.
+5. **Ler e ouvir um texto** — cole o texto, vá para a aba **Ouvir** e acompanhe o destaque. Dali você também pode transformar o texto em flashcards de palavras ou frases.
 
-### Fluxo removido da UI
+## PDFs revisáveis
 
-- O fluxo de **“Analisar Progresso”** foi removido do menu principal.
+Cada PDF tem duas camadas:
 
-### PWA
+- **O que você vê** — um layout limpo para ler e imprimir (palavras em colunas, frases numeradas ou o texto completo), com a data da próxima revisão.
+- **O que o app lê** — um pacote com os dados exatos (itens, idioma, título e agenda de revisão) guardado nas propriedades do documento. Assim a revisão não depende de “adivinhar” o conteúdo a partir do texto do PDF.
 
-- **Instalável** e com suporte offline (Service Worker)
+<details>
+<summary>Exemplo de PDF gerado</summary>
+<img src="docs/screenshots/pdf-palavras.png" alt="Exemplo de PDF de palavras" width="520" />
+</details>
 
----
+PDFs gerados pelas **versões anteriores** do app continuam funcionando: o conteúdo é reconstruído a partir do texto. Idiomas fora do alfabeto latino (russo, japonês, chinês, coreano) aparecem corretamente no PDF. Detalhes técnicos em [docs/FORMATO-PDF.md](docs/FORMATO-PDF.md).
 
-## Tecnologias
+## Áudio e vozes
 
-- HTML, CSS (Tailwind via CDN + CSS próprio)
-- JavaScript (ES modules e classes por domínio)
-- **Vite** (dev/build)
-- **Jest** (testes unitários)
-- **PDF.js** e **jsPDF**
-- Web Speech API
+O áudio usa a [Web Speech API](https://developer.mozilla.org/docs/Web/API/Web_Speech_API) — as vozes são as instaladas no seu dispositivo/navegador, então nada é enviado a servidores pelo app.
 
----
+- O app escolhe automaticamente a voz mais natural disponível para o idioma (vozes marcadas como _Natural_, _Neural_, _Online_, _Premium_ ou do Google têm prioridade). Você pode escolher outra e testá-la com ▶; a escolha fica salva por idioma.
+- **Melhor qualidade:** o Microsoft Edge oferece vozes neurais online muito naturais; o Chrome traz as vozes do Google.
+- **Sem voz para um idioma?** O app avisa. Instale a voz nas configurações do sistema (Windows: _Configurações → Hora e idioma → Fala_; Android: _Configurações → Idioma → Saída de conversão de texto em voz_; iOS/macOS: _Acessibilidade → Conteúdo falado → Vozes_).
+- Textos longos são lidos frase a frase, o que evita o corte de falas longas do Chrome e torna pausar/retomar confiável.
 
-## Como executar
+## Executar localmente
 
-### Requisitos
+O app é feito de arquivos estáticos (HTML, CSS e ES modules nativos) — **não há etapa de build**. Qualquer servidor estático funciona.
 
-- Node.js 18+ e npm
-- Navegador moderno
-
-### Local (recomendado)
+**Requisitos:** Node.js 20+ (apenas para o servidor de desenvolvimento e os testes).
 
 ```bash
+git clone https://github.com/Joshpcbrrj/projeto-palavras.git
+cd projeto-palavras
 npm install
-npm run dev
+npm run dev        # http://localhost:5173
 ```
 
-- Dev: http://localhost:5173/
+Sem Node, você pode usar, por exemplo, `python -m http.server` na pasta do projeto.
 
-### Build e preview
+### Scripts
 
-```bash
-npm run build
-npm run preview
-```
+| Comando                           | Descrição                                          |
+| --------------------------------- | -------------------------------------------------- |
+| `npm run dev`                     | Servidor de desenvolvimento com recarga automática |
+| `npm test`                        | Executa os testes                                  |
+| `npm run test:coverage`           | Testes com relatório de cobertura (`coverage/`)    |
+| `npm run lint` / `lint:fix`       | ESLint                                             |
+| `npm run format` / `format:check` | Prettier                                           |
+| `npm run check`                   | Lint + formatação + testes (o mesmo que o CI roda) |
+| `npm run icons`                   | Gera os ícones PNG a partir de `icons/icon.svg`    |
 
----
+### Publicação
 
-## Estrutura do projeto
+O site é servido diretamente pelo GitHub Pages a partir da branch `main` (todos os caminhos são relativos). Ao publicar uma nova versão, altere `VERSAO` em [`sw.js`](sw.js) para que os usuários recebam os arquivos atualizados.
+
+## Arquitetura
 
 ```text
-projeto-palavras/
-├─ index.html
-├─ js/
-│  ├─ apps/                 # Fluxos (Palavras, Frases, Texto, Revisão, etc.)
-│  ├─ core/                 # Estado, áudio, navegação, análise, utilitários
-│  ├─ models/               # Modelos/transformações
-│  ├─ services/            # Persistência/validação/progresso/etc.
-│  └─ ui/                   # Componentes de interface (tema, toast, telas)
-├─ css/
-│  ├─ base.css
-│  ├─ components.css
-│  └─ dark-mode.css
-├─ sw.js                    # Service Worker (PWA)
-├─ manifest.json            # Manifest
-└─ tests/                   # Testes unitários
+├── index.html            # página única; aplica o tema antes da primeira pintura
+├── sw.js                 # service worker (offline + cache das bibliotecas de PDF)
+├── manifest.json         # manifesto do PWA
+├── css/                  # tokens de tema, componentes e telas (sem framework)
+├── js/
+│   ├── main.js           # inicialização e rotas
+│   ├── config.js         # constantes (idiomas, limites, URLs das bibliotecas)
+│   ├── audio/            # vozes, fala e leitor de textos frase a frase
+│   ├── core/             # DOM seguro, roteador, navegação e utilitários
+│   ├── pdf/              # formato do pacote, exportação, importação e formatos antigos
+│   ├── screens/          # telas (menu, estudo, texto, revisar, progresso)
+│   ├── services/         # armazenamento, preferências e progresso
+│   ├── study/            # sessão de flashcards (sem dependência de interface)
+│   ├── text/             # extração de palavras/frases
+│   └── ui/               # componentes, diálogos, notificações e tema
+├── tests/                # testes (Vitest + jsdom)
+└── docs/                 # documentação técnica e capturas de tela
 ```
 
----
+Visão geral das decisões técnicas em [docs/ARQUITETURA.md](docs/ARQUITETURA.md).
 
-## Comandos
+## Testes e qualidade
 
-```bash
-npm run dev
-npm run build
-npm run preview
-npm test
-npm run test:coverage
-npm run lint
-npm run lint:fix
-npm run format
-npm run icons
-```
+- **Vitest** com testes que importam o código real: extração de texto, revisão espaçada, sessão de estudo, leitor de áudio (com síntese de voz simulada), progresso e migração de dados, telas no jsdom e **geração + leitura de PDFs reais** (jsPDF → pdf.js).
+- **ESLint** e **Prettier** rodam no CI e no pre-commit (Husky + lint-staged).
 
----
+## Compatibilidade
 
-## Problemas comuns (FAQ)
+| Navegador                         | Estudo e PDFs | Voz                                                               |
+| --------------------------------- | ------------- | ----------------------------------------------------------------- |
+| Chrome / Edge (desktop e Android) | ✅            | ✅ (Edge tem as vozes mais naturais)                              |
+| Safari (macOS e iOS 15.4+)        | ✅            | ✅                                                                |
+| Firefox                           | ✅            | ✅ (depende das vozes do sistema; no Linux, do speech-dispatcher) |
 
-### O modo escuro afeta inputs/áreas de texto
+Os dados ficam no `localStorage` do navegador. Use **Meu progresso → Exportar backup** para levar o progresso para outro dispositivo.
 
-Verifique se a classe `.dark-mode` está ativa no `body`. O projeto aplica estilos específicos em `css/dark-mode.css` e `css/components.css` para inputs com a classe `.input-modern`.
+## Contribuindo
 
-### Áudio não funciona
+Contribuições são bem-vindas! Leia o [guia de contribuição](CONTRIBUTING.md) e o [código de conduta](CODE_OF_CONDUCT.md). Para problemas de segurança, veja a [política de segurança](SECURITY.md). As mudanças de cada versão estão no [CHANGELOG](CHANGELOG.md).
 
-- Alguns navegadores exigem interação do usuário antes.
-- Use Chrome/Edge e clique no botão de áudio.
+## Licença e créditos
 
----
+Distribuído sob a licença [MIT](LICENSE). © 2026 Josué B. Almeida.
 
-## Licença
-
-MIT. Veja [LICENSE](LICENSE).
-
----
-
-## Contribuições
-
-- Envie uma **issue** para bugs e melhorias.
-- Pull requests são bem-vindas.
-
----
-
-### Autor
-
-Josué B. Almeida
+- [jsPDF](https://github.com/parallax/jsPDF) (MIT) — geração de PDFs.
+- [PDF.js](https://github.com/mozilla/pdf.js) (Apache-2.0) — leitura de PDFs.
+- Bandeiras no Windows: fonte _Twemoji Country Flags_ do projeto [country-flag-emoji-polyfill](https://github.com/talkjs/country-flag-emoji-polyfill), com gráficos do [Twemoji](https://github.com/jdecked/twemoji) © Twitter/X e colaboradores, licença [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/).

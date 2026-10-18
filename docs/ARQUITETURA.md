@@ -1,0 +1,61 @@
+# Arquitetura
+
+Visão geral para quem vai mexer no código.
+
+## Princípios
+
+- **Sem etapa de build.** O navegador carrega `js/main.js` como ES module e segue os `import`s. O GitHub Pages serve o repositório como está; o Vite é usado só como servidor de desenvolvimento.
+- **Lógica separada da interface.** Regras de negócio (sessão de estudo, extração de texto, formato do PDF, progresso) não tocam no DOM e são testadas isoladamente. As telas só montam HTML e ligam eventos.
+- **HTML seguro por padrão.** Toda interface é montada com a template tag `html` (`js/core/dom.js`), que escapa os valores interpolados.
+- **Dados locais.** Tudo fica no `localStorage`; não há servidor.
+
+## Módulos
+
+```mermaid
+flowchart LR
+  main[main.js] --> router[core/router.js]
+  router --> screens[screens/*]
+  screens --> ui[ui/*]
+  screens --> study[study/session.js]
+  screens --> audio[audio/*]
+  screens --> pdf[pdf/*]
+  screens --> services[services/*]
+  study --> utils[core/utils.js]
+  audio --> text[text/extract.js]
+  pdf --> text
+  services --> pdf
+```
+
+| Pasta       | Responsabilidade                                                                                                                                                                                                                  |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `core/`     | `dom.js` (template `html`, leitura de arquivos, carregamento de scripts), `router.js` (rotas por hash), `nav.js` (navegação sem dependência circular), `utils.js` (datas, embaralhar, esperar cancelável).                        |
+| `audio/`    | `voices.js` classifica e escolhe vozes; `speaker.js` fala com Promise e contorna bugs dos navegadores; `reader.js` lê textos longos frase a frase. `index.js` expõe as instâncias compartilhadas.                                 |
+| `study/`    | `StudySession`: um único laço assíncrono cancelável (mostra → fala → espera → avança). Pausar/avançar cancelam o laço anterior com `AbortController`, então nunca há dois temporizadores.                                         |
+| `text/`     | Extração de palavras/frases com `Intl.Segmenter` (quando disponível) e divisão do texto em trechos para leitura, preservando a posição de cada trecho no original (usada no destaque).                                            |
+| `pdf/`      | `format.js` (pacote de dados e revisão espaçada), `exporter.js` (layout com jsPDF), `raster.js` (texto não latino como imagem), `importer.js` (PDF/TXT/JSON), `legacy.js` (formatos v1/v2), `libs.js` (carregamento sob demanda). |
+| `services/` | `storage.js` (localStorage tolerante a falhas), `settings.js` (preferências + migração das chaves antigas), `progress.js` (sessões, estatísticas, agenda de revisões, backup, migração da v2).                                    |
+| `screens/`  | Uma classe por tela com `montar(raiz)`, `desmontar()` e, opcionalmente, `podeSair()` (pergunta antes de sair de um estudo não salvo).                                                                                             |
+| `ui/`       | Componentes compartilhados, diálogo modal, notificações e tema.                                                                                                                                                                   |
+
+## Ciclo de vida das telas
+
+O roteador lê o hash (`#/palavras`), pergunta à tela atual se pode sair (`podeSair`), chama `desmontar()` (que para áudio, temporizadores e listeners globais) e monta a próxima. Dados entre telas (ex.: itens de um PDF para os flashcards) são passados por `navegar(rota, parametros)`.
+
+## Áudio
+
+```text
+TextReader ──trechos──▶ Speaker.falar(texto, {idioma, velocidade, signal})
+StudySession ──item──▶      │
+                            ├─ VoiceManager.escolher(idioma)  → melhor voz / preferida
+                            └─ speechSynthesis.speak(utterance)
+```
+
+`Speaker.falar` resolve quando a fala termina, quando é cancelada (pelo `signal` ou por outra fala) ou após um tempo-limite de segurança proporcional ao tamanho do texto.
+
+## Temas e estilos
+
+`css/base.css` define tokens (`--superficie`, `--texto`, `--primaria`...) em `:root` e os redefine em `:root[data-theme='dark']`. Componentes usam só os tokens, então o tema escuro não precisa de regras específicas. O tema é aplicado por um script inline no `<head>` antes da primeira pintura.
+
+## Offline
+
+`sw.js` guarda todos os arquivos do app (lista explícita, verificada por teste) e, à parte, as bibliotecas de PDF do cdnjs. Ao publicar, troque `VERSAO` para invalidar o cache.
