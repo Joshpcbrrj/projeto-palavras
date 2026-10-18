@@ -5,6 +5,31 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e 
 
 ## [Não lançado]
 
+## [3.1.0] - 2026-10-18
+
+### Adicionado
+
+- **Criar textos** (novo modo em destaque no menu), grátis:
+  - **Diálogo** sobre um tema, com uma voz diferente para cada pessoa;
+  - **Mergulhar no tema**: conteúdo explicativo de ½ a 2 páginas a partir da Wikipédia (Simple English para iniciantes), sem precisar de IA; opcionalmente adaptado ao nível;
+  - **Texto por nível** (iniciante, intermediário, fluente), com métrica de legibilidade que mostra se o texto ficou no nível pedido. Sem IA, usa a Wikipédia do nível mais próximo.
+  - Duas opções de IA: **online** (Google Gemini com chave gratuita — rápida e funciona no celular) e **no navegador** (WebLLM/WebGPU — offline e independente, para computadores com placa de vídeo).
+  - Tema pode ser digitado em português: ele é traduzido antes, o texto sai no idioma de estudo e é conferido (com nova tentativa se vier no idioma errado); textos acima do nível pedido são simplificados automaticamente.
+- **Exportar MP3** de textos, palavras e frases: voz neural Kokoro no navegador (grátis) ou OpenAI com chave própria; repetições e pausas configuráveis.
+- Tela de **Configurações** (idioma de estudo, tema, modelo de IA, vozes do MP3).
+- Atribuição da fonte (Wikipédia, CC BY-SA 4.0) no app e no PDF.
+- [Roadmap](docs/ROADMAP.md) com avaliação do app e plano de melhorias.
+
+### Alterado
+
+- Idioma de estudo padrão para novos usuários: **inglês** (antes, português ou o idioma do navegador).
+- No leitor de textos, diálogos não leem o nome do falante e usam duas vozes.
+- Notificações não bloqueiam mais cliques (antes podiam cobrir botões de ação); no computador, aparecem no canto superior.
+
+### Corrigido
+
+- “Não agendar” a revisão ao exportar um PDF ainda agendava a revisão padrão.
+
 ## [3.0.0] - 2026-10-18
 
 Reescrita completa do app.

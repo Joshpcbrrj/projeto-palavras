@@ -37,6 +37,30 @@ flowchart LR
 | `screens/`  | Uma classe por tela com `montar(raiz)`, `desmontar()` e, opcionalmente, `podeSair()` (pergunta antes de sair de um estudo não salvo).                                                                                             |
 | `ui/`       | Componentes compartilhados, diálogo modal, notificações e tema.                                                                                                                                                                   |
 
+### Criação de textos (`js/create/`)
+
+| Arquivo                    | Responsabilidade                                                                                                                                         |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `wikipedia.js`             | Busca bilíngue (tema em português → link interlíngua para o idioma de estudo), Simple English para iniciantes, limpeza e corte do artigo em 1–2 páginas. |
+| `levels.js`                | Orientações por nível (CEFR) e métrica de legibilidade (Flesch) para estimar o nível do texto gerado.                                                    |
+| `prompts.js`               | Montagem dos pedidos para a IA e limpeza das respostas (markdown, introduções, formato "Nome: fala").                                                    |
+| `llm.js` + `llm-worker.js` | IA local com [WebLLM](https://github.com/mlc-ai/web-llm) em um Web Worker (WebGPU). Modelo baixado uma vez e guardado no cache do navegador.             |
+| `gemini.js` + `engine.js`  | IA online pelo Google Gemini (chave gratuita do usuário, streaming SSE) e escolha do motor; ambos expõem a mesma interface `gerar()` da IA local.        |
+| `generator.js`             | Orquestra os três modos: busca a referência, chama a IA e aplica alternativas (sem internet → só IA; sem IA → Wikipédia).                                |
+
+### Exportação de áudio (`js/audio/export/`)
+
+A Web Speech API não permite gravar o áudio, então o MP3 é gerado por outro motor:
+
+```text
+planejarAudio(conteúdo) → trechos [{texto, voz, pausa}]
+        │
+        ├─ KokoroMotor (Web Worker, kokoro-js, vozes neurais em inglês, grátis)
+        └─ OpenAIMotor (API /v1/audio/speech, chave do usuário, PCM 24 kHz)
+        │
+Mp3Builder (lamejs): junta os trechos + silêncios em um único MP3 mono 24 kHz
+```
+
 ## Ciclo de vida das telas
 
 O roteador lê o hash (`#/palavras`), pergunta à tela atual se pode sair (`podeSair`), chama `desmontar()` (que para áudio, temporizadores e listeners globais) e monta a próxima. Dados entre telas (ex.: itens de um PDF para os flashcards) são passados por `navegar(rota, parametros)`.

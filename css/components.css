@@ -758,8 +758,8 @@ select.input {
   color: #f8fafc;
   box-shadow: var(--sombra-2);
   font-size: 0.95rem;
-  pointer-events: auto;
-  cursor: pointer;
+  /* Notificações nunca bloqueiam cliques no conteúdo por baixo. */
+  pointer-events: none;
   opacity: 0;
   transform: translateY(10px);
   transition:
@@ -822,5 +822,35 @@ kbd {
 @media (hover: none) {
   .atalhos {
     display: none;
+  }
+}
+
+.dialogo--largo {
+  width: min(640px, calc(100vw - 2rem));
+}
+
+.dialogo .campo:last-of-type {
+  margin-bottom: 1rem;
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--primaria-texto);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (min-width: 761px) {
+  /* No computador, as notificações ficam no canto superior para não cobrir botões de ação. */
+  .toasts {
+    left: auto;
+    right: 1.25rem;
+    top: 5rem;
+    bottom: auto;
+    transform: none;
+    width: min(380px, calc(100vw - 2rem));
   }
 }

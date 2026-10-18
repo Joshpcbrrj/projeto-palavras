@@ -32,10 +32,11 @@ afterEach(() => {
 const clicar = (seletor) => raiz.querySelector(seletor).click();
 
 describe('Menu', () => {
-  test('mostra os quatro modos e o resumo', () => {
+  test('mostra os cinco modos (com Criar textos em destaque) e o resumo', () => {
     tela = new MenuScreen();
     tela.montar(raiz);
-    expect(raiz.querySelectorAll('.modo')).toHaveLength(4);
+    expect(raiz.querySelectorAll('.modo')).toHaveLength(5);
+    expect(raiz.querySelector('.modo--destaque').getAttribute('href')).toBe('#/criar');
     expect(raiz.querySelector('.resumo').textContent).toContain('sessões');
     expect(raiz.querySelector('.cartao--destaque')).toBeNull();
   });

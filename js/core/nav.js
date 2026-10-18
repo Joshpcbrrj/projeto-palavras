@@ -10,6 +10,8 @@ export const ROTAS = Object.freeze({
   TEXTO: 'texto',
   REVISAR: 'revisar',
   PROGRESSO: 'progresso',
+  CRIAR: 'criar',
+  CONFIGURACOES: 'configuracoes',
 });
 
 let navegador = () => {};

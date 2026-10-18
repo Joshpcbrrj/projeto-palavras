@@ -34,17 +34,19 @@
 
 ## Recursos
 
-|                                        |                                                                                                                                                |
-| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| 📖 **Flashcards de palavras e frases** | Cole um texto e o app extrai as palavras (sem repetições) ou as frases. Funciona com qualquer alfabeto, inclusive japonês e chinês.            |
-| 🔊 **Pronúncia automática**            | Cada item é falado ao aparecer, com repetição de 1× a 3×, velocidade ajustável e escolha da voz.                                               |
-| ⏯️ **Controle total do estudo**        | Pausar, voltar, avançar e ouvir de novo — com atalhos de teclado.                                                                              |
-| 🎧 **Leitura de textos**               | O texto é lido frase a frase com destaque na tela; clique em qualquer frase para ouvir a partir dela, repita a frase atual ou adicione pausas. |
-| 📄 **PDFs revisáveis**                 | Os PDFs exportados guardam os dados exatos do estudo e a data da próxima revisão. Abra-os depois em “Revisar arquivo” para continuar.          |
-| 🗓️ **Revisão espaçada**                | Cada revisão concluída agenda a próxima (1 → 3 → 7 → 14 → 30 → 60 dias). Revisões pendentes aparecem na tela inicial.                          |
-| 📈 **Progresso**                       | Sessões, tempo de estudo, palavras mais estudadas, dias seguidos e backup em JSON.                                                             |
-| 🌙 **Tema claro e escuro**             | Segue o sistema automaticamente ou pela sua escolha.                                                                                           |
-| 📱 **PWA**                             | Instale no celular ou no computador e use offline.                                                                                             |
+|                                        |                                                                                                                                                                                                                                                                       |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ✨ **Criar textos**                    | Diálogos sobre qualquer tema, explicações estilo enciclopédia (Wikipédia, com Simple English para iniciantes) e textos no seu nível (iniciante, intermediário, fluente). Tema pode ser digitado em português. IA online grátis (Gemini) ou IA no navegador (offline). |
+| 🎵 **Exportar MP3**                    | Áudio de textos (com uma voz por pessoa nos diálogos) e da pronúncia das palavras/frases estudadas, com repetições e pausas — grátis com a voz neural Kokoro no navegador, ou OpenAI com chave própria.                                                               |
+| 📖 **Flashcards de palavras e frases** | Cole um texto e o app extrai as palavras (sem repetições) ou as frases. Funciona com qualquer alfabeto, inclusive japonês e chinês.                                                                                                                                   |
+| 🔊 **Pronúncia automática**            | Cada item é falado ao aparecer, com repetição de 1× a 3×, velocidade ajustável e escolha da voz.                                                                                                                                                                      |
+| ⏯️ **Controle total do estudo**        | Pausar, voltar, avançar e ouvir de novo — com atalhos de teclado.                                                                                                                                                                                                     |
+| 🎧 **Leitura de textos**               | O texto é lido frase a frase com destaque na tela; clique em qualquer frase para ouvir a partir dela, repita a frase atual ou adicione pausas.                                                                                                                        |
+| 📄 **PDFs revisáveis**                 | Os PDFs exportados guardam os dados exatos do estudo e a data da próxima revisão. Abra-os depois em “Revisar arquivo” para continuar.                                                                                                                                 |
+| 🗓️ **Revisão espaçada**                | Cada revisão concluída agenda a próxima (1 → 3 → 7 → 14 → 30 → 60 dias). Revisões pendentes aparecem na tela inicial.                                                                                                                                                 |
+| 📈 **Progresso**                       | Sessões, tempo de estudo, palavras mais estudadas, dias seguidos e backup em JSON.                                                                                                                                                                                    |
+| 🌙 **Tema claro e escuro**             | Segue o sistema automaticamente ou pela sua escolha.                                                                                                                                                                                                                  |
+| 📱 **PWA**                             | Instale no celular ou no computador e use offline.                                                                                                                                                                                                                    |
 
 <table>
   <tr>
@@ -86,6 +88,16 @@ Cada PDF tem duas camadas:
 </details>
 
 PDFs gerados pelas **versões anteriores** do app continuam funcionando: o conteúdo é reconstruído a partir do texto. Idiomas fora do alfabeto latino (russo, japonês, chinês, coreano) aparecem corretamente no PDF. Detalhes técnicos em [docs/FORMATO-PDF.md](docs/FORMATO-PDF.md).
+
+## Criar textos
+
+| Modo                 | Precisa de IA?              | Como funciona                                                                                                         |
+| -------------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| 💬 Diálogo           | Sim                         | A IA escreve uma conversa entre duas pessoas sobre o tema, no nível escolhido.                                        |
+| 🌍 Mergulhar no tema | Não (opcional para adaptar) | Busca o artigo na Wikipédia (Simple English para iniciantes) e entrega de ½ a 2 páginas, com atribuição da fonte.     |
+| 📶 Por nível         | Não (melhor com IA)         | Com IA, escreve o texto no nível pedido e simplifica se ficar difícil; sem IA, usa a Wikipédia do nível mais próximo. |
+
+**IA online (recomendada):** crie uma chave gratuita no [Google AI Studio](https://aistudio.google.com/app/apikey) e cole no painel — responde em segundos e funciona no celular. **IA no navegador:** roda no computador, sem internet e sem conta (download único de 0,9 a 2,3 GB, exige WebGPU, mais lenta). Detalhes e limitações em [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Áudio e vozes
 

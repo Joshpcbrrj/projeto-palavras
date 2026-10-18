@@ -11,6 +11,8 @@ import { StudyScreen } from './screens/StudyScreen.js';
 import { TextScreen } from './screens/TextScreen.js';
 import { ReviewScreen } from './screens/ReviewScreen.js';
 import { ProgressScreen } from './screens/ProgressScreen.js';
+import { CreateScreen } from './screens/CreateScreen.js';
+import { SettingsScreen } from './screens/SettingsScreen.js';
 import { iniciarTema } from './ui/theme.js';
 import { toast } from './ui/toast.js';
 
@@ -29,6 +31,8 @@ function iniciar() {
       [ROTAS.TEXTO]: (p) => new TextScreen(p),
       [ROTAS.REVISAR]: () => new ReviewScreen(),
       [ROTAS.PROGRESSO]: () => new ProgressScreen(),
+      [ROTAS.CRIAR]: () => new CreateScreen(),
+      [ROTAS.CONFIGURACOES]: () => new SettingsScreen(),
     },
     aoNavegar: (rota) => {
       botaoInicio.hidden = rota === ROTAS.MENU;
@@ -55,6 +59,8 @@ function tituloDaRota(rota) {
     [ROTAS.TEXTO]: 'Ler e ouvir',
     [ROTAS.REVISAR]: 'Revisar arquivo',
     [ROTAS.PROGRESSO]: 'Meu progresso',
+    [ROTAS.CRIAR]: 'Criar textos',
+    [ROTAS.CONFIGURACOES]: 'Configurações',
   }[rota];
 }
 
