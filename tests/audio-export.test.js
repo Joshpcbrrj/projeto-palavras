@@ -7,14 +7,8 @@ import {
   planejarAudio,
   separarFalante,
 } from '../js/audio/export/plan.js';
-import {
-  Mp3Builder,
-  aparar,
-  paraInt16,
-  pcm16ParaFloat,
-  reamostrar,
-} from '../js/audio/export/mp3.js';
-import { KokoroMotor, OpenAIMotor } from '../js/audio/export/engines.js';
+import { Mp3Builder, aparar, paraInt16, reamostrar } from '../js/audio/export/mp3.js';
+import { KokoroMotor } from '../js/audio/export/engines.js';
 import { gerarMp3, nomeArquivoMp3 } from '../js/audio/export/index.js';
 
 describe('planejamento do áudio', () => {
@@ -75,8 +69,6 @@ describe('MP3', () => {
     expect(Array.from(paraInt16(new Float32Array([0, 1, -1, 2])))).toEqual([
       0, 32767, -32768, 32767,
     ]);
-    const bytes = new Uint8Array([0x00, 0x40, 0x00, 0xc0]); // 16384, -16384
-    expect(Array.from(pcm16ParaFloat(bytes.buffer))).toEqual([0.5, -0.5]);
     expect(reamostrar(new Float32Array(48000), 48000, 24000)).toHaveLength(24000);
     expect(aparar(new Float32Array([0, 0, 0.5, 0.5, 0, 0]), 0.1).length).toBeLessThanOrEqual(6);
   });
@@ -161,39 +153,6 @@ describe('MP3', () => {
 });
 
 describe('motores de voz', () => {
-  test('OpenAI: envia o texto e converte o PCM recebido', async () => {
-    const pcm = new Int16Array([16384, -16384]);
-    const fetchFn = vi.fn(async () => ({
-      ok: true,
-      status: 200,
-      arrayBuffer: async () => pcm.buffer,
-    }));
-    const motor = new OpenAIMotor({ chave: 'sk-teste', fetchFn });
-    await motor.carregar();
-    const r = await motor.sintetizar('Hello', { voz: 'nova' });
-    expect(Array.from(r.pcm)).toEqual([0.5, -0.5]);
-    expect(r.taxa).toBe(24000);
-    const [url, opcoes] = fetchFn.mock.calls[0];
-    expect(url).toBe('https://api.openai.com/v1/audio/speech');
-    expect(opcoes.headers.Authorization).toBe('Bearer sk-teste');
-    expect(JSON.parse(opcoes.body)).toMatchObject({
-      input: 'Hello',
-      voice: 'nova',
-      response_format: 'pcm',
-    });
-  });
-
-  test('OpenAI: mensagens claras para chave ausente, inválida e sem créditos', async () => {
-    await expect(new OpenAIMotor({ chave: '' }).carregar()).rejects.toThrow('chave');
-    const resposta = (status) => async () => ({ ok: false, status });
-    await expect(
-      new OpenAIMotor({ chave: 'x', fetchFn: resposta(401) }).sintetizar('a')
-    ).rejects.toThrow('inválida');
-    await expect(
-      new OpenAIMotor({ chave: 'x', fetchFn: resposta(429) }).sintetizar('a')
-    ).rejects.toThrow('créditos');
-  });
-
   test('Kokoro: conversa com o worker, informa o download e repassa erros', async () => {
     class WorkerFalso {
       postMessage(msg) {

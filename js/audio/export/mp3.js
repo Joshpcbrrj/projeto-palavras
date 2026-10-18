@@ -5,7 +5,7 @@
 
 import { CDN } from '../../config.js';
 
-export const TAXA_PADRAO = 24000; // Hz — taxa nativa do Kokoro e do formato "pcm" da OpenAI
+export const TAXA_PADRAO = 24000; // Hz — taxa nativa do Kokoro
 const AMOSTRAS_POR_QUADRO = 1152;
 
 let lamePromessa = null;
@@ -23,15 +23,6 @@ export function paraInt16(amostras) {
     const s = Math.max(-1, Math.min(1, amostras[i]));
     saida[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
   }
-  return saida;
-}
-
-/** Converte PCM 16 bits little-endian (bytes) em amostras float. */
-export function pcm16ParaFloat(buffer) {
-  const dados = new DataView(buffer instanceof ArrayBuffer ? buffer : buffer.buffer);
-  const total = Math.floor(dados.byteLength / 2);
-  const saida = new Float32Array(total);
-  for (let i = 0; i < total; i++) saida[i] = dados.getInt16(i * 2, true) / 0x8000;
   return saida;
 }
 

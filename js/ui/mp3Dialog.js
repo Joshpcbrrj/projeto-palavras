@@ -2,7 +2,7 @@
  * Diálogo de exportação de áudio MP3 (palavras, frases ou textos).
  */
 
-import { IDIOMAS, TIPOS, VOZES_KOKORO, VOZES_OPENAI } from '../config.js';
+import { IDIOMAS, TIPOS, VOZES_KOKORO } from '../config.js';
 import { $, baixarArquivo, html, render } from '../core/dom.js';
 import { formatarDuracao } from '../core/utils.js';
 import { criarMotor, gerarMp3 } from '../audio/export/index.js';
@@ -10,9 +10,8 @@ import { ehDialogo, estimarDuracao, planejarAudio } from '../audio/export/plan.j
 import { settings } from '../services/settings.js';
 import { toast } from './toast.js';
 
-function opcoesVoz(motor, selecionada) {
-  const lista = motor === 'openai' ? VOZES_OPENAI.map((id) => ({ id, nome: id })) : VOZES_KOKORO;
-  return lista.map(
+function opcoesVoz(selecionada) {
+  return VOZES_KOKORO.map(
     (v) =>
       html`<option value="${v.id}" ${v.id === selecionada ? html`selected` : ''}>${v.nome}</option>`
   );
@@ -37,9 +36,6 @@ export function abrirExportacaoMp3(conteudo) {
   document.body.appendChild(el);
 
   const desenhar = () => {
-    const motor = estado.motor;
-    const vozPrincipal = motor === 'openai' ? estado.vozOpenai : estado.vozKokoro;
-    const vozSegunda = motor === 'openai' ? estado.vozOpenai2 : estado.vozKokoro2;
     const segmentos = planejarAudio(conteudo, {
       repeticoes: estado.repeticoes,
       pausaMs: estado.pausaMs,
@@ -51,42 +47,30 @@ export function abrirExportacaoMp3(conteudo) {
           <h2 id="mp3Titulo" class="dialogo__titulo">🎵 Exportar áudio (MP3)</h2>
           <p class="dialogo__mensagem">${conteudo.titulo} · ${segmentos.length} trechos · ≈ ${formatarDuracao(estimarDuracao(segmentos, estado.velocidade))}</p>
 
-          <fieldset class="campo">
-            <legend class="campo__rotulo">Motor de voz</legend>
-            <div class="segmentado">
-              <label class="segmentado__opcao"><input type="radio" name="mp3Motor" value="kokoro" ${motor === 'kokoro' ? html`checked` : ''} /><span>Kokoro (grátis)</span></label>
-              <label class="segmentado__opcao"><input type="radio" name="mp3Motor" value="openai" ${motor === 'openai' ? html`checked` : ''} /><span>OpenAI (sua chave)</span></label>
-            </div>
-            <p class="campo__ajuda">
-              ${
-                motor === 'kokoro'
-                  ? 'Roda no seu navegador, sem custo. Na primeira vez a voz é baixada (90 a 330 MB, conforme o aparelho) e fica guardada.'
-                  : estado.chaveOpenai
-                    ? 'Usa a sua chave da OpenAI (cobrança por uso na sua conta).'
-                    : html`Configure sua chave da OpenAI em <a href="#/configuracoes">Configurações</a>.`
-              }
-            </p>
-            ${
-              motor === 'kokoro' && !ingles
-                ? html`<p class="campo__ajuda campo__ajuda--aviso">O Kokoro fala apenas inglês. Para ${IDIOMAS[conteudo.idioma]?.nome || 'este idioma'}, use o motor da OpenAI.</p>`
-                : ''
-            }
-          </fieldset>
+          <p class="campo__ajuda">
+            Voz neural Kokoro, gerada no seu navegador sem custo. Na primeira vez a voz é baixada
+            (90 a 330 MB, conforme o aparelho) e fica guardada. Textos longos podem levar alguns minutos.
+          </p>
+          ${
+            !ingles
+              ? html`<p class="campo__ajuda campo__ajuda--aviso">A voz do MP3 fala apenas inglês; em ${IDIOMAS[conteudo.idioma]?.nome || 'outro idioma'} a pronúncia sairá com sotaque inglês.</p>`
+              : ''
+          }
 
           <div class="grade-2 grade-2--compacta">
             <div class="campo">
               <label class="campo__rotulo" for="mp3Voz">${dialogo ? 'Voz da 1ª pessoa' : 'Voz'}</label>
-              <select id="mp3Voz" class="input">${opcoesVoz(motor, vozPrincipal)}</select>
+              <select id="mp3Voz" class="input">${opcoesVoz(estado.vozKokoro)}</select>
             </div>
             ${
               dialogo
                 ? html`<div class="campo">
                   <label class="campo__rotulo" for="mp3Voz2">Voz da 2ª pessoa</label>
-                  <select id="mp3Voz2" class="input">${opcoesVoz(motor, vozSegunda)}</select>
+                  <select id="mp3Voz2" class="input">${opcoesVoz(estado.vozKokoro2)}</select>
                 </div>`
                 : html`<div class="campo">
                   <label class="campo__rotulo" for="mp3Velocidade">Velocidade: <strong id="mp3VelocidadeValor">${estado.velocidade}×</strong></label>
-                  <input type="range" id="mp3Velocidade" class="faixa" min="0.7" max="1.3" step="0.05" value="${estado.velocidade}" ${motor === 'openai' ? html`disabled` : ''} />
+                  <input type="range" id="mp3Velocidade" class="faixa" min="0.7" max="1.3" step="0.05" value="${estado.velocidade}" />
                 </div>`
             }
           </div>
@@ -127,22 +111,13 @@ export function abrirExportacaoMp3(conteudo) {
   };
 
   const ligar = () => {
-    el.querySelectorAll('input[name="mp3Motor"]').forEach((r) =>
-      r.addEventListener('change', () => {
-        estado.motor = r.value;
-        settings.setMp3({ motor: r.value });
-        desenhar();
-      })
-    );
     $('#mp3Voz', el)?.addEventListener('change', (e) => {
-      const chave = estado.motor === 'openai' ? 'vozOpenai' : 'vozKokoro';
-      estado[chave] = e.target.value;
-      settings.setMp3({ [chave]: e.target.value });
+      estado.vozKokoro = e.target.value;
+      settings.setMp3({ vozKokoro: e.target.value });
     });
     $('#mp3Voz2', el)?.addEventListener('change', (e) => {
-      const chave = estado.motor === 'openai' ? 'vozOpenai2' : 'vozKokoro2';
-      estado[chave] = e.target.value;
-      settings.setMp3({ [chave]: e.target.value });
+      estado.vozKokoro2 = e.target.value;
+      settings.setMp3({ vozKokoro2: e.target.value });
     });
     $('#mp3Velocidade', el)?.addEventListener('input', (e) => {
       estado.velocidade = Number(e.target.value);
@@ -158,9 +133,6 @@ export function abrirExportacaoMp3(conteudo) {
       desenhar();
     });
     $('#mp3Fechar', el).addEventListener('click', () => el.close());
-    el.querySelectorAll('a[href^="#/"]').forEach((a) =>
-      a.addEventListener('click', () => el.close())
-    );
     $('#mp3Gerar', el).addEventListener('click', gerar);
   };
 
@@ -192,15 +164,12 @@ export function abrirExportacaoMp3(conteudo) {
     el.querySelectorAll('select, input').forEach((c) => (c.disabled = true));
     $('#mp3Progresso', el).hidden = false;
     $('#mp3Resultado', el).hidden = true;
-    const openai = estado.motor === 'openai';
     try {
-      const motor = criarMotor(estado.motor, { chaveOpenai: estado.chaveOpenai });
+      const motor = criarMotor();
       const resultado = await gerarMp3(conteudo, {
         motor,
-        vozes: openai
-          ? [estado.vozOpenai, estado.vozOpenai2]
-          : [estado.vozKokoro, estado.vozKokoro2],
-        velocidade: openai ? 1 : estado.velocidade,
+        vozes: [estado.vozKokoro, estado.vozKokoro2],
+        velocidade: estado.velocidade,
         repeticoes: estado.repeticoes,
         pausaMs: estado.pausaMs,
         aoProgresso: mostrarProgresso,
@@ -228,8 +197,6 @@ export function abrirExportacaoMp3(conteudo) {
       controle = null;
       botao.textContent = '🎵 Gerar MP3';
       el.querySelectorAll('select, input').forEach((c) => (c.disabled = false));
-      const faixa = $('#mp3Velocidade', el);
-      if (faixa && openai) faixa.disabled = true;
     }
   };
 

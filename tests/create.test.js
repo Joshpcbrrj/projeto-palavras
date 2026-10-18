@@ -12,13 +12,10 @@ import {
   promptAdaptarArtigo,
   promptDialogo,
   promptTextoNivel,
-  limparTraducaoTema,
   pareceIdioma,
   resumirReferencia,
-  temaPrecisaTraducao,
 } from '../js/create/prompts.js';
 import { MODOS, criarTexto } from '../js/create/generator.js';
-import { idModelo, verificarSuporte } from '../js/create/llm.js';
 
 /** Simula a API da Wikipédia respondendo conforme os parâmetros da URL. */
 function wikipediaFalsa({ buscas = {}, links = {}, artigos = {} } = {}) {
@@ -173,6 +170,14 @@ describe('Wikipédia', () => {
     await expect(obterArtigo('Nada', 'en', { fetchFn })).rejects.toThrow('não encontrado');
   });
 
+  test('remove as notas de navegação do topo do artigo', () => {
+    const extrato =
+      'For the American sport, see American football. For other sports known as football, see Football\nAssociation football is a sport played between two teams.';
+    expect(prepararArtigo(extrato)).toBe(
+      'Association football is a sport played between two teams.'
+    );
+  });
+
   test('corta o artigo perto do tamanho pedido', () => {
     const paragrafo = 'word '.repeat(100).trim();
     const longo = Array.from({ length: 20 }, (_, i) => `== Part ${i} ==\n${paragrafo}`).join('\n');
@@ -263,16 +268,6 @@ describe('verificação de idioma', () => {
     expect(pareceIdioma('Olá!', 'en-US')).toBe(true);
   });
 
-  test('detecta temas em português e limpa a tradução', () => {
-    expect(temaPrecisaTraducao('pedir comida num restaurante', 'en-US')).toBe(true);
-    expect(temaPrecisaTraducao('meio ambiente', 'en-US')).toBe(true); // sem acentos: antes passava despercebido
-    expect(temaPrecisaTraducao('', 'en-US')).toBe(false);
-    expect(limparTraducaoTema('"Ordering food at a restaurant."\nextra', 'x')).toBe(
-      'Ordering food at a restaurant'
-    );
-    expect(limparTraducaoTema('', 'original')).toBe('original');
-  });
-
   test('o pedido termina com o lembrete de idioma', () => {
     const { mensagens } = promptDialogo({
       tema: 'ordering food',
@@ -340,7 +335,6 @@ describe('criarTexto (orquestração)', () => {
   test('se a IA responder em outro idioma, tenta de novo com instrução reforçada', async () => {
     const { fetchFn } = wiki();
     const respostas = [
-      'restaurant', // tradução do tema
       'Anna: Pedir comida é fácil, não é?\nBen: Sim, eu posso escolher o prato.\nAnna: Você quer uma mesa?\nBen: Sim, para dois.',
       'Anna: Hi, do you have a table?\nBen: Yes, it is for two people.\nAnna: What is the special today?\nBen: It is the fish with rice.',
     ];
@@ -353,56 +347,12 @@ describe('criarTexto (orquestração)', () => {
       fetchFn,
       aoEtapa: (e) => etapas.push(e),
     });
-    expect(ia.gerar).toHaveBeenCalledTimes(3);
-    expect(ia.gerar.mock.calls[2][0].mensagens[1].content).toContain(
+    expect(ia.gerar).toHaveBeenCalledTimes(2);
+    expect(ia.gerar.mock.calls[1][0].mensagens[1].content).toContain(
       'previous answer was in the wrong language'
     );
     expect(r.texto).toContain('do you have a table');
     expect(etapas.some((e) => e.includes('outro idioma'))).toBe(true);
-  });
-
-  test('tema em português é traduzido antes de escrever', async () => {
-    const { fetchFn } = wikipediaFalsa();
-    const respostas = [
-      'Ordering food at a restaurant',
-      'Anna: Hi.\nBen: Hello.\nAnna: A table, please.\nBen: Sure, come in.',
-    ];
-    const ia = { gerar: vi.fn(async () => respostas.shift()) };
-    await criarTexto({
-      modo: MODOS.DIALOGO,
-      tema: 'pedir comida num restaurante',
-      ia,
-      fetchFn,
-      usarWikipedia: false,
-    });
-    expect(ia.gerar.mock.calls[0][0].mensagens[1].content).toContain(
-      'pedir comida num restaurante'
-    );
-    const pedido = ia.gerar.mock.calls[1][0].mensagens[1].content;
-    expect(pedido).toContain('"Ordering food at a restaurant"');
-    expect(pedido).not.toContain('pedir comida');
-  });
-
-  test('tema em português é traduzido antes de escrever', async () => {
-    const { fetchFn } = wikipediaFalsa();
-    const respostas = [
-      'Ordering food at a restaurant',
-      'Anna: Hi.\nBen: Hello.\nAnna: A table, please.\nBen: Sure, come in.',
-    ];
-    const ia = { gerar: vi.fn(async () => respostas.shift()) };
-    await criarTexto({
-      modo: MODOS.DIALOGO,
-      tema: 'pedir comida num restaurante',
-      ia,
-      fetchFn,
-      usarWikipedia: false,
-    });
-    expect(ia.gerar.mock.calls[0][0].mensagens[1].content).toContain(
-      'pedir comida num restaurante'
-    );
-    const pedido = ia.gerar.mock.calls[1][0].mensagens[1].content;
-    expect(pedido).toContain('"Ordering food at a restaurant"');
-    expect(pedido).not.toContain('pedir comida');
   });
 
   test('texto acima do nível pedido é reescrito de forma mais simples', async () => {
@@ -411,7 +361,7 @@ describe('criarTexto (orquestração)', () => {
       'Notwithstanding considerable macroeconomic volatility, contemporary governmental institutions systematically implemented comprehensive regulatory frameworks, fundamentally transforming international financial intermediation and institutional accountability.';
     const simples =
       'Money helps people buy things. Banks keep money safe. People work to get money.';
-    const respostas = ['economy', dificil, simples];
+    const respostas = [dificil, simples];
     const ia = { gerar: vi.fn(async () => respostas.shift()) };
     const etapas = [];
     const r = await criarTexto({
@@ -423,7 +373,7 @@ describe('criarTexto (orquestração)', () => {
       aoEtapa: (e) => etapas.push(e),
     });
     expect(r.texto).toBe(simples);
-    expect(ia.gerar.mock.calls[2][0].mensagens[1].content).toContain(
+    expect(ia.gerar.mock.calls[1][0].mensagens[1].content).toContain(
       'previous version was too difficult'
     );
     expect(etapas.some((e) => e.includes('Simplificando'))).toBe(true);
@@ -512,20 +462,5 @@ describe('criarTexto (orquestração)', () => {
     await expect(
       criarTexto({ modo: 'poema', tema: 'x', ia: iaFalsa('x'), usarWikipedia: false })
     ).rejects.toThrow('Modo');
-  });
-});
-
-describe('IA local (WebLLM)', () => {
-  test('detecta falta de WebGPU', async () => {
-    expect((await verificarSuporte(undefined)).suportado).toBe(false);
-    expect((await verificarSuporte({ requestAdapter: async () => null })).suportado).toBe(false);
-  });
-
-  test('usa precisão f16 quando a placa suporta', async () => {
-    const gpu = { requestAdapter: async () => ({ features: new Set(['shader-f16']) }) };
-    expect(await verificarSuporte(gpu)).toEqual({ suportado: true, f16: true });
-    expect(idModelo('leve', true)).toBe('Llama-3.2-1B-Instruct-q4f16_1-MLC');
-    expect(idModelo('qualidade', false)).toBe('Llama-3.2-3B-Instruct-q4f32_1-MLC');
-    expect(idModelo('inexistente')).toBe('Qwen2.5-1.5B-Instruct-q4f16_1-MLC');
   });
 });

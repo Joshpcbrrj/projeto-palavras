@@ -53,10 +53,9 @@ describe('PWA', () => {
     expect(html).not.toContain('cdn.tailwindcss.com');
   });
 
-  test('os Web Workers importam exatamente as mesmas versões do config', () => {
+  test('o Web Worker do Kokoro importa exatamente a mesma versão do config', () => {
     const config = ler('js/config.js');
     const url = (nome) => config.match(new RegExp(`${nome}: '([^']+)'`))[1];
-    expect(ler('js/create/llm-worker.js')).toContain(`'${url('webllm')}'`);
     expect(ler('js/audio/export/kokoro-worker.js')).toContain(`'${url('kokoro')}'`);
   });
 

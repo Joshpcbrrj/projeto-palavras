@@ -4,17 +4,14 @@
  * - "mergulho": conteúdo explicativo de 1–2 páginas (Wikipédia, opcionalmente adaptado pela IA);
  * - "nivel": texto sobre o tema escrito para o nível escolhido.
  *
- * A Wikipédia fornece os fatos; a IA local reescreve no formato e no nível pedidos.
+ * A Wikipédia fornece os fatos; a IA (Gemini) reescreve no formato e no nível pedidos.
  */
 
 import { IDIOMAS, NIVEIS } from '../config.js';
 import { TAMANHOS, analisarTexto } from './levels.js';
 import {
   limparResposta,
-  limparTraducaoTema,
   pareceIdioma,
-  promptTraduzirTema,
-  temaPrecisaTraducao,
   promptAdaptarArtigo,
   promptDialogo,
   promptTextoNivel,
@@ -54,7 +51,7 @@ async function buscarReferencia({ tema, idioma, nivel, fetchFn, aoEtapa, maxPala
  * @param {'iniciante'|'intermediario'|'fluente'} opcoes.nivel
  * @param {'curto'|'medio'|'longo'} [opcoes.tamanho]
  * @param {boolean} [opcoes.usarWikipedia=true] usar a Wikipédia como base de fatos
- * @param {boolean} [opcoes.usarIA=true] reescrever com a IA local (já carregada)
+ * @param {boolean} [opcoes.usarIA=true] usar a IA (se `ia` foi informado)
  * @param {{gerar: Function}} [opcoes.ia] motor de IA carregado
  * @param {Function} [opcoes.fetchFn]
  * @param {(etapa: string) => void} [opcoes.aoEtapa]
@@ -171,24 +168,12 @@ export async function criarTexto({
       });
     }
     throw new Error(
-      'Este modo precisa de IA. Configure a IA online (chave gratuita do Gemini) ou a IA no navegador no painel acima.'
+      'Este modo precisa de IA. Configure a chave gratuita do Gemini no painel acima.'
     );
   }
 
   aoEtapa?.(modo === MODOS.DIALOGO ? 'Escrevendo o diálogo…' : 'Escrevendo o texto…');
-  // Modelos pequenos tendem a responder no idioma do tema: traduz o tema antes.
-  let temaIA = assunto;
-  if (temaPrecisaTraducao(assunto, idioma)) {
-    const pedidoTema = promptTraduzirTema(assunto, idioma);
-    const traducao = await ia.gerar({
-      ...pedidoTema,
-      mensagens: pedidoTema.mensagens,
-      temperatura: 0.1,
-      signal,
-    });
-    temaIA = limparTraducaoTema(traducao, assunto);
-  }
-  const opcoes = { tema: temaIA, idioma, nivel, tamanho, referencia };
+  const opcoes = { tema: assunto, idioma, nivel, tamanho, referencia };
   const formato = modo === MODOS.DIALOGO ? 'dialogo' : 'texto';
   let texto = await gerarNoIdioma({
     ia,
@@ -204,9 +189,7 @@ export async function criarTexto({
     signal,
   });
   if (modo === MODOS.DIALOGO && texto.split('\n').length < 4) {
-    throw new Error(
-      'A IA não conseguiu montar um diálogo válido. Tente de novo ou use um modelo maior nas configurações.'
-    );
+    throw new Error('A IA não conseguiu montar um diálogo válido. Tente de novo.');
   }
   if (!texto.trim()) throw new Error('A IA não gerou texto. Tente novamente.');
 
@@ -214,7 +197,7 @@ export async function criarTexto({
     texto = await simplificarSeNecessario({
       ia,
       texto,
-      tema: temaIA,
+      tema: assunto,
       idioma,
       nivel,
       tamanho,
@@ -269,7 +252,7 @@ async function gerarNoIdioma({
       );
   }
   throw new Error(
-    `A IA não conseguiu escrever em ${IDIOMAS[idioma]?.nome || idioma}. Tente de novo ou escolha um modelo maior em Configurações.`
+    `A IA não conseguiu escrever em ${IDIOMAS[idioma]?.nome || idioma}. Tente de novo.`
   );
 }
 

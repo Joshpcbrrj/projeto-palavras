@@ -104,12 +104,9 @@ describe('escolha do motor de IA', () => {
     settings._resetar();
   });
 
-  test('Gemini só fica disponível com chave; IA local só depois de ativada', () => {
-    settings.set('motorIA', 'gemini');
+  test('a IA só fica disponível depois de configurar a chave', () => {
     expect(obterMotorIA()).toBeNull();
     settings.set('chaveGemini', 'AIza-teste');
     expect(obterMotorIA()).toBeInstanceOf(GeminiMotor);
-    settings.set('motorIA', 'local');
-    expect(obterMotorIA()).toBeNull();
   });
 });

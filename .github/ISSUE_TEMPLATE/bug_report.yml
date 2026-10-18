@@ -27,6 +27,9 @@ body:
     attributes:
       label: Área
       options:
+        - Criar textos (diálogo, mergulho, por nível)
+        - IA (Gemini)
+        - Exportar MP3
         - Flashcards (palavras/frases)
         - Leitura de texto / áudio
         - Geração de PDF

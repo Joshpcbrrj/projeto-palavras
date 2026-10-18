@@ -1,12 +1,8 @@
 /**
- * Motores de voz que geram áudio de verdade (a Web Speech API só reproduz,
- * não permite gravar):
- * - Kokoro: grátis, roda no navegador, vozes inglesas neurais (download único de ≈ 90 MB,
- *   ou ≈ 330 MB na versão para placa de vídeo, bem mais rápida);
- * - OpenAI: vozes em vários idiomas, exige a chave de API do próprio usuário.
+ * Motor de voz que gera áudio de verdade (a Web Speech API só reproduz, não permite gravar):
+ * Kokoro, grátis, roda no navegador, vozes inglesas neurais (download único de ≈ 90 MB,
+ * ou ≈ 330 MB na versão para placa de vídeo, bem mais rápida).
  */
-
-import { TAXA_PADRAO, pcm16ParaFloat } from './mp3.js';
 
 /** Usa a placa de vídeo (WebGPU) quando disponível; senão, o processador (WebAssembly). */
 export async function escolherDispositivo(gpu = globalThis.navigator?.gpu) {
@@ -90,50 +86,4 @@ export class KokoroMotor {
     this.carregado = null;
     this.pendentes.clear();
   }
-}
-
-/** Motor OpenAI (texto → fala) usando a chave do usuário. */
-export class OpenAIMotor {
-  constructor({
-    chave,
-    fetchFn = globalThis.fetch?.bind(globalThis),
-    modelo = 'gpt-4o-mini-tts',
-  } = {}) {
-    this.chave = String(chave || '').trim();
-    this.fetchFn = fetchFn;
-    this.modelo = modelo;
-  }
-
-  async carregar() {
-    if (!this.chave)
-      throw new Error('Informe sua chave da OpenAI nas configurações para usar este motor de voz.');
-  }
-
-  async sintetizar(texto, { voz = 'coral', signal } = {}) {
-    let resposta;
-    try {
-      resposta = await this.fetchFn('https://api.openai.com/v1/audio/speech', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${this.chave}`, 'Content-Type': 'application/json' },
-        // "pcm": áudio bruto 24 kHz, 16 bits, mono — fácil de juntar sem decodificar.
-        body: JSON.stringify({
-          model: this.modelo,
-          voice: voz,
-          input: texto,
-          response_format: 'pcm',
-        }),
-        signal,
-      });
-    } catch (erro) {
-      if (erro?.name === 'AbortError') throw erro;
-      throw new Error('Sem conexão com a OpenAI.', { cause: erro });
-    }
-    if (resposta.status === 401) throw new Error('Chave da OpenAI inválida.');
-    if (resposta.status === 429)
-      throw new Error('Limite da OpenAI atingido ou sem créditos na conta.');
-    if (!resposta.ok) throw new Error(`A OpenAI respondeu com erro (${resposta.status}).`);
-    return { pcm: pcm16ParaFloat(await resposta.arrayBuffer()), taxa: TAXA_PADRAO };
-  }
-
-  destruir() {}
 }

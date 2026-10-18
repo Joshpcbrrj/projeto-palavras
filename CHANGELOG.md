@@ -5,6 +5,27 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e 
 
 ## [Não lançado]
 
+## [3.2.0] - 2026-10-18
+
+Versão de simplificação: o app passa a ter uma única IA (Gemini) e um único motor de MP3 (Kokoro), ambos grátis.
+
+### Removido
+
+- **IA no navegador (WebLLM)**: exigia download de 0,9–2,3 GB, placa de vídeo compatível e levava minutos por texto.
+- **MP3 pela OpenAI** (pago). Chaves da OpenAI salvas por versões anteriores são apagadas do navegador automaticamente.
+- Passo extra de tradução do tema antes de criar textos (desnecessário com o Gemini; economiza um pedido da cota gratuita).
+- Sugestões “Não era esse o assunto?” na criação de textos, que mostravam resultados sem relação.
+
+### Alterado
+
+- Configurações simplificadas: idioma, tema, chave do Gemini e vozes do MP3.
+- Roadmap reescrito com a visão do app como gerador de material de estudo (PDF e MP3) e novas propostas.
+
+### Corrigido
+
+- Textos da Wikipédia não trazem mais a nota de navegação do topo (“For the American sport, see…”).
+- Documentação atualizada (README, SECURITY, formato do PDF, arquitetura, guia de contribuição, modelo de issue) e capturas de tela novas.
+
 ## [3.1.0] - 2026-10-18
 
 ### Adicionado
