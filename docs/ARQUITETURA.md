@@ -29,16 +29,16 @@ flowchart LR
   services --> pdf
 ```
 
-| Pasta       | Responsabilidade                                                                                                                                                                                                                  |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `core/`     | `dom.js` (template `html`, leitura de arquivos, carregamento de scripts), `router.js` (rotas por hash), `nav.js` (navegação sem dependência circular), `utils.js` (datas, embaralhar, esperar cancelável).                        |
-| `audio/`    | `voices.js` classifica e escolhe vozes; `speaker.js` fala com Promise e contorna bugs dos navegadores; `reader.js` lê textos longos frase a frase. `index.js` expõe as instâncias compartilhadas.                                 |
-| `study/`    | `StudySession`: um único laço assíncrono cancelável (mostra → fala → espera → avança). Pausar/avançar cancelam o laço anterior com `AbortController`, então nunca há dois temporizadores.                                         |
-| `text/`     | Extração de palavras/frases com `Intl.Segmenter` (quando disponível) e divisão do texto em trechos para leitura, preservando a posição de cada trecho no original (usada no destaque).                                            |
-| `pdf/`      | `format.js` (pacote de dados e revisão espaçada), `exporter.js` (layout com jsPDF), `raster.js` (texto não latino como imagem), `importer.js` (PDF/TXT/JSON), `legacy.js` (formatos v1/v2), `libs.js` (carregamento sob demanda). |
-| `services/` | `storage.js` (localStorage tolerante a falhas), `settings.js` (preferências + migração das chaves antigas), `progress.js` (sessões, estatísticas, agenda de revisões, backup, migração da v2).                                    |
-| `screens/`  | Uma classe por tela com `montar(raiz)`, `desmontar()` e, opcionalmente, `podeSair()` (pergunta antes de sair de um estudo não salvo).                                                                                             |
-| `ui/`       | Componentes compartilhados, diálogo modal, notificações e tema.                                                                                                                                                                   |
+| Pasta       | Responsabilidade                                                                                                                                                                                                                                                                                   |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `core/`     | `dom.js` (template `html`, leitura de arquivos, carregamento de scripts), `router.js` (rotas por hash), `nav.js` (navegação sem dependência circular), `utils.js` (datas, embaralhar, esperar cancelável).                                                                                         |
+| `audio/`    | `voices.js` classifica e escolhe vozes; `speaker.js` fala com Promise e contorna bugs dos navegadores; `reader.js` lê textos longos frase a frase. `index.js` expõe as instâncias compartilhadas.                                                                                                  |
+| `study/`    | `StudySession`: um único laço assíncrono cancelável (mostra → fala → espera → avança). Pausar/avançar cancelam o laço anterior com `AbortController`, então nunca há dois temporizadores.                                                                                                          |
+| `text/`     | Extração de palavras/frases com `Intl.Segmenter` (quando disponível), filtro de palavras muito comuns (`comuns.js`) e divisão do texto em trechos para leitura, preservando a posição de cada trecho no original (usada no destaque).                                                              |
+| `pdf/`      | `format.js` (pacote de dados e revisão espaçada), `exporter.js` (layout com jsPDF), `raster.js` (texto não latino como imagem), `importer.js` (PDF/TXT/JSON), `legacy.js` (formatos v1/v2), `libs.js` (carregamento sob demanda).                                                                  |
+| `services/` | `storage.js` (localStorage tolerante a falhas), `settings.js` (preferências + migração das chaves antigas), `progress.js` (sessões, estatísticas, agenda de revisões, backup, migração da v2), `export.js` (exportação única de PDF para todas as telas: pacote + glossário + histórico + agenda). |
+| `screens/`  | Uma classe por tela com `montar(raiz)`, `desmontar()` e, opcionalmente, `podeSair()` (pergunta antes de sair de um estudo não salvo).                                                                                                                                                              |
+| `ui/`       | Componentes compartilhados, diálogo modal, notificações, tema, diálogo do MP3/kit (`mp3Dialog.js`) e botões de exportação (`exportActions.js`).                                                                                                                                                    |
 
 ### Criação de textos (`js/create/`)
 
@@ -48,6 +48,7 @@ flowchart LR
 | `levels.js`               | Orientações por nível (CEFR) e métrica de legibilidade (Flesch) para estimar o nível do texto gerado.                                                    |
 | `prompts.js`              | Montagem dos pedidos para a IA e limpeza das respostas (markdown, introduções, formato "Nome: fala").                                                    |
 | `gemini.js` + `engine.js` | IA pelo Google Gemini (chave gratuita do usuário, streaming SSE); `engine.js` devolve o motor pronto ou `null` sem chave.                                |
+| `glossary.js`             | Tradução para o glossário do PDF: Gemini (no contexto) ou tradutor embutido do Chrome/Edge (`Translator`), com limite de tempo.                          |
 | `generator.js`            | Orquestra os três modos: busca a referência, chama a IA e aplica alternativas (sem internet → só IA; sem IA → Wikipédia).                                |
 
 ### Exportação de áudio (`js/audio/export/`)

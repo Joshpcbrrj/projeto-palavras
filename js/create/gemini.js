@@ -60,7 +60,7 @@ export class GeminiMotor {
    * Gera um texto em streaming.
    * @returns {Promise<string>}
    */
-  async gerar({ mensagens, maxTokens = 800, temperatura = 0.7, aoTexto, signal }) {
+  async gerar({ mensagens, maxTokens = 800, temperatura = 0.7, json = false, aoTexto, signal }) {
     if (!this.chave)
       throw new Error('Configure sua chave gratuita do Gemini para usar a IA online.');
     let resposta;
@@ -74,6 +74,7 @@ export class GeminiMotor {
             temperature: temperatura,
             // Folga para modelos que "pensam" antes de responder.
             maxOutputTokens: Math.max(maxTokens * 2, 2048),
+            ...(json ? { responseMimeType: 'application/json' } : {}),
           },
         }),
         signal,

@@ -7,6 +7,7 @@
  */
 
 import { unicos } from '../core/utils.js';
+import { semPalavrasComuns } from './comuns.js';
 
 const LETRA = /\p{L}/u;
 const PONTA_NAO_LETRA = /^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu;
@@ -41,9 +42,13 @@ export function normalizarTexto(texto) {
  * @param {string} [opcoes.idioma] código BCP-47 (melhora a segmentação de ja/zh)
  * @param {boolean} [opcoes.removerDuplicadas=true]
  * @param {number} [opcoes.minimo=1] tamanho mínimo da palavra
+ * @param {boolean} [opcoes.ignorarComuns=false] remove palavras muito comuns (the, a, to...)
  * @returns {string[]}
  */
-export function extrairPalavras(texto, { idioma, removerDuplicadas = true, minimo = 1 } = {}) {
+export function extrairPalavras(
+  texto,
+  { idioma, removerDuplicadas = true, minimo = 1, ignorarComuns = false } = {}
+) {
   const limpo = normalizarTexto(texto);
   if (!limpo) return [];
 
@@ -64,6 +69,7 @@ export function extrairPalavras(texto, { idioma, removerDuplicadas = true, minim
     .map((p) => p.replace(/^['\u2019]+|['’]+$/g, ''))
     .filter((p) => p.length >= minimo && LETRA.test(p));
 
+  if (ignorarComuns) palavras = semPalavrasComuns(palavras, idioma || 'en');
   return removerDuplicadas ? unicos(palavras) : palavras;
 }
 

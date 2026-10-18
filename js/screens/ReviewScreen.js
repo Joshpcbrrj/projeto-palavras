@@ -7,13 +7,14 @@ import { IDIOMAS, TIPOS, nomeTipo } from '../config.js';
 import { $, baixarArquivo, html, render } from '../core/dom.js';
 import { ROTAS, navegar } from '../core/nav.js';
 import { carimboArquivo, formatarDataBR, unicos } from '../core/utils.js';
-import { criarPacote, statusRevisao } from '../pdf/format.js';
-import { exportarPdf } from '../pdf/exporter.js';
+import { statusRevisao } from '../pdf/format.js';
 import { ORIGENS, lerArquivo } from '../pdf/importer.js';
 import { progresso, revisaoEfetiva } from '../services/progress.js';
+import { settings } from '../services/settings.js';
 import { extrairFrases, extrairPalavras } from '../text/extract.js';
 import { cabecalhoTela, estadoVazio, seloRevisao } from '../ui/components.js';
 import { confirmar } from '../ui/dialog.js';
+import { exportarPdfComBotao } from '../ui/exportActions.js';
 import { toast } from '../ui/toast.js';
 
 const ICONES = { [TIPOS.PALAVRAS]: '📖', [TIPOS.FRASES]: '💬', [TIPOS.TEXTO]: '🎧' };
@@ -300,7 +301,10 @@ export class ReviewScreen {
           const itens =
             botao.dataset.acao === 'frases'
               ? extrairFrases(material.texto, opcoes)
-              : extrairPalavras(material.texto, opcoes);
+              : extrairPalavras(material.texto, {
+                  ...opcoes,
+                  ignorarComuns: settings.get('ignorarComuns'),
+                });
           if (!itens.length) return toast.aviso('Nada encontrado neste texto.');
           navegar(botao.dataset.acao === 'frases' ? ROTAS.FRASES : ROTAS.PALAVRAS, {
             itens,
@@ -382,23 +386,14 @@ export class ReviewScreen {
       confirmar: 'Gerar PDF',
     });
     if (!ok) return;
-    const pacote = criarPacote({
+    await exportarPdfComBotao(botao, {
       tipo,
       titulo: `${nomeTipo(tipo, { maiuscula: true })} combinadas (${formatarDataBR(new Date())})`,
       idioma: lista[0]?.idioma,
       itens: this.itensCombinados(tipo),
+      // Mantém as traduções que os arquivos originais já tinham.
+      glossario: lista.flatMap((m) => m.glossario || []),
     });
-    botao.disabled = true;
-    try {
-      const nome = await exportarPdf(pacote);
-      progresso().registrarArquivo('exportados', { nome, tipo, quantidade: pacote.itens.length });
-      progresso().salvarMaterial(pacote);
-      toast.sucesso(`PDF gerado: ${nome}`);
-    } catch (erro) {
-      toast.erro(`Não foi possível gerar o PDF. ${erro.message || ''}`);
-    } finally {
-      botao.disabled = false;
-    }
   }
 }
 

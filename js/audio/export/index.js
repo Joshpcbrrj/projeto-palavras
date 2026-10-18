@@ -29,6 +29,7 @@ export function nomeArquivoMp3(titulo, data = new Date()) {
  * @param {number} [opcoes.velocidade]
  * @param {number} [opcoes.repeticoes]
  * @param {number} [opcoes.pausaMs]
+ * @param {boolean} [opcoes.numerar] falar o número de cada item
  * @param {Function} [opcoes.Mp3Encoder] (injetável para testes)
  * @param {(info: {fase: string, atual?: number, total?: number, progresso?: number}) => void} [opcoes.aoProgresso]
  * @param {AbortSignal} [opcoes.signal]
@@ -36,9 +37,19 @@ export function nomeArquivoMp3(titulo, data = new Date()) {
  */
 export async function gerarMp3(
   conteudo,
-  { motor, vozes, velocidade = 1, repeticoes = 1, pausaMs = 900, Mp3Encoder, aoProgresso, signal }
+  {
+    motor,
+    vozes,
+    velocidade = 1,
+    repeticoes = 1,
+    pausaMs = 900,
+    numerar = false,
+    Mp3Encoder,
+    aoProgresso,
+    signal,
+  }
 ) {
-  const segmentos = planejarAudio(conteudo, { repeticoes, pausaMs });
+  const segmentos = planejarAudio(conteudo, { repeticoes, pausaMs, numerar });
   if (!segmentos.length) throw new Error('Não há conteúdo para gerar o áudio.');
 
   aoProgresso?.({ fase: 'carregando', progresso: 0 });

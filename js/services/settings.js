@@ -20,6 +20,7 @@ const MP3_PADRAO = Object.freeze({
   vozKokoro: VOZES_KOKORO[0].id,
   vozKokoro2: 'am_michael', // segunda voz, usada nos diálogos
   pausaMs: 900,
+  numerar: true, // falar "Number 3" antes de cada item, para acompanhar no PDF
 });
 
 /** Campos de versões anteriores que não existem mais (removidos ao carregar). */
@@ -35,6 +36,8 @@ const PADRAO = Object.freeze({
   repeticoes: 1,
   tempo: { ...TEMPO_PADRAO },
   embaralhar: true,
+  ignorarComuns: true, // tira "the", "a", "to"... das listas de palavras
+  incluirTraducao: true, // glossário com tradução nos PDFs (quando houver tradutor)
   chaveGemini: '', // chave gratuita do Google Gemini (IA para criar textos)
   nivelTexto: 'iniciante',
   mp3: { ...MP3_PADRAO },

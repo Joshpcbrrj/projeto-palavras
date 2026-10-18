@@ -17,12 +17,12 @@ import {
   limitar,
 } from '../core/utils.js';
 import { speaker } from '../audio/index.js';
-import { criarPacote, criarRevisao, proximaRevisao, statusRevisao } from '../pdf/format.js';
-import { exportarPdf } from '../pdf/exporter.js';
+import { criarRevisao, proximaRevisao, statusRevisao, tituloPadrao } from '../pdf/format.js';
 import { progresso } from '../services/progress.js';
 import { settings } from '../services/settings.js';
 import { ESTADOS_SESSAO, StudySession } from '../study/session.js';
 import { extrairFrases, extrairPalavras } from '../text/extract.js';
+import { temListaDeComuns } from '../text/comuns.js';
 import {
   alternador,
   cabecalhoTela,
@@ -38,8 +38,13 @@ import {
   valorSegmentado,
 } from '../ui/components.js';
 import { escolher } from '../ui/dialog.js';
+import {
+  abrirKit,
+  alternadorTraducao,
+  exportarPdfComBotao,
+  ligarAlternadorTraducao,
+} from '../ui/exportActions.js';
 import { abrirExportacaoMp3 } from '../ui/mp3Dialog.js';
-import { toast } from '../ui/toast.js';
 
 const ETAPAS = ['Texto', 'Configurar', 'Estudar', 'Resultado'];
 
@@ -94,7 +99,7 @@ export class StudyScreen {
     const opcoes = { idioma: this.config.idioma };
     return this.tipo === TIPOS.FRASES
       ? extrairFrases(texto, opcoes)
-      : extrairPalavras(texto, opcoes);
+      : extrairPalavras(texto, { ...opcoes, ignorarComuns: settings.get('ignorarComuns') });
   }
 
   montar(raiz) {
@@ -191,6 +196,16 @@ ${this.texto}</textarea
           >
           <p class="campo__ajuda" id="contagemItens" aria-live="polite"></p>
         </div>
+        ${
+          this.tipo === TIPOS.PALAVRAS && temListaDeComuns(this.config.idioma)
+            ? alternador({
+                id: 'ignorarComuns',
+                rotulo: 'Ignorar palavras muito comuns',
+                ajuda: 'Deixa de fora “the”, “a”, “to”, “is”… para estudar só o que vale a pena.',
+                marcado: settings.get('ignorarComuns'),
+              })
+            : ''
+        }
         <div class="acoes acoes--entre">
           <div class="acoes">
             <label class="btn btn--fantasma">
@@ -220,12 +235,20 @@ ${this.texto}</textarea
       this.texto = area.value;
       const total = this.extrair(this.texto).length;
       continuar.disabled = total === 0;
+      const ignoradas =
+        this.tipo === TIPOS.PALAVRAS && settings.get('ignorarComuns')
+          ? extrairPalavras(this.texto, { idioma: this.config.idioma }).length - total
+          : 0;
       contagem.textContent = this.texto.trim()
         ? total
-          ? `${total} ${total === 1 ? this.nomeSingular : this.nome} encontrada(s), sem repetições.`
+          ? `${total} ${total === 1 ? this.nomeSingular : this.nome} encontrada(s), sem repetições${ignoradas ? ` (${ignoradas} muito comuns ignoradas)` : ''}.`
           : `Nenhuma ${this.nomeSingular} encontrada.`
         : '';
     };
+    $('#ignorarComuns', this.raiz)?.addEventListener('change', (e) => {
+      settings.set('ignorarComuns', e.target.checked);
+      atualizar();
+    });
     let espera;
     area.addEventListener('input', () => {
       clearTimeout(espera);
@@ -736,9 +759,11 @@ ${this.texto}</textarea
             >
           </div>
         </div>
+        ${alternadorTraducao(this.config.idioma)}
         <div class="acoes">
-          <button type="button" class="btn btn--primario" id="btnExportar">📄 Exportar PDF</button>
-          <button type="button" class="btn btn--secundario" id="btnExportarMp3">🎵 Exportar MP3 (pronúncia)</button>
+          <button type="button" class="btn btn--primario" id="btnKit">📦 Kit de estudo (PDF + MP3)</button>
+          <button type="button" class="btn btn--secundario" id="btnExportar">📄 Só o PDF</button>
+          <button type="button" class="btn btn--secundario" id="btnExportarMp3">🎵 Só o MP3</button>
         </div>
       </div>
 
@@ -806,59 +831,37 @@ ${this.texto}</textarea
       if (botao) this.pronunciar(vistos[Number(botao.dataset.ouvir)]);
     });
 
-    $('#btnExportarMp3', r).addEventListener('click', () => {
-      const todos = valorSegmentado(r, 'pdfItens') === 'todos';
-      abrirExportacaoMp3({
-        tipo: this.tipo,
-        titulo: $('#pdfTitulo', r).value.trim() || nomeTipo(this.tipo, { maiuscula: true }),
-        idioma: this.config.idioma,
-        itens: todos ? this.itensDisponiveis : vistos,
-      });
-    });
+    ligarAlternadorTraducao(r);
 
-    $('#btnExportar', r).addEventListener('click', async (e) => {
-      const botao = e.currentTarget;
+    // Dados do material conforme as opções do cartão de exportação.
+    const dadosExportacao = () => {
       const dias = Number($('#pdfRevisao', r).value);
-      const itens = valorSegmentado(r, 'pdfItens') === 'todos' ? this.itensDisponiveis : vistos;
-      const titulo = $('#pdfTitulo', r).value.trim();
       const etapa = this.material?.revisao?.etapa ?? 0;
-      const revisao = dias
-        ? criarRevisao({ etapa, intervaloDias: dias, historico: this.material?.revisao?.historico })
-        : null;
-
-      const pacote = criarPacote({
+      return {
         tipo: this.tipo,
-        titulo,
+        titulo: $('#pdfTitulo', r).value.trim() || tituloPadrao(this.tipo),
         idioma: this.config.idioma,
-        itens,
-        revisao,
+        itens: valorSegmentado(r, 'pdfItens') === 'todos' ? this.itensDisponiveis : vistos,
+        revisao: dias
+          ? criarRevisao({
+              etapa,
+              intervaloDias: dias,
+              historico: this.material?.revisao?.historico,
+            })
+          : null,
         id: this.material?.id,
-      });
-      await this.exportar(botao, pacote);
-    });
-  }
+      };
+    };
+    const aoGerarPdf = (resultado) => {
+      if (!resultado) return;
+      this.material = resultado.pacote;
+      this.titulo = resultado.pacote.titulo;
+    };
 
-  async exportar(botao, pacote) {
-    const rotulo = botao.innerHTML;
-    botao.disabled = true;
-    render(botao, html`<span class="carregando" aria-hidden="true"></span> Gerando PDF…`);
-    try {
-      const nome = await exportarPdf(pacote);
-      progresso().registrarArquivo('exportados', {
-        nome,
-        tipo: pacote.tipo,
-        quantidade: pacote.itens.length,
-      });
-      if (pacote.revisao) progresso().salvarMaterial(pacote);
-      this.material = pacote;
-      this.titulo = pacote.titulo;
-      toast.sucesso(`PDF gerado: ${nome}`);
-    } catch (erro) {
-      console.error(erro);
-      toast.erro(`Não foi possível gerar o PDF. ${erro.message || ''}`);
-    } finally {
-      botao.disabled = false;
-      botao.innerHTML = rotulo;
-    }
+    $('#btnExportarMp3', r).addEventListener('click', () => abrirExportacaoMp3(dadosExportacao()));
+    $('#btnKit', r).addEventListener('click', () => abrirKit(dadosExportacao(), { aoGerarPdf }));
+    $('#btnExportar', r).addEventListener('click', async (e) => {
+      aoGerarPdf(await exportarPdfComBotao(e.currentTarget, dadosExportacao()));
+    });
   }
 }

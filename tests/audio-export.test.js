@@ -37,6 +37,14 @@ describe('planejamento do áudio', () => {
     ]);
   });
 
+  test('numerar: fala o número de cada item, como na lista do PDF', () => {
+    const plano = planejarAudio(
+      { tipo: 'palavras', itens: ['cat', '  ', 'dog'] },
+      { numerar: true, pausaMs: 900 }
+    );
+    expect(plano.map((s) => s.texto)).toEqual(['Number 1.', 'cat', 'Number 2.', 'dog']);
+  });
+
   test('diálogo: uma voz por pessoa e sem ler o nome', () => {
     const plano = planejarAudio({
       tipo: 'texto',

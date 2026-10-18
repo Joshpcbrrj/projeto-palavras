@@ -72,6 +72,41 @@ describe('PDF: geração e revisão (ida e volta)', () => {
     expect(texto).toContain('Página 1 de 1');
   });
 
+  test('palavras com tradução: a tradução aparece no PDF e volta no pacote', async () => {
+    const glossario = [
+      { termo: 'kitchen', traducao: 'cozinha' },
+      { termo: 'window', traducao: 'janela' },
+    ];
+    const pacote = criarPacote({
+      tipo: 'palavras',
+      idioma: 'en-US',
+      itens: ['kitchen', 'window', 'coffee'],
+      glossario,
+    });
+    const bytes = gerarBytes(pacote);
+    const material = await interpretarPdf(bytes, 'kit.pdf', pdfjsLib);
+    expect(material.glossario).toEqual(glossario);
+
+    const pdf = await pdfjsLib.getDocument({ data: bytes, verbosity: 0 }).promise;
+    const texto = await extrairTextoPdf(pdf);
+    expect(texto).toContain('cozinha');
+    expect(texto).toContain('janela');
+    expect(texto).toContain('coffee');
+  });
+
+  test('texto com glossário ganha a seção "Glossário" no fim', async () => {
+    const pacote = criarPacote({
+      tipo: 'texto',
+      idioma: 'en-US',
+      texto: 'The harvest was abundant this autumn.',
+      glossario: [{ termo: 'harvest', traducao: 'colheita' }],
+    });
+    const pdf = await pdfjsLib.getDocument({ data: gerarBytes(pacote), verbosity: 0 }).promise;
+    const texto = await extrairTextoPdf(pdf);
+    expect(texto).toContain('Glossário');
+    expect(texto).toContain('colheita');
+  });
+
   test('PDF sem pacote cai na leitura do formato antigo', async () => {
     // Simula um PDF da versão 2 (lista numerada + metadados em texto).
     const doc = new jsPDF();

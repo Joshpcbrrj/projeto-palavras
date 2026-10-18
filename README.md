@@ -38,11 +38,12 @@
 |                                        |                                                                                                                                                                                                                                                                   |
 | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | ✨ **Criar textos**                    | Diálogos sobre qualquer tema, explicações estilo enciclopédia (Wikipédia, com Simple English para iniciantes) e textos no seu nível (iniciante, intermediário, fluente). Tema pode ser digitado em português. Usa a Wikipédia e o Google Gemini (chave gratuita). |
-| 🎵 **Exportar MP3**                    | Áudio de textos (com uma voz por pessoa nos diálogos) e da pronúncia das palavras/frases estudadas, com repetições e pausas — grátis, com a voz neural Kokoro gerada no próprio navegador.                                                                        |
-| 📖 **Flashcards de palavras e frases** | Cole um texto e o app extrai as palavras (sem repetições) ou as frases. Funciona com qualquer alfabeto, inclusive japonês e chinês.                                                                                                                               |
+| 🎵 **Exportar MP3**                    | Áudio de textos (com uma voz por pessoa nos diálogos) e da pronúncia das palavras/frases estudadas, com repetições, pausas e o número de cada item (para acompanhar no PDF) — grátis, com a voz neural Kokoro gerada no próprio navegador.                        |
+| 📖 **Flashcards de palavras e frases** | Cole um texto e o app extrai as palavras (sem repetições e, se quiser, sem as muito comuns como “the”, “to”, “is”) ou as frases. Funciona com qualquer alfabeto, inclusive japonês e chinês.                                                                      |
 | 🔊 **Pronúncia automática**            | Cada item é falado ao aparecer, com repetição de 1× a 3×, velocidade ajustável e escolha da voz.                                                                                                                                                                  |
 | ⏯️ **Controle total do estudo**        | Pausar, voltar, avançar e ouvir de novo — com atalhos de teclado.                                                                                                                                                                                                 |
 | 🎧 **Leitura de textos**               | O texto é lido frase a frase com destaque na tela; clique em qualquer frase para ouvir a partir dela, repita a frase atual ou adicione pausas.                                                                                                                    |
+| 📦 **Kit de estudo**                   | PDF + MP3 com um clique, com o mesmo nome de arquivo. O PDF pode trazer a **tradução para o português** de cada palavra/frase (ou um glossário, nos textos), para estudar sem o app.                                                                              |
 | 📄 **PDFs revisáveis**                 | Os PDFs exportados guardam os dados exatos do estudo e a data da próxima revisão. Abra-os depois em “Revisar arquivo” para continuar.                                                                                                                             |
 | 🗓️ **Revisão espaçada**                | Cada revisão concluída agenda a próxima (1 → 3 → 7 → 14 → 30 → 60 dias). Revisões pendentes aparecem na tela inicial.                                                                                                                                             |
 | 📈 **Progresso**                       | Sessões, tempo de estudo, palavras mais estudadas, dias seguidos e backup em JSON.                                                                                                                                                                                |
@@ -77,7 +78,7 @@
    | <kbd>Enter</kbd>          | Ouvir de novo           |
    | <kbd>Esc</kbd>            | Encerrar                |
 
-4. **Ao terminar** — exporte o PDF (escolhendo quando quer revisar) ou o MP3 com a pronúncia. O progresso da sessão é salvo automaticamente.
+4. **Ao terminar** — baixe o **kit de estudo** (PDF + MP3) ou só um deles, escolhendo quando quer revisar e se o PDF terá a tradução para o português. O progresso da sessão é salvo automaticamente.
 5. **Revisar** — no dia marcado, abra **Revisar arquivo**, selecione o PDF e clique em **Estudar** (ou **Ouvir**, para textos). Vários PDFs do mesmo tipo podem ser combinados num único estudo.
 6. **Ler e ouvir um texto** — cole o texto, vá para a aba **Ouvir** e acompanhe o destaque. Dali você também pode exportar o MP3 ou transformar o texto em flashcards.
 7. **Configurações** (⚙️ no topo) — idioma de estudo, tema, IA usada para criar textos e vozes do MP3.
@@ -86,7 +87,7 @@
 
 Cada PDF tem duas camadas:
 
-- **O que você vê** — um layout limpo para ler e imprimir (palavras em colunas, frases numeradas ou o texto completo), com a data da próxima revisão.
+- **O que você vê** — um layout limpo para ler e imprimir (palavras em colunas, frases numeradas ou o texto completo), com a data da próxima revisão e, opcionalmente, a tradução para o português.
 - **O que o app lê** — um pacote com os dados exatos (itens, idioma, título e agenda de revisão) guardado nas propriedades do documento. Assim a revisão não depende de “adivinhar” o conteúdo a partir do texto do PDF.
 
 <details>
@@ -105,6 +106,15 @@ PDFs gerados pelas **versões anteriores** do app continuam funcionando: o conte
 | 📶 Por nível         | Não (melhor com IA)         | Com IA, escreve o texto no nível pedido e simplifica se ficar difícil; sem IA, usa a Wikipédia do nível mais próximo. |
 
 A IA é o **Google Gemini**: crie uma chave gratuita no [Google AI Studio](https://aistudio.google.com/app/apikey) (leva 1 minuto, só precisa de uma conta Google) e cole no painel da tela de criação. Responde em segundos e funciona no celular. Sem chave, os modos “Mergulhar no tema” e “Por nível” funcionam só com a Wikipédia. Limitações em [docs/ROADMAP.md](docs/ROADMAP.md).
+
+### Tradução no PDF
+
+Com a opção **Incluir tradução para o português** (ligada por padrão), listas de palavras e frases saem com a tradução embaixo de cada item, e textos ganham uma seção **Glossário** com as palavras-chave. A tradução é grátis e usa, nesta ordem:
+
+1. o **Google Gemini**, se a chave estiver configurada (escolhe as palavras-chave e traduz no contexto do texto);
+2. o **tradutor embutido do Chrome/Edge** (roda no aparelho; na primeira vez o navegador baixa o pacote do idioma).
+
+Se nenhum estiver disponível, o PDF sai sem tradução e o app avisa.
 
 ## Áudio, vozes e MP3
 

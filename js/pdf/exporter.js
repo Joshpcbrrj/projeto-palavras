@@ -185,16 +185,46 @@ function desenharCabecalho(esc, pacote, hoje) {
   esc.y += 23;
 }
 
-function desenharPalavras(esc, itens) {
+/** Mapa termo → tradução do glossário (para mostrar a tradução junto de cada item). */
+function mapaGlossario(glossario) {
+  return new Map((glossario || []).map((g) => [g.termo.toLowerCase(), g.traducao]));
+}
+
+/** Bloco com o item e, se houver, a tradução logo abaixo (em cinza). */
+function blocoComTraducao(esc, item, traducao, { tamanho, largura, alturaLinha }) {
+  const principal = esc.bloco(item, { tamanho, largura, alturaLinha });
+  if (!traducao) return principal;
+  const secundario = esc.bloco(traducao, {
+    tamanho: tamanho - 2,
+    cor: COR.suave,
+    largura,
+    alturaLinha: 1.25,
+  });
+  return {
+    altura: principal.altura + 0.6 + secundario.altura,
+    desenhar: (x, y) => {
+      principal.desenhar(x, y);
+      secundario.desenhar(x, y + principal.altura + 0.6);
+    },
+  };
+}
+
+function desenharPalavras(esc, itens, glossario) {
   const { doc } = esc;
-  const colunas = 3;
+  const traducoes = mapaGlossario(glossario);
+  // Com tradução, 2 colunas dão espaço para a linha em português.
+  const colunas = traducoes.size ? 2 : 3;
   const larguraColuna = LARGURA_UTIL / colunas;
   const larguraTexto = larguraColuna - 12;
   let i = 0;
   while (i < itens.length) {
     const linha = itens.slice(i, i + colunas).map((item, k) => ({
       numero: i + k + 1,
-      bloco: esc.bloco(item, { tamanho: 11.5, largura: larguraTexto, alturaLinha: 1.25 }),
+      bloco: blocoComTraducao(esc, item, traducoes.get(item.toLowerCase()), {
+        tamanho: 11.5,
+        largura: larguraTexto,
+        alturaLinha: 1.25,
+      }),
     }));
     const altura = Math.max(...linha.map((c) => c.bloco.altura)) + 3.2;
     esc.garantirEspaco(altura);
@@ -213,10 +243,15 @@ function desenharPalavras(esc, itens) {
   }
 }
 
-function desenharFrases(esc, itens) {
+function desenharFrases(esc, itens, glossario) {
   const { doc } = esc;
+  const traducoes = mapaGlossario(glossario);
   itens.forEach((item, i) => {
-    const bloco = esc.bloco(item, { tamanho: 12, largura: LARGURA_UTIL - 12, alturaLinha: 1.4 });
+    const bloco = blocoComTraducao(esc, item, traducoes.get(item.toLowerCase()), {
+      tamanho: 12,
+      largura: LARGURA_UTIL - 12,
+      alturaLinha: 1.4,
+    });
     const altura = bloco.altura + 5;
     esc.garantirEspaco(altura);
     doc.setFillColor(...COR.primariaClara);
@@ -256,6 +291,34 @@ function desenharTexto(esc, texto) {
     }
     esc.y += 2.5;
   }
+}
+
+/** Seção "Glossário" ao fim dos textos: termo em negrito e tradução ao lado. */
+function desenharGlossario(esc, glossario) {
+  const { doc } = esc;
+  esc.y += 4;
+  esc.garantirEspaco(20);
+  esc.fonte({ tamanho: 13, negrito: true, cor: COR.primaria });
+  doc.text('Glossário', MARGEM, esc.y, { baseline: 'top' });
+  esc.y += 8;
+  const larguraTermo = 55;
+  glossario.forEach((g, i) => {
+    const termo = esc.bloco(g.termo, { tamanho: 10.5, negrito: true, largura: larguraTermo - 3 });
+    const traducao = esc.bloco(g.traducao, {
+      tamanho: 10.5,
+      cor: COR.suave,
+      largura: LARGURA_UTIL - larguraTermo - 4,
+    });
+    const altura = Math.max(termo.altura, traducao.altura) + 2.4;
+    esc.garantirEspaco(altura);
+    if (i % 2 === 0) {
+      doc.setFillColor(...COR.fundo);
+      doc.rect(MARGEM, esc.y - 1.2, LARGURA_UTIL, altura, 'F');
+    }
+    termo.desenhar(MARGEM + 2, esc.y);
+    traducao.desenhar(MARGEM + larguraTermo + 2, esc.y);
+    esc.y += altura;
+  });
 }
 
 /** Atribuição da fonte (exigida, por exemplo, pela licença CC BY-SA da Wikipédia). */
@@ -330,9 +393,12 @@ export function gerarDocumentoPdf(
   const esc = new Escritor(doc, rasterizar);
 
   desenharCabecalho(esc, pacote, hoje);
-  if (pacote.tipo === TIPOS.PALAVRAS) desenharPalavras(esc, pacote.itens);
-  else if (pacote.tipo === TIPOS.FRASES) desenharFrases(esc, pacote.itens);
-  else desenharTexto(esc, pacote.texto);
+  if (pacote.tipo === TIPOS.PALAVRAS) desenharPalavras(esc, pacote.itens, pacote.glossario);
+  else if (pacote.tipo === TIPOS.FRASES) desenharFrases(esc, pacote.itens, pacote.glossario);
+  else {
+    desenharTexto(esc, pacote.texto);
+    if (pacote.glossario?.length) desenharGlossario(esc, pacote.glossario);
+  }
   if (pacote.fonte) desenharFonte(esc, pacote.fonte);
   desenharDicaRevisao(esc);
   desenharRodapes(doc, hoje);
@@ -347,12 +413,17 @@ export function gerarDocumentoPdf(
   return doc;
 }
 
-/** Gera e baixa o PDF. Retorna o nome do arquivo. */
-export async function exportarPdf(pacote) {
+/**
+ * Gera e baixa o PDF. Retorna o nome do arquivo.
+ * @param {object} pacote
+ * @param {object} [opcoes]
+ * @param {string} [opcoes.nomeArquivo] nome a usar (ex.: o mesmo do MP3 no kit de estudo)
+ */
+export async function exportarPdf(pacote, { nomeArquivo } = {}) {
   const jsPDF = await obterJsPDF();
   const hoje = new Date();
   const doc = gerarDocumentoPdf(pacote, { jsPDF, hoje });
-  const nome = nomeArquivoPdf(pacote, hoje);
+  const nome = nomeArquivo || nomeArquivoPdf(pacote, hoje);
   doc.save(nome);
   return nome;
 }
