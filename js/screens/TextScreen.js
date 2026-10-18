@@ -31,6 +31,7 @@ import {
 import {
   abrirKit,
   alternadorTraducao,
+  atualizarAlternadorTraducao,
   exportarPdfComBotao,
   ligarAlternadorTraducao,
 } from '../ui/exportActions.js';
@@ -235,6 +236,7 @@ ${this.texto}</textarea
     $('#textoIdioma', r).addEventListener('change', (e) => {
       this.idioma = e.target.value;
       settings.set('idioma', this.idioma);
+      atualizarAlternadorTraducao(r, this.idioma);
       this.salvarRascunho();
     });
     $('#textoArquivo', r).addEventListener('change', async (e) => {
@@ -386,6 +388,7 @@ ${this.texto}</textarea
       settings.set('idioma', this.idioma);
       leitor.setIdioma(this.idioma);
       this.seletorVoz.atualizar();
+      atualizarAlternadorTraducao(r, this.idioma);
       this.salvarRascunho();
     });
     this.seletorVoz = conectarSeletorVoz(

@@ -62,7 +62,7 @@ Esforço: **P** (até 1 dia), **M** (2–4 dias), **G** (1–2 semanas).
 | K2  | **Exercícios no PDF, com gabarito no final**: lacunas (sem IA) e perguntas de compreensão (com Gemini)                                                                                                            | U2      | M       |
 | K3  | ✅ **Filtrar palavras muito comuns** nas listas (lista de frequência embutida)                                                                                                                                    | U4      | P       |
 | K4  | ✅ **“Baixar kit de estudo”**: PDF + MP3 com um clique, com nomes de arquivo combinando                                                                                                                           | U5      | P       |
-| K5  | **MP3 alinhado ao PDF**: opção de falar o número do item (“número 3: window”) para acompanhar no papel                                                                                                            | U1      | P       |
+| K5  | ✅ **MP3 alinhado ao PDF**: opção de falar o número do item (“número 3: window”) para acompanhar no papel                                                                                                         | U1      | P       |
 | K6  | **Começar em 1 clique**: padrões inteligentes e “Mais opções” recolhido no flashcard e no Criar textos                                                                                                            | U3      | P       |
 | K7  | **MP3 mais rápido em textos longos**: começar a mostrar/ouvir o áudio enquanto é gerado                                                                                                                           | U6      | M       |
 
@@ -85,7 +85,7 @@ O formato atual — arquivos estáticos, ES modules nativos, **sem etapa de buil
 
 1. ✅ **K3, K4 + C1** (v3.3.0) — falta só o **C5**, que é configurado no GitHub.
 2. ✅ **K1** (glossário com tradução, v3.3.0).
-3. **K2** (exercícios com gabarito) e **K5**.
+3. ✅ **K5** (v3.3.0). O **K2** (exercícios) foi descartado: não é necessário para o objetivo do app.
 4. **K6, K7** e **C2, C3, C4, C6**.
 
 ## 6. Limitações conhecidas (versão atual)

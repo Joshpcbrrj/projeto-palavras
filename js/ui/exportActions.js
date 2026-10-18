@@ -14,16 +14,23 @@ export function precisaTraducao(idioma) {
   return !String(idioma || '').startsWith('pt');
 }
 
-/** Alternador "Incluir tradução" (vazio para material em português). */
+/** Alternador "Incluir tradução" (oculto para material em português). */
 export function alternadorTraducao(idioma) {
-  if (!precisaTraducao(idioma)) return '';
-  return alternador({
-    id: 'incluirTraducao',
-    rotulo: 'Incluir tradução para o português',
-    ajuda:
-      'O PDF ganha a tradução de cada item (ou um glossário, nos textos) para estudar sem o app. Usa o Gemini, se configurado, ou o tradutor do Chrome/Edge.',
-    marcado: settings.get('incluirTraducao'),
-  });
+  return html`<div class="area-traducao" ${precisaTraducao(idioma) ? '' : html`hidden`}>
+    ${alternador({
+      id: 'incluirTraducao',
+      rotulo: 'Incluir tradução para o português',
+      ajuda:
+        'O PDF ganha a tradução de cada item (ou um glossário, nos textos) para estudar sem o app. Usa o Gemini, se configurado, ou o tradutor do Chrome/Edge.',
+      marcado: settings.get('incluirTraducao'),
+    })}
+  </div>`;
+}
+
+/** Mostra ou oculta o alternador quando o idioma do material muda. */
+export function atualizarAlternadorTraducao(raiz, idioma) {
+  const area = raiz.querySelector('.area-traducao');
+  if (area) area.hidden = !precisaTraducao(idioma);
 }
 
 /** Salva a preferência quando o alternador muda. */

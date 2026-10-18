@@ -8,6 +8,7 @@ import { formatarDuracao } from '../core/utils.js';
 import { criarMotor, gerarMp3 } from '../audio/export/index.js';
 import { ehDialogo, estimarDuracao, planejarAudio } from '../audio/export/plan.js';
 import { settings } from '../services/settings.js';
+import { alternador } from './components.js';
 import { toast } from './toast.js';
 
 function opcoesVoz(selecionada) {
@@ -45,6 +46,7 @@ export function abrirExportacaoMp3(conteudo, { kit } = {}) {
     const segmentos = planejarAudio(conteudo, {
       repeticoes: estado.repeticoes,
       pausaMs: estado.pausaMs,
+      numerar: estado.numerar,
     });
     render(
       el,
@@ -101,7 +103,13 @@ export function abrirExportacaoMp3(conteudo, { kit } = {}) {
                     ${[600, 900, 1500, 2500, 4000].map((ms) => html`<option value="${ms}" ${ms === estado.pausaMs ? html`selected` : ''}>${(ms / 1000).toLocaleString('pt-BR')} s${ms >= 2500 ? ' (tempo para repetir)' : ''}</option>`)}
                   </select>
                 </div>
-              </div>`
+              </div>
+              ${alternador({
+                id: 'mp3Numerar',
+                rotulo: 'Falar o número de cada item',
+                ajuda: '“Number 3… window” — para acompanhar o áudio na lista do PDF.',
+                marcado: estado.numerar,
+              })}`
               : ''
           }
 
@@ -141,6 +149,11 @@ export function abrirExportacaoMp3(conteudo, { kit } = {}) {
     $('#mp3Pausa', el)?.addEventListener('change', (e) => {
       estado.pausaMs = Number(e.target.value);
       settings.setMp3({ pausaMs: estado.pausaMs });
+      desenhar();
+    });
+    $('#mp3Numerar', el)?.addEventListener('change', (e) => {
+      estado.numerar = e.target.checked;
+      settings.setMp3({ numerar: estado.numerar });
       desenhar();
     });
     $('#mp3Fechar', el).addEventListener('click', () => el.close());
@@ -188,6 +201,7 @@ export function abrirExportacaoMp3(conteudo, { kit } = {}) {
         velocidade: estado.velocidade,
         repeticoes: estado.repeticoes,
         pausaMs: estado.pausaMs,
+        numerar: estado.numerar,
         aoProgresso: mostrarProgresso,
         signal: controle.signal,
       });

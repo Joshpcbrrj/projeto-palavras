@@ -20,6 +20,7 @@ const MP3_PADRAO = Object.freeze({
   vozKokoro: VOZES_KOKORO[0].id,
   vozKokoro2: 'am_michael', // segunda voz, usada nos diálogos
   pausaMs: 900,
+  numerar: true, // falar "Number 3" antes de cada item, para acompanhar no PDF
 });
 
 /** Campos de versões anteriores que não existem mais (removidos ao carregar). */

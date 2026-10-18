@@ -42,19 +42,21 @@ export function ehDialogo(texto) {
  * @param {object} [opcoes]
  * @param {number} [opcoes.repeticoes=1] quantas vezes falar cada palavra/frase
  * @param {number} [opcoes.pausaMs=900] pausa entre palavras/frases
+ * @param {boolean} [opcoes.numerar=false] falar o número do item ("Number 3") para acompanhar no PDF
  * @returns {Segmento[]}
  */
 export function planejarAudio(
   { tipo, itens = [], texto = '' },
-  { repeticoes = 1, pausaMs = 900 } = {}
+  { repeticoes = 1, pausaMs = 900, numerar = false } = {}
 ) {
   const segmentos = [];
 
   if (tipo === TIPOS.PALAVRAS || tipo === TIPOS.FRASES) {
     const vezes = Math.max(1, Math.min(5, Math.round(repeticoes)));
-    for (const item of itens) {
-      const conteudo = String(item).trim();
-      if (!conteudo) continue;
+    // A numeração segue a do PDF, que conta os itens não vazios.
+    const validos = itens.map((item) => String(item).trim()).filter(Boolean);
+    for (const [indice, conteudo] of validos.entries()) {
+      if (numerar) segmentos.push({ texto: `Number ${indice + 1}.`, voz: 0, pausaDepoisMs: 350 });
       for (let i = 0; i < vezes; i++) {
         segmentos.push({ texto: conteudo, voz: 0, pausaDepoisMs: i < vezes - 1 ? 500 : pausaMs });
       }
