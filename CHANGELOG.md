@@ -5,6 +5,21 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e 
 
 ## [Não lançado]
 
+## [3.3.0] - 2026-10-18
+
+Arquivos de estudo mais completos para quem estuda sozinho.
+
+### Adicionado
+
+- **Kit de estudo (PDF + MP3)** com um clique no fim do estudo, na tela de texto e em Criar textos; os dois arquivos têm o mesmo nome.
+- **Tradução para o português no PDF**: abaixo de cada palavra/frase ou, nos textos, numa seção “Glossário”. Usa o Gemini (se configurado) ou o tradutor embutido do Chrome/Edge; sem tradutor, o PDF sai sem tradução e o app avisa. Campo opcional `glossario` no pacote do PDF.
+- **Ignorar palavras muito comuns** (“the”, “to”, “is”…) ao extrair palavras em inglês (ligado por padrão, com opção para desligar).
+
+### Alterado
+
+- Exportação de PDF unificada num só serviço (`js/services/export.js`), usado por todas as telas.
+- PDFs combinados em “Revisar arquivo” mantêm as traduções dos arquivos originais.
+
 ## [3.2.0] - 2026-10-18
 
 Versão de simplificação: o app passa a ter uma única IA (Gemini) e um único motor de MP3 (Kokoro), ambos grátis.

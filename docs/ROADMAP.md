@@ -56,15 +56,15 @@ Alternativa avaliada e descartada: **IA online gratuita sem chave** (serviço an
 
 Esforço: **P** (até 1 dia), **M** (2–4 dias), **G** (1–2 semanas).
 
-| #   | Proposta                                                                                                                                                                                                       | Resolve | Esforço |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
-| K1  | **Glossário no PDF**: lista das palavras-chave do texto com a tradução em português (e, nas listas de palavras, a tradução ao lado de cada uma). Tradução pelo Gemini ou pelo tradutor embutido do Chrome/Edge | U1      | M       |
-| K2  | **Exercícios no PDF, com gabarito no final**: lacunas (sem IA) e perguntas de compreensão (com Gemini)                                                                                                         | U2      | M       |
-| K3  | **Filtrar palavras muito comuns** nas listas (lista de frequência embutida)                                                                                                                                    | U4      | P       |
-| K4  | **“Baixar kit de estudo”**: PDF + MP3 com um clique, com nomes de arquivo combinando                                                                                                                           | U5      | P       |
-| K5  | **MP3 alinhado ao PDF**: opção de falar o número do item (“número 3: window”) para acompanhar no papel                                                                                                         | U1      | P       |
-| K6  | **Começar em 1 clique**: padrões inteligentes e “Mais opções” recolhido no flashcard e no Criar textos                                                                                                         | U3      | P       |
-| K7  | **MP3 mais rápido em textos longos**: começar a mostrar/ouvir o áudio enquanto é gerado                                                                                                                        | U6      | M       |
+| #   | Proposta                                                                                                                                                                                                          | Resolve | Esforço |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
+| K1  | ✅ **Glossário no PDF**: lista das palavras-chave do texto com a tradução em português (e, nas listas de palavras, a tradução ao lado de cada uma). Tradução pelo Gemini ou pelo tradutor embutido do Chrome/Edge | U1      | M       |
+| K2  | **Exercícios no PDF, com gabarito no final**: lacunas (sem IA) e perguntas de compreensão (com Gemini)                                                                                                            | U2      | M       |
+| K3  | ✅ **Filtrar palavras muito comuns** nas listas (lista de frequência embutida)                                                                                                                                    | U4      | P       |
+| K4  | ✅ **“Baixar kit de estudo”**: PDF + MP3 com um clique, com nomes de arquivo combinando                                                                                                                           | U5      | P       |
+| K5  | **MP3 alinhado ao PDF**: opção de falar o número do item (“número 3: window”) para acompanhar no papel                                                                                                            | U1      | P       |
+| K6  | **Começar em 1 clique**: padrões inteligentes e “Mais opções” recolhido no flashcard e no Criar textos                                                                                                            | U3      | P       |
+| K7  | **MP3 mais rápido em textos longos**: começar a mostrar/ouvir o áudio enquanto é gerado                                                                                                                           | U6      | M       |
 
 **Sobre a “biblioteca dentro do app”** (proposta anterior): fazia sentido se o estudo acontecesse dentro do app. Como a ideia é estudar com os arquivos, ela foi **descartada** — o fluxo atual (gerar o PDF, estudar com ele e reabri-lo em “Revisar arquivo” no dia marcado) já atende e é mais simples.
 
@@ -72,19 +72,19 @@ Esforço: **P** (até 1 dia), **M** (2–4 dias), **G** (1–2 semanas).
 
 O formato atual — arquivos estáticos, ES modules nativos, **sem etapa de build** — é o mais simples para um app web no GitHub Pages e deve ser mantido.
 
-| #   | Proposta                                                                                                                                | Por quê                                            | Esforço |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ------- |
-| C1  | **Unificar exportações**: a lógica de “gerar PDF + registrar + agendar revisão” está repetida em 4 telas; um único `exportarMaterial()` | Menos código duplicado; base para o K4             | P       |
-| C2  | **Tipos com JSDoc + `tsc --checkJs` no CI** (sem migrar para TypeScript, sem build)                                                     | Pega erros de contrato com custo zero no navegador | M       |
-| C3  | **Dividir telas grandes** (`StudyScreen` 864 linhas, `TextScreen` 630) em partes menores                                                | Manutenção                                         | M       |
-| C4  | **Teste de fumaça no navegador (Playwright) no CI**, formalizando os fluxos que verifiquei manualmente                                  | Pega regressões visuais e de fluxo antes do merge  | M       |
-| C5  | **Proteção da branch `main`** exigindo CI verde                                                                                         | Evita publicar algo quebrado                       | P       |
-| C6  | **Content-Security-Policy** via `<meta>`                                                                                                | Protege a chave do Gemini guardada no navegador    | P       |
+| #   | Proposta                                                                                                                                   | Por quê                                            | Esforço |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------- | ------- |
+| C1  | ✅ **Unificar exportações**: a lógica de “gerar PDF + registrar + agendar revisão” está repetida em 4 telas; um único `exportarMaterial()` | Menos código duplicado; base para o K4             | P       |
+| C2  | **Tipos com JSDoc + `tsc --checkJs` no CI** (sem migrar para TypeScript, sem build)                                                        | Pega erros de contrato com custo zero no navegador | M       |
+| C3  | **Dividir telas grandes** (`StudyScreen` 864 linhas, `TextScreen` 630) em partes menores                                                   | Manutenção                                         | M       |
+| C4  | **Teste de fumaça no navegador (Playwright) no CI**, formalizando os fluxos que verifiquei manualmente                                     | Pega regressões visuais e de fluxo antes do merge  | M       |
+| C5  | **Proteção da branch `main`** exigindo CI verde                                                                                            | Evita publicar algo quebrado                       | P       |
+| C6  | **Content-Security-Policy** via `<meta>`                                                                                                   | Protege a chave do Gemini guardada no navegador    | P       |
 
 ## 5. Ordem sugerida
 
-1. **K3, K4 + C1, C5** — rápidos e já melhoram os arquivos.
-2. **K1** (glossário com tradução) — o maior ganho para quem estuda sozinho.
+1. ✅ **K3, K4 + C1** (v3.3.0) — falta só o **C5**, que é configurado no GitHub.
+2. ✅ **K1** (glossário com tradução, v3.3.0).
 3. **K2** (exercícios com gabarito) e **K5**.
 4. **K6, K7** e **C2, C3, C4, C6**.
 
@@ -94,3 +94,5 @@ O formato atual — arquivos estáticos, ES modules nativos, **sem etapa de buil
 - A IA às vezes escreve acima do nível pedido; o app tenta simplificar uma vez e a métrica de legibilidade avisa quando ainda ficou difícil.
 - **Wikipédia** como fonte de nível: a Simple English nem sempre é simples em temas técnicos (a métrica mostra isso). Em temas de situação (“pedir comida”), artigos genéricos desviam o diálogo — por isso a Wikipédia vem desligada por padrão no modo Diálogo.
 - **Kokoro** (MP3) fala apenas inglês e é lento para textos longos.
+- **Tradutor do Chrome/Edge** traduz palavra por palavra, sem contexto (ex.: “square” → “quadrado”, não “praça”); o Gemini traduz no contexto. Na primeira vez o navegador baixa o pacote do idioma — se demorar mais de 45 s, o PDF sai sem tradução e o app pede para tentar de novo.
+- O filtro de palavras muito comuns existe só para inglês.

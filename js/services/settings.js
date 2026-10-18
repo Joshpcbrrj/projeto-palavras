@@ -35,6 +35,8 @@ const PADRAO = Object.freeze({
   repeticoes: 1,
   tempo: { ...TEMPO_PADRAO },
   embaralhar: true,
+  ignorarComuns: true, // tira "the", "a", "to"... das listas de palavras
+  incluirTraducao: true, // glossário com tradução nos PDFs (quando houver tradutor)
   chaveGemini: '', // chave gratuita do Google Gemini (IA para criar textos)
   nivelTexto: 'iniciante',
   mp3: { ...MP3_PADRAO },

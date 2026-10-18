@@ -20,8 +20,12 @@ function opcoesVoz(selecionada) {
 /**
  * Abre o diálogo de exportação.
  * @param {{tipo: string, titulo: string, idioma: string, itens?: string[], texto?: string}} conteudo
+ * @param {object} [opcoes]
+ * @param {{nomeBase: string, gerarPdf: () => Promise<object>}} [opcoes.kit] modo "kit de estudo":
+ *   baixa o PDF primeiro e depois o MP3, os dois com o mesmo nome
  */
-export function abrirExportacaoMp3(conteudo) {
+export function abrirExportacaoMp3(conteudo, { kit } = {}) {
+  let pdfPronto = false;
   const prefs = settings.carregar();
   const estado = { ...prefs.mp3, velocidade: 1, repeticoes: prefs.repeticoes };
   const temItens = conteudo.tipo !== TIPOS.TEXTO;
@@ -35,6 +39,8 @@ export function abrirExportacaoMp3(conteudo) {
   el.setAttribute('aria-labelledby', 'mp3Titulo');
   document.body.appendChild(el);
 
+  const rotuloGerar = () => (kit && !pdfPronto ? '📦 Gerar kit' : '🎵 Gerar MP3');
+
   const desenhar = () => {
     const segmentos = planejarAudio(conteudo, {
       repeticoes: estado.repeticoes,
@@ -44,8 +50,13 @@ export function abrirExportacaoMp3(conteudo) {
       el,
       html`
         <div class="dialogo__conteudo">
-          <h2 id="mp3Titulo" class="dialogo__titulo">🎵 Exportar áudio (MP3)</h2>
+          <h2 id="mp3Titulo" class="dialogo__titulo">${kit ? '📦 Kit de estudo (PDF + MP3)' : '🎵 Exportar áudio (MP3)'}</h2>
           <p class="dialogo__mensagem">${conteudo.titulo} · ${segmentos.length} trechos · ≈ ${formatarDuracao(estimarDuracao(segmentos, estado.velocidade))}</p>
+          ${
+            kit
+              ? html`<p class="campo__ajuda">Baixa o PDF na hora e, em seguida, o MP3 — os dois com o nome <strong>${kit.nomeBase}</strong>, para ficarem juntos na pasta.</p>`
+              : ''
+          }
 
           <p class="campo__ajuda">
             Voz neural Kokoro, gerada no seu navegador sem custo. Na primeira vez a voz é baixada
@@ -102,7 +113,7 @@ export function abrirExportacaoMp3(conteudo) {
 
           <div class="dialogo__acoes">
             <button type="button" class="btn btn--fantasma" id="mp3Fechar">Fechar</button>
-            <button type="button" class="btn btn--primario" id="mp3Gerar">🎵 Gerar MP3</button>
+            <button type="button" class="btn btn--primario" id="mp3Gerar">${rotuloGerar()}</button>
           </div>
         </div>
       `
@@ -165,6 +176,11 @@ export function abrirExportacaoMp3(conteudo) {
     $('#mp3Progresso', el).hidden = false;
     $('#mp3Resultado', el).hidden = true;
     try {
+      if (kit && !pdfPronto) {
+        $('#mp3Status', el).textContent = 'Gerando o PDF…';
+        await kit.gerarPdf();
+        pdfPronto = true; // se o MP3 for cancelado, tentar de novo não repete o PDF
+      }
       const motor = criarMotor();
       const resultado = await gerarMp3(conteudo, {
         motor,
@@ -175,6 +191,7 @@ export function abrirExportacaoMp3(conteudo) {
         aoProgresso: mostrarProgresso,
         signal: controle.signal,
       });
+      if (kit) resultado.nome = `${kit.nomeBase}.mp3`;
       baixarArquivo(resultado.blob, resultado.nome);
       if (urlAudio) URL.revokeObjectURL(urlAudio);
       urlAudio = URL.createObjectURL(resultado.blob);
@@ -186,7 +203,7 @@ export function abrirExportacaoMp3(conteudo) {
       );
       area.hidden = false;
       $('#mp3Progresso', el).hidden = true;
-      toast.sucesso('Áudio MP3 gerado.');
+      toast.sucesso(kit ? 'Kit de estudo pronto: PDF e MP3 baixados.' : 'Áudio MP3 gerado.');
     } catch (erro) {
       $('#mp3Progresso', el).hidden = true;
       if (erro?.name !== 'AbortError') {
@@ -195,7 +212,7 @@ export function abrirExportacaoMp3(conteudo) {
       }
     } finally {
       controle = null;
-      botao.textContent = '🎵 Gerar MP3';
+      botao.textContent = rotuloGerar();
       el.querySelectorAll('select, input').forEach((c) => (c.disabled = false));
     }
   };

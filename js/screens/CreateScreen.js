@@ -10,9 +10,6 @@ import { gerarId } from '../core/utils.js';
 import { MODOS, criarTexto } from '../create/generator.js';
 import { nomeNivel } from '../create/levels.js';
 import { iaDisponivel, obterMotorIA } from '../create/engine.js';
-import { criarPacote } from '../pdf/format.js';
-import { exportarPdf } from '../pdf/exporter.js';
-import { progresso } from '../services/progress.js';
 import { settings } from '../services/settings.js';
 import { extrairFrases, extrairPalavras } from '../text/extract.js';
 import { montarPainelIA } from '../ui/aiPanel.js';
@@ -23,6 +20,12 @@ import {
   seletorIdioma,
   valorSegmentado,
 } from '../ui/components.js';
+import {
+  abrirKit,
+  alternadorTraducao,
+  exportarPdfComBotao,
+  ligarAlternadorTraducao,
+} from '../ui/exportActions.js';
 import { abrirExportacaoMp3 } from '../ui/mp3Dialog.js';
 import { toast } from '../ui/toast.js';
 
@@ -329,8 +332,10 @@ export class CreateScreen {
             ? html`<p class="texto-pequeno texto-suave">Fonte: <a href="${r.fonte.url}" target="_blank" rel="noopener">${r.fonte.nome} — ${r.fonte.titulo}</a> (${r.fonte.licenca})${r.geradoPorIA ? ', adaptado pela IA' : ''}.</p>`
             : ''
         }
+        ${alternadorTraducao(r.idioma)}
         <div class="acoes">
-          <button type="button" class="btn btn--primario" data-acao="ouvir">🎧 Ouvir e estudar</button>
+          <button type="button" class="btn btn--primario" data-acao="kit">📦 Kit de estudo (PDF + MP3)</button>
+          <button type="button" class="btn btn--secundario" data-acao="ouvir">🎧 Ouvir e estudar</button>
           <button type="button" class="btn btn--secundario" data-acao="mp3">🎵 MP3</button>
           <button type="button" class="btn btn--secundario" data-acao="pdf">📄 PDF</button>
           <button type="button" class="btn btn--secundario" data-acao="palavras">📖 Palavras</button>
@@ -356,6 +361,7 @@ export class CreateScreen {
 
   ligarResultado() {
     const area = $('#areaResultado', this.raiz);
+    ligarAlternadorTraducao(area);
     area.onclick = async (e) => {
       const botao = e.target.closest('[data-acao]');
       if (!botao) return;
@@ -365,18 +371,21 @@ export class CreateScreen {
         case 'ouvir':
           navegar(ROTAS.TEXTO, { material: this.materialTexto() });
           break;
+        case 'kit':
+          abrirKit(this.materialTexto());
+          break;
         case 'mp3':
           abrirExportacaoMp3(this.materialTexto());
           break;
         case 'pdf':
-          await this.exportarPdf(botao);
+          await exportarPdfComBotao(botao, this.materialTexto());
           break;
         case 'palavras':
         case 'frases': {
           const frases = botao.dataset.acao === 'frases';
           const itens = frases
             ? extrairFrases(r.texto.replace(/^[\p{L} .'-]{1,24}:\s+/gmu, ''), opcoes)
-            : extrairPalavras(r.texto, opcoes);
+            : extrairPalavras(r.texto, { ...opcoes, ignorarComuns: settings.get('ignorarComuns') });
           navegar(frases ? ROTAS.FRASES : ROTAS.PALAVRAS, { itens, idioma: r.idioma });
           break;
         }
@@ -385,24 +394,5 @@ export class CreateScreen {
           break;
       }
     };
-  }
-
-  async exportarPdf(botao) {
-    const pacote = criarPacote(this.materialTexto());
-    botao.disabled = true;
-    try {
-      const nome = await exportarPdf(pacote);
-      progresso().registrarArquivo('exportados', {
-        nome,
-        tipo: TIPOS.TEXTO,
-        quantidade: pacote.texto.split(/\s+/).length,
-      });
-      progresso().salvarMaterial(pacote);
-      toast.sucesso(`PDF gerado: ${nome}`);
-    } catch (erro) {
-      toast.erro(`Não foi possível gerar o PDF. ${erro.message || ''}`);
-    } finally {
-      botao.disabled = false;
-    }
   }
 }

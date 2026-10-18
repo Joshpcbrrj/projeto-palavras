@@ -10,8 +10,7 @@ import { formatarDataBR, formatarDuracao } from '../core/utils.js';
 import { speaker, vozes } from '../audio/index.js';
 import { ehDialogo, separarFalante } from '../audio/export/plan.js';
 import { ESTADOS_LEITOR, TextReader } from '../audio/reader.js';
-import { criarPacote, criarRevisao, proximaRevisao, statusRevisao } from '../pdf/format.js';
-import { exportarPdf } from '../pdf/exporter.js';
+import { criarRevisao, proximaRevisao, statusRevisao, tituloPadrao } from '../pdf/format.js';
 import { progresso, revisaoEfetiva } from '../services/progress.js';
 import { settings } from '../services/settings.js';
 import { storage } from '../services/storage.js';
@@ -29,6 +28,12 @@ import {
   seloRevisao,
   valorSegmentado,
 } from '../ui/components.js';
+import {
+  abrirKit,
+  alternadorTraducao,
+  exportarPdfComBotao,
+  ligarAlternadorTraducao,
+} from '../ui/exportActions.js';
 import { abrirExportacaoMp3 } from '../ui/mp3Dialog.js';
 import { toast } from '../ui/toast.js';
 
@@ -526,12 +531,12 @@ ${this.texto}</textarea
             id: 'textoRevisao',
             etapaSugerida: this.material?.revisao?.etapa ?? 0,
           })}
-          <div class="campo campo--acao acoes">
-            <button type="button" class="btn btn--primario" id="btnExportarTexto">
-              📄 Exportar PDF
-            </button>
-            <button type="button" class="btn btn--secundario" id="btnExportarMp3">🎵 Exportar MP3</button>
-          </div>
+        </div>
+        ${alternadorTraducao(this.idioma)}
+        <div class="acoes">
+          <button type="button" class="btn btn--primario" id="btnKit">📦 Kit de estudo (PDF + MP3)</button>
+          <button type="button" class="btn btn--secundario" id="btnExportarTexto">📄 Só o PDF</button>
+          <button type="button" class="btn btn--secundario" id="btnExportarMp3">🎵 Só o MP3</button>
         </div>
         <div class="separador"></div>
         <p class="texto-suave">Transforme este texto em flashcards:</p>
@@ -555,24 +560,14 @@ ${this.texto}</textarea
       return false;
     };
 
-    $('#btnExportarMp3', r).addEventListener('click', () => {
-      if (!exigirTexto()) return;
-      abrirExportacaoMp3({
-        tipo: TIPOS.TEXTO,
-        titulo: this.titulo.trim() || 'Texto de estudo',
-        idioma: this.idioma,
-        texto: this.texto,
-      });
-    });
+    ligarAlternadorTraducao(r);
 
-    $('#btnExportarTexto', r).addEventListener('click', async (e) => {
-      if (!exigirTexto()) return;
-      const botao = e.currentTarget;
+    const dadosExportacao = () => {
       const dias = Number($('#textoRevisao', r).value);
       const anterior = this.material?.revisao;
-      const pacote = criarPacote({
+      return {
         tipo: TIPOS.TEXTO,
-        titulo: this.titulo.trim() || 'Texto de estudo',
+        titulo: this.titulo.trim() || tituloPadrao(TIPOS.TEXTO),
         idioma: this.idioma,
         texto: this.texto,
         id: this.material?.id,
@@ -585,26 +580,17 @@ ${this.texto}</textarea
               historico: anterior?.historico,
             })
           : null,
-      });
-      const rotulo = botao.innerHTML;
-      botao.disabled = true;
-      botao.textContent = 'Gerando PDF…';
-      try {
-        const nome = await exportarPdf(pacote);
-        progresso().registrarArquivo('exportados', {
-          nome,
-          tipo: TIPOS.TEXTO,
-          quantidade: contarPalavras(this.texto),
-        });
-        if (pacote.revisao) progresso().salvarMaterial(pacote);
-        toast.sucesso(`PDF gerado: ${nome}`);
-      } catch (erro) {
-        console.error(erro);
-        toast.erro(`Não foi possível gerar o PDF. ${erro.message || ''}`);
-      } finally {
-        botao.disabled = false;
-        botao.innerHTML = rotulo;
-      }
+      };
+    };
+
+    $('#btnExportarMp3', r).addEventListener('click', () => {
+      if (exigirTexto()) abrirExportacaoMp3(dadosExportacao());
+    });
+    $('#btnKit', r).addEventListener('click', () => {
+      if (exigirTexto()) abrirKit(dadosExportacao());
+    });
+    $('#btnExportarTexto', r).addEventListener('click', (e) => {
+      if (exigirTexto()) exportarPdfComBotao(e.currentTarget, dadosExportacao());
     });
 
     const estudar = (tipo) => {
@@ -613,7 +599,10 @@ ${this.texto}</textarea
       const itens =
         tipo === TIPOS.FRASES
           ? extrairFrases(this.texto, opcoes)
-          : extrairPalavras(this.texto, opcoes);
+          : extrairPalavras(this.texto, {
+              ...opcoes,
+              ignorarComuns: settings.get('ignorarComuns'),
+            });
       if (!itens.length) {
         toast.aviso(`Nenhuma ${tipo === TIPOS.FRASES ? 'frase' : 'palavra'} encontrada no texto.`);
         return;

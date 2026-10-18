@@ -62,7 +62,7 @@ describe('Ler e ouvir um texto', () => {
     tela.desmontar();
   });
 
-  test('"Estudar as palavras" leva os itens do texto para os flashcards', () => {
+  test('"Estudar as palavras" leva os itens do texto (sem as muito comuns) para os flashcards', () => {
     const navegar = vi.fn();
     definirNavegador(navegar);
     const tela = new TextScreen();
@@ -73,7 +73,7 @@ describe('Ler e ouvir um texto', () => {
     raiz.querySelector('#btnEstudarPalavras').click();
     expect(navegar).toHaveBeenCalledWith(
       'palavras',
-      expect.objectContaining({ itens: ['The', 'cat', 'and', 'dog'] })
+      expect.objectContaining({ itens: ['cat', 'dog'] })
     );
     tela.desmontar();
   });
