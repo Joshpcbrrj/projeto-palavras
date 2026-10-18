@@ -7,7 +7,8 @@ import { TIPOS } from '../config.js';
 import { $, criarEscopoEventos, html, lerTextoDoArquivo, render } from '../core/dom.js';
 import { ROTAS, navegar } from '../core/nav.js';
 import { formatarDataBR, formatarDuracao } from '../core/utils.js';
-import { speaker } from '../audio/index.js';
+import { speaker, vozes } from '../audio/index.js';
+import { ehDialogo, separarFalante } from '../audio/export/plan.js';
 import { ESTADOS_LEITOR, TextReader } from '../audio/reader.js';
 import { criarPacote, criarRevisao, proximaRevisao, statusRevisao } from '../pdf/format.js';
 import { exportarPdf } from '../pdf/exporter.js';
@@ -28,6 +29,7 @@ import {
   seloRevisao,
   valorSegmentado,
 } from '../ui/components.js';
+import { abrirExportacaoMp3 } from '../ui/mp3Dialog.js';
 import { toast } from '../ui/toast.js';
 
 const CHAVE_RASCUNHO = 'ap_rascunho_texto';
@@ -42,12 +44,29 @@ export class TextScreen {
     this.texto = material?.texto || rascunho?.texto || '';
     this.idioma = material?.idioma || rascunho?.idioma || settings.get('idioma');
     this.modo = material ? 'ouvir' : 'editar';
+    this.fonte = material?.fonte || null;
+    this.nivel = material?.nivel;
+    this.dialogo = false;
+    this.vozesDialogo = new Map();
     this.velocidade = settings.get('velocidadeFala');
     this.sessaoRegistrada = false;
     this.eventos = criarEscopoEventos();
     this.seletorVoz = null;
     this.leitor = new TextReader(speaker, { aoMudar: (info) => this.aoMudarLeitor(info) });
     this.leitor.velocidade = this.velocidade;
+    this.leitor.preparar = (trecho) => this.prepararTrecho(trecho);
+  }
+
+  /** Em diálogos ("Anna: ..."), não lê o nome e usa uma voz diferente para cada pessoa. */
+  prepararTrecho(trecho) {
+    const fala = this.dialogo ? separarFalante(trecho.texto) : null;
+    if (!fala) return { texto: trecho.texto };
+    const chave = fala.falante.toLowerCase();
+    if (!this.vozesDialogo.has(chave)) this.vozesDialogo.set(chave, this.vozesDialogo.size % 2);
+    const principal = vozes.escolher(this.idioma);
+    const segunda = vozes.listar(this.idioma).find((v) => v !== principal) || principal;
+    const voz = this.vozesDialogo.get(chave) === 1 ? segunda : principal;
+    return { texto: fala.fala, voz: voz || undefined };
   }
 
   montar(raiz) {
@@ -87,6 +106,11 @@ export class TextScreen {
               subtitulo:
                 'Escute frase a frase, ajuste a velocidade e exporte em PDF para revisar depois.',
             })}
+            ${
+              this.fonte
+                ? html`<p class="cartao__nota texto-pequeno">Fonte: <a href="${this.fonte.url}" target="_blank" rel="noopener">${this.fonte.nome} — ${this.fonte.titulo}</a> (${this.fonte.licenca})</p>`
+                : ''
+            }
             ${
               this.material?.revisao
                 ? html`<p class="cartao__nota">
@@ -224,6 +248,8 @@ ${this.texto}</textarea
       this.texto = '';
       this.titulo = '';
       this.material = null;
+      this.fonte = null;
+      this.nivel = undefined;
       area.value = '';
       $('#textoTitulo', r).value = '';
       this.salvarRascunho();
@@ -241,6 +267,8 @@ ${this.texto}</textarea
 
   htmlLeitor() {
     const trechos = this.leitor.carregar(this.texto, { idioma: this.idioma });
+    this.dialogo = ehDialogo(this.texto);
+    this.vozesDialogo = new Map();
     let cursor = 0;
     const partes = [];
     trechos.forEach((t, i) => {
@@ -498,10 +526,11 @@ ${this.texto}</textarea
             id: 'textoRevisao',
             etapaSugerida: this.material?.revisao?.etapa ?? 0,
           })}
-          <div class="campo campo--acao">
+          <div class="campo campo--acao acoes">
             <button type="button" class="btn btn--primario" id="btnExportarTexto">
               📄 Exportar PDF
             </button>
+            <button type="button" class="btn btn--secundario" id="btnExportarMp3">🎵 Exportar MP3</button>
           </div>
         </div>
         <div class="separador"></div>
@@ -526,6 +555,16 @@ ${this.texto}</textarea
       return false;
     };
 
+    $('#btnExportarMp3', r).addEventListener('click', () => {
+      if (!exigirTexto()) return;
+      abrirExportacaoMp3({
+        tipo: TIPOS.TEXTO,
+        titulo: this.titulo.trim() || 'Texto de estudo',
+        idioma: this.idioma,
+        texto: this.texto,
+      });
+    });
+
     $('#btnExportarTexto', r).addEventListener('click', async (e) => {
       if (!exigirTexto()) return;
       const botao = e.currentTarget;
@@ -537,6 +576,8 @@ ${this.texto}</textarea
         idioma: this.idioma,
         texto: this.texto,
         id: this.material?.id,
+        fonte: this.fonte,
+        nivel: this.nivel,
         revisao: dias
           ? criarRevisao({
               etapa: anterior?.etapa ?? 0,

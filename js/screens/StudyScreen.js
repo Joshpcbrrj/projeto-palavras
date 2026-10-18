@@ -38,6 +38,7 @@ import {
   valorSegmentado,
 } from '../ui/components.js';
 import { escolher } from '../ui/dialog.js';
+import { abrirExportacaoMp3 } from '../ui/mp3Dialog.js';
 import { toast } from '../ui/toast.js';
 
 const ETAPAS = ['Texto', 'Configurar', 'Estudar', 'Resultado'];
@@ -708,7 +709,7 @@ ${this.texto}</textarea
       </div>
 
       <div class="cartao">
-        <h3 class="secao__titulo">📄 Exportar PDF para revisar depois</h3>
+        <h3 class="secao__titulo">📄 Exportar para revisar depois</h3>
         <p class="texto-suave">
           O PDF guarda as ${this.nome}, o idioma e a data de revisão. Para revisar, abra-o em
           “Revisar arquivo”.
@@ -735,7 +736,10 @@ ${this.texto}</textarea
             >
           </div>
         </div>
-        <button type="button" class="btn btn--primario" id="btnExportar">📄 Exportar PDF</button>
+        <div class="acoes">
+          <button type="button" class="btn btn--primario" id="btnExportar">📄 Exportar PDF</button>
+          <button type="button" class="btn btn--secundario" id="btnExportarMp3">🎵 Exportar MP3 (pronúncia)</button>
+        </div>
       </div>
 
       <div class="cartao">
@@ -800,6 +804,16 @@ ${this.texto}</textarea
     lista.addEventListener('click', (e) => {
       const botao = e.target.closest('[data-ouvir]');
       if (botao) this.pronunciar(vistos[Number(botao.dataset.ouvir)]);
+    });
+
+    $('#btnExportarMp3', r).addEventListener('click', () => {
+      const todos = valorSegmentado(r, 'pdfItens') === 'todos';
+      abrirExportacaoMp3({
+        tipo: this.tipo,
+        titulo: $('#pdfTitulo', r).value.trim() || nomeTipo(this.tipo, { maiuscula: true }),
+        idioma: this.config.idioma,
+        itens: todos ? this.itensDisponiveis : vistos,
+      });
     });
 
     $('#btnExportar', r).addEventListener('click', async (e) => {

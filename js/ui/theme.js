@@ -27,6 +27,12 @@ function aplicar(tema) {
   }
 }
 
+/** Define o tema ('light', 'dark' ou null para seguir o sistema). */
+export function aplicarTemaEscolhido(tema) {
+  settings.set('tema', tema === 'light' || tema === 'dark' ? tema : null);
+  aplicar(temaAtual());
+}
+
 export function alternarTema() {
   const novo = temaAtual() === 'dark' ? 'light' : 'dark';
   settings.set('tema', novo);

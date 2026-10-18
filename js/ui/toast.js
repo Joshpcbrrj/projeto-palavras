@@ -39,11 +39,7 @@ export function toast(mensagem, tipo = 'info', duracao = 3500) {
     item.classList.remove('toast--visivel');
     setTimeout(() => item.remove(), 250);
   };
-  const timer = setTimeout(remover, tipo === 'erro' ? Math.max(duracao, 6000) : duracao);
-  item.addEventListener('click', () => {
-    clearTimeout(timer);
-    remover();
-  });
+  setTimeout(remover, tipo === 'erro' ? Math.max(duracao, 6000) : duracao);
 }
 
 toast.sucesso = (m) => toast(m, 'sucesso');

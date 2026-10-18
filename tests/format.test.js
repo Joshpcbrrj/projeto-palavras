@@ -45,7 +45,7 @@ describe('pacote de dados', () => {
       idioma: 'xx-XX',
       itens: [' a ', '', 'b'],
     });
-    expect(p.idioma).toBe('pt-BR');
+    expect(p.idioma).toBe('en-US');
     expect(p.itens).toEqual(['a', 'b']);
     expect(p.id).toBeTruthy();
   });

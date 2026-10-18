@@ -3,10 +3,30 @@
  * Migra automaticamente as chaves usadas pelas versões anteriores do app.
  */
 
-import { IDIOMAS, IDIOMA_PADRAO, TEMPO_PADRAO, TIPOS, VELOCIDADE_FALA } from '../config.js';
+import {
+  IDIOMAS,
+  IDIOMA_PADRAO,
+  MODELOS_IA,
+  MODELO_IA_PADRAO,
+  NIVEIS,
+  TEMPO_PADRAO,
+  TIPOS,
+  VELOCIDADE_FALA,
+  VOZES_KOKORO,
+} from '../config.js';
 import { storage } from './storage.js';
 
 const CHAVE = 'ap_preferencias';
+
+const MP3_PADRAO = Object.freeze({
+  motor: 'kokoro', // 'kokoro' (grátis, no navegador) | 'openai' (chave do usuário)
+  vozKokoro: VOZES_KOKORO[0].id,
+  vozKokoro2: 'am_michael', // segunda voz, usada nos diálogos
+  vozOpenai: 'coral',
+  vozOpenai2: 'echo',
+  chaveOpenai: '',
+  pausaMs: 900,
+});
 
 const PADRAO = Object.freeze({
   tema: null, // null = segue o sistema operacional
@@ -17,12 +37,12 @@ const PADRAO = Object.freeze({
   repeticoes: 1,
   tempo: { ...TEMPO_PADRAO },
   embaralhar: true,
+  motorIA: 'gemini', // 'gemini' (online, chave gratuita) | 'local' (no navegador, offline)
+  chaveGemini: '',
+  modeloIA: MODELO_IA_PADRAO,
+  nivelTexto: 'iniciante',
+  mp3: { ...MP3_PADRAO },
 });
-
-function detectarIdiomaNavegador() {
-  const idioma = globalThis.navigator?.language;
-  return idioma && IDIOMAS[idioma] ? idioma : IDIOMA_PADRAO;
-}
 
 function migrarLegado() {
   const legado = {};
@@ -41,7 +61,12 @@ function normalizar(dados) {
   const prefs = { ...PADRAO, ...dados };
   prefs.vozes = { ...(dados?.vozes || {}) };
   prefs.tempo = { ...TEMPO_PADRAO, ...(dados?.tempo || {}) };
+  prefs.mp3 = { ...MP3_PADRAO, ...(dados?.mp3 || {}) };
   if (!IDIOMAS[prefs.idioma]) prefs.idioma = IDIOMA_PADRAO;
+  if (!MODELOS_IA[prefs.modeloIA]) prefs.modeloIA = MODELO_IA_PADRAO;
+  if (!['gemini', 'local'].includes(prefs.motorIA)) prefs.motorIA = 'gemini';
+  if (!NIVEIS[prefs.nivelTexto]) prefs.nivelTexto = 'iniciante';
+  if (!['kokoro', 'openai'].includes(prefs.mp3.motor)) prefs.mp3.motor = 'kokoro';
   if (prefs.tema !== 'dark' && prefs.tema !== 'light') prefs.tema = null;
   return prefs;
 }
@@ -56,7 +81,7 @@ export const settings = {
     if (salvo) {
       cache = normalizar(salvo);
     } else {
-      cache = normalizar({ idioma: detectarIdiomaNavegador(), ...migrarLegado() });
+      cache = normalizar(migrarLegado());
       storage.salvarJSON(CHAVE, cache);
     }
     return cache;
@@ -90,6 +115,11 @@ export const settings = {
 
   setTempo(tipo, segundos) {
     this.set('tempo', { ...this.carregar().tempo, [tipo]: segundos });
+  },
+
+  /** Atualiza parte das preferências de exportação de MP3. */
+  setMp3(parcial) {
+    this.set('mp3', { ...this.carregar().mp3, ...parcial });
   },
 
   aoMudar(fn) {

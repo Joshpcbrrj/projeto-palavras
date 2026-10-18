@@ -258,6 +258,25 @@ function desenharTexto(esc, texto) {
   }
 }
 
+/** Atribuição da fonte (exigida, por exemplo, pela licença CC BY-SA da Wikipédia). */
+function desenharFonte(esc, fonte) {
+  const partes = [`Fonte: ${fonte.nome || ''}`.trim()];
+  if (fonte.titulo) partes.push(`"${fonte.titulo}"`);
+  if (fonte.licenca) partes.push(`licença ${fonte.licenca}`);
+  const bloco = esc.bloco(`${partes.join(' — ')}${fonte.url ? `\n${fonte.url}` : ''}`, {
+    tamanho: 8.5,
+    cor: COR.suave,
+    alturaLinha: 1.35,
+  });
+  esc.y += 3;
+  esc.garantirEspaco(bloco.altura);
+  bloco.desenhar(MARGEM, esc.y);
+  if (fonte.url) {
+    esc.doc.link(MARGEM, esc.y, LARGURA_UTIL, bloco.altura, { url: fonte.url });
+  }
+  esc.y += bloco.altura;
+}
+
 function desenharDicaRevisao(esc) {
   const { doc } = esc;
   const altura = 16;
@@ -314,6 +333,7 @@ export function gerarDocumentoPdf(
   if (pacote.tipo === TIPOS.PALAVRAS) desenharPalavras(esc, pacote.itens);
   else if (pacote.tipo === TIPOS.FRASES) desenharFrases(esc, pacote.itens);
   else desenharTexto(esc, pacote.texto);
+  if (pacote.fonte) desenharFonte(esc, pacote.fonte);
   desenharDicaRevisao(esc);
   desenharRodapes(doc, hoje);
 

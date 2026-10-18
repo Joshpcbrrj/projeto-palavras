@@ -6,7 +6,7 @@
 export const APP = Object.freeze({
   nome: 'Aprendendo Palavras',
   id: 'aprendendo-palavras',
-  versao: '3.0.0',
+  versao: '3.1.0',
 });
 
 export const TIPOS = Object.freeze({
@@ -52,14 +52,72 @@ export const IDIOMAS = Object.freeze({
   'ru-RU': { nome: 'Russo', bandeira: '🇷🇺', amostra: 'Привет! Это мой голос.' },
 });
 
-export const IDIOMA_PADRAO = 'pt-BR';
+/** O app é voltado ao estudo de inglês: este é o idioma de estudo padrão. */
+export const IDIOMA_PADRAO = 'en-US';
 
-/** Bibliotecas carregadas sob demanda (somente ao gerar ou ler PDFs). */
+/** Bibliotecas carregadas sob demanda (somente quando o recurso é usado). */
 export const CDN = Object.freeze({
   jsPDF: 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.1/jspdf.umd.min.js',
   pdfjs: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js',
   pdfjsWorker: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js',
+  webllm: 'https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.85/+esm',
+  kokoro: 'https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/+esm',
+  lame: 'https://cdn.jsdelivr.net/npm/@breezystack/lamejs@1.2.7/+esm',
 });
+
+/** Níveis de compreensão usados na criação de textos (com o equivalente no QECR/CEFR). */
+export const NIVEIS = Object.freeze({
+  iniciante: { nome: 'Iniciante', cefr: 'A1–A2' },
+  intermediario: { nome: 'Intermediário', cefr: 'B1–B2' },
+  fluente: { nome: 'Fluente', cefr: 'C1–C2' },
+});
+
+/**
+ * Modelos de IA que rodam no navegador (WebLLM). O download acontece uma única vez
+ * e fica guardado no navegador. `id` sem o sufixo de precisão (q4f16_1/q4f32_1).
+ */
+export const MODELOS_IA = Object.freeze({
+  leve: {
+    id: 'Llama-3.2-1B-Instruct',
+    nome: 'Leve',
+    tamanho: '≈ 0,9 GB',
+    descricao: 'Mais rápido; textos mais simples.',
+  },
+  equilibrado: {
+    id: 'Qwen2.5-1.5B-Instruct',
+    nome: 'Equilibrado',
+    tamanho: '≈ 1,6 GB',
+    descricao: 'Bom equilíbrio entre qualidade e velocidade.',
+  },
+  qualidade: {
+    id: 'Llama-3.2-3B-Instruct',
+    nome: 'Qualidade',
+    tamanho: '≈ 2,3 GB',
+    descricao: 'Textos melhores; exige um computador mais potente.',
+  },
+});
+export const MODELO_IA_PADRAO = 'equilibrado';
+
+/** Vozes do Kokoro (inglês) com melhor qualidade, para exportar MP3 grátis. */
+export const VOZES_KOKORO = Object.freeze([
+  { id: 'af_heart', nome: 'Heart — feminina (EUA)' },
+  { id: 'af_bella', nome: 'Bella — feminina (EUA)' },
+  { id: 'am_michael', nome: 'Michael — masculina (EUA)' },
+  { id: 'am_puck', nome: 'Puck — masculina (EUA)' },
+  { id: 'bf_emma', nome: 'Emma — feminina (Reino Unido)' },
+  { id: 'bm_george', nome: 'George — masculina (Reino Unido)' },
+]);
+
+export const VOZES_OPENAI = Object.freeze([
+  'alloy',
+  'coral',
+  'echo',
+  'fable',
+  'nova',
+  'onyx',
+  'sage',
+  'shimmer',
+]);
 
 export function nomeTipo(tipo, { plural = true, maiuscula = false } = {}) {
   const nomes = {

@@ -11,6 +11,14 @@ import { seloRevisao } from '../ui/components.js';
 
 const MODOS = [
   {
+    rota: ROTAS.CRIAR,
+    icone: '✨',
+    titulo: 'Criar textos',
+    descricao: 'Diálogos, explicações sobre qualquer tema e textos no seu nível — de graça.',
+    cor: 'verde',
+    destaque: true,
+  },
+  {
     rota: ROTAS.PALAVRAS,
     icone: '📖',
     titulo: 'Estudar palavras',
@@ -57,7 +65,7 @@ export class MenuScreen {
             <div class="grade-modos">
               ${MODOS.map(
                 (modo) => html`
-                  <a class="modo modo--${modo.cor}" href="#/${modo.rota}">
+                  <a class="modo modo--${modo.cor} ${modo.destaque ? 'modo--destaque' : ''}" href="#/${modo.rota}">
                     <span class="modo__icone" aria-hidden="true">${modo.icone}</span>
                     <span class="modo__titulo">${modo.titulo}</span>
                     <span class="modo__descricao">${modo.descricao}</span>

@@ -14,7 +14,7 @@
  * }
  */
 
-import { APP, ETAPAS_REVISAO, IDIOMAS, IDIOMA_PADRAO, TIPOS } from '../config.js';
+import { APP, ETAPAS_REVISAO, IDIOMAS, IDIOMA_PADRAO, NIVEIS, TIPOS } from '../config.js';
 import { dataISO, diferencaDias, gerarId, lerData, somarDias } from '../core/utils.js';
 
 export const VERSAO_PACOTE = 3;
@@ -97,6 +97,10 @@ export function validarPacote(dados) {
     revisao: dados.revisao ? criarRevisao(dados.revisao) : null,
   };
 
+  const fonte = validarFonte(dados.fonte);
+  if (fonte) pacote.fonte = fonte;
+  if (NIVEIS[dados.nivel]) pacote.nivel = dados.nivel;
+
   if (pacote.tipo === TIPOS.TEXTO) {
     pacote.texto = String(dados.texto || '');
     if (!pacote.texto.trim()) return null;
@@ -109,6 +113,20 @@ export function validarPacote(dados) {
   return pacote;
 }
 
+/** Fonte do conteúdo (ex.: artigo da Wikipédia), necessária para a atribuição exigida pela licença. */
+function validarFonte(fonte) {
+  if (!fonte || typeof fonte !== 'object') return null;
+  const url = String(fonte.url || '');
+  if (url && !/^https:\/\//.test(url)) return null;
+  const limpo = {
+    nome: String(fonte.nome || '').slice(0, 80),
+    titulo: String(fonte.titulo || '').slice(0, 200),
+    url: url.slice(0, 500),
+    licenca: String(fonte.licenca || '').slice(0, 40),
+  };
+  return limpo.nome || limpo.url ? limpo : null;
+}
+
 export function tituloPadrao(tipo) {
   if (tipo === TIPOS.FRASES) return 'Frases estudadas';
   if (tipo === TIPOS.TEXTO) return 'Texto de estudo';
@@ -116,7 +134,18 @@ export function tituloPadrao(tipo) {
 }
 
 /** Cria um pacote novo a partir dos dados de um estudo. */
-export function criarPacote({ tipo, titulo, idioma, itens, texto, revisao, id, criadoEm }) {
+export function criarPacote({
+  tipo,
+  titulo,
+  idioma,
+  itens,
+  texto,
+  revisao,
+  id,
+  criadoEm,
+  fonte,
+  nivel,
+}) {
   return validarPacote({
     app: APP.id,
     versao: VERSAO_PACOTE,
@@ -127,7 +156,10 @@ export function criarPacote({ tipo, titulo, idioma, itens, texto, revisao, id, c
     criadoEm: criadoEm || new Date().toISOString(),
     itens,
     texto,
-    revisao: revisao || criarRevisao(),
+    fonte,
+    nivel,
+    // `null` significa "não agendar"; sem o campo, agenda a primeira revisão.
+    revisao: revisao === undefined ? criarRevisao() : revisao,
   });
 }
 

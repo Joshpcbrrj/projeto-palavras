@@ -6,7 +6,7 @@
  * subdiretórios (ex.: GitHub Pages em /projeto-palavras/).
  */
 
-const VERSAO = 'v3.0.0';
+const VERSAO = 'v3.1.0';
 const CACHE_APP = `aprendendo-palavras-${VERSAO}`;
 const CACHE_CDN = 'aprendendo-palavras-cdn';
 
@@ -29,19 +29,34 @@ const ARQUIVOS_APP = [
   './js/audio/reader.js',
   './js/audio/speaker.js',
   './js/audio/voices.js',
+  './js/audio/export/engines.js',
+  './js/audio/export/index.js',
+  './js/audio/export/kokoro-worker.js',
+  './js/audio/export/mp3.js',
+  './js/audio/export/plan.js',
   './js/core/dom.js',
   './js/core/nav.js',
   './js/core/router.js',
   './js/core/utils.js',
+  './js/create/engine.js',
+  './js/create/gemini.js',
+  './js/create/generator.js',
+  './js/create/levels.js',
+  './js/create/llm-worker.js',
+  './js/create/llm.js',
+  './js/create/prompts.js',
+  './js/create/wikipedia.js',
   './js/pdf/exporter.js',
   './js/pdf/format.js',
   './js/pdf/importer.js',
   './js/pdf/legacy.js',
   './js/pdf/libs.js',
   './js/pdf/raster.js',
+  './js/screens/CreateScreen.js',
   './js/screens/MenuScreen.js',
   './js/screens/ProgressScreen.js',
   './js/screens/ReviewScreen.js',
+  './js/screens/SettingsScreen.js',
   './js/screens/StudyScreen.js',
   './js/screens/TextScreen.js',
   './js/services/progress.js',
@@ -49,8 +64,10 @@ const ARQUIVOS_APP = [
   './js/services/storage.js',
   './js/study/session.js',
   './js/text/extract.js',
+  './js/ui/aiPanel.js',
   './js/ui/components.js',
   './js/ui/dialog.js',
+  './js/ui/mp3Dialog.js',
   './js/ui/theme.js',
   './js/ui/toast.js',
 ];
@@ -114,7 +131,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (url.hostname === 'cdnjs.cloudflare.com') {
+  // Bibliotecas com versão fixa na URL (cdnjs e jsDelivr): podem ficar em cache para sempre.
+  if (url.hostname === 'cdnjs.cloudflare.com' || url.hostname === 'cdn.jsdelivr.net') {
     event.respondWith(
       (async () => {
         const cache = await caches.open(CACHE_CDN);

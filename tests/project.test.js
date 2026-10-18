@@ -53,6 +53,13 @@ describe('PWA', () => {
     expect(html).not.toContain('cdn.tailwindcss.com');
   });
 
+  test('os Web Workers importam exatamente as mesmas versões do config', () => {
+    const config = ler('js/config.js');
+    const url = (nome) => config.match(new RegExp(`${nome}: '([^']+)'`))[1];
+    expect(ler('js/create/llm-worker.js')).toContain(`'${url('webllm')}'`);
+    expect(ler('js/audio/export/kokoro-worker.js')).toContain(`'${url('kokoro')}'`);
+  });
+
   test('as URLs de bibliotecas do service worker são as mesmas do config', () => {
     const config = ler('js/config.js');
     for (const url of [...config.matchAll(/'(https:\/\/cdnjs[^']+)'/g)].map((m) => m[1])) {

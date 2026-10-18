@@ -36,7 +36,7 @@ describe('preferências', () => {
 
   test('ignora dados corrompidos ou inválidos', () => {
     localStorage.setItem('ap_preferencias', JSON.stringify({ idioma: 'xx', tema: 'roxo' }));
-    expect(settings.carregar()).toMatchObject({ idioma: 'pt-BR', tema: null });
+    expect(settings.carregar()).toMatchObject({ idioma: 'en-US', tema: null });
   });
 
   test('notifica ouvintes', () => {

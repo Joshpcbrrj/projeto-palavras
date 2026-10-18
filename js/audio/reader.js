@@ -35,6 +35,12 @@ export class TextReader {
     this.pausaEntreTrechosMs = 0;
     this.estado = ESTADOS_LEITOR.PARADO;
     this.segundosOuvidos = 0;
+    /**
+     * Permite ajustar o que é falado em cada trecho (ex.: em diálogos, tirar o nome
+     * do falante e usar uma voz diferente para cada pessoa).
+     * @type {(trecho: {texto: string}) => {texto: string, voz?: SpeechSynthesisVoice}}
+     */
+    this.preparar = (trecho) => ({ texto: trecho.texto });
     this._controle = null;
   }
 
@@ -78,9 +84,11 @@ export class TextReader {
     while (!controle.signal.aborted && this.indice < this.trechos.length) {
       this._notificar();
       const inicio = Date.now();
-      const ok = await this.speaker.falar(this.trechos[this.indice].texto, {
+      const { texto, voz } = this.preparar(this.trechos[this.indice]);
+      const ok = await this.speaker.falar(texto, {
         idioma: this.idioma,
         velocidade: this.velocidade,
+        voz,
         signal: controle.signal,
       });
       if (controle.signal.aborted) return;
