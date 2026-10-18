@@ -4,15 +4,14 @@
  */
 
 import { carimboArquivo, slug } from '../../core/utils.js';
-import { KokoroMotor, OpenAIMotor } from './engines.js';
+import { KokoroMotor } from './engines.js';
 import { Mp3Builder, TAXA_PADRAO, aparar, obterEncoderMp3, reamostrar } from './mp3.js';
 import { planejarAudio } from './plan.js';
 
 let kokoroCompartilhado = null;
 
-/** Cria (ou reaproveita) o motor de voz. */
-export function criarMotor(motor, { chaveOpenai } = {}) {
-  if (motor === 'openai') return new OpenAIMotor({ chave: chaveOpenai });
+/** Motor de voz compartilhado (o modelo é carregado uma vez por sessão). */
+export function criarMotor() {
   kokoroCompartilhado ??= new KokoroMotor();
   return kokoroCompartilhado;
 }

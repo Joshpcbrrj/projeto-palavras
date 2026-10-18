@@ -1,99 +1,96 @@
 # Avaliação e plano de melhorias
 
 > **Status:** proposta para avaliação. Itens marcados com ✅ já estão implementados.
-> Objetivo do projeto: **um app web prático para aprender inglês de forma simples e grátis.**
+>
+> **Visão do projeto:** um app web simples e grátis que **gera material de estudo de inglês** — textos no nível certo, **PDFs** e **MP3** — para a pessoa estudar por conta própria, onde e quando quiser. O app ajuda a criar e revisar os arquivos; o estudo acontece com eles.
 
 ## 1. Avaliação geral
 
-### 1.1 O app atende ao objetivo de aprendizado?
+### 1.1 O app cumpre a visão?
 
-| Etapa do aprendizado        | Situação atual                                                                                                               | Nota                 |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------------- |
-| **Material no nível certo** | ✅ Criar textos (diálogo, mergulho no tema, por nível), métrica de legibilidade que avisa quando o texto saiu acima do nível | Bom                  |
-| **Ouvir (listening)**       | ✅ Leitura frase a frase com destaque, voz diferente por pessoa nos diálogos, MP3 para ouvir fora do app                     | Bom                  |
-| **Vocabulário**             | Flashcards com pronúncia; revisão espaçada **por arquivo**                                                                   | Regular              |
-| **Entender o significado**  | ❌ Não há tradução nem definição: o aluno vê “WINDOW”, mas não sabe o que é                                                  | **Lacuna principal** |
-| **Lembrar ativamente**      | ❌ O flashcard só mostra a palavra por alguns segundos (estudo passivo)                                                      | Lacuna               |
-| **Falar (pronúncia)**       | ❌ Sem prática de fala                                                                                                       | Lacuna               |
-| **Exercícios**              | ❌ Sem ditado, lacunas ou perguntas de compreensão                                                                           | Lacuna               |
-| **Constância**              | Dias seguidos e agenda de revisões                                                                                           | Regular              |
+| Etapa                                     | Situação atual                                                                                                         | Nota                 |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| **Conseguir material no nível certo**     | ✅ Criar textos (diálogo, mergulho no tema, por nível) com métrica de legibilidade                                     | Bom                  |
+| **Levar o material para estudar sozinho** | ✅ PDF limpo para ler/imprimir e MP3 com voz natural (uma voz por pessoa nos diálogos; repetições e pausas nas listas) | Bom                  |
+| **Entender o que está lendo/ouvindo**     | ❌ Nem o PDF nem o app mostram o significado das palavras — quem estuda sozinho fica sem apoio                         | **Lacuna principal** |
+| **Praticar com o material**               | ❌ O PDF não traz exercícios (lacunas, perguntas) para fazer sem o app                                                 | Lacuna               |
+| **Revisar no tempo certo**                | ✅ Cada PDF guarda a data da próxima revisão; ao reabri-lo no app, a revisão avança (1 → 3 → 7 → 14 → 30 → 60 dias)    | Bom                  |
+| **Facilidade de uso**                     | Telas claras, mas várias opções antes de começar                                                                       | Regular              |
 
-**Conclusão:** o app é forte em **exposição** ao inglês (ler e ouvir no nível certo) e em **organização** (PDFs revisáveis, agenda). Para ser um app completo de **aprendizado**, faltam: significado das palavras, recordação ativa com revisão espaçada por palavra e exercícios — todos possíveis sem servidor (Fase A abaixo).
+**Conclusão:** o app já gera um material bom. O passo que mais aumenta o valor dos arquivos para quem estuda **sozinho** é deixá-los **autossuficientes**: com o significado das palavras e com exercícios.
 
-### 1.2 O app é prático como app web?
+### 1.2 Praticidade como app web
 
-| Aspecto                                        | Situação                                                                                                                                                          | Avaliação                                |
-| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| Abrir e usar                                   | Abre direto no navegador, instalável (PWA), funciona offline                                                                                                      | ✅ Muito bom                             |
-| Celular                                        | Layout responsivo testado em 390 px, sem rolagem lateral                                                                                                          | ✅ Bom                                   |
-| Flashcards, leitura com voz, PDFs              | Instantâneos, sem cadastro, usam a voz do aparelho                                                                                                                | ✅ Muito bom                             |
-| **Mergulhar no tema** e **Por nível** (sem IA) | Wikipédia: resultado em ~1 s, em qualquer aparelho                                                                                                                | ✅ Muito bom                             |
-| **Diálogos** e adaptação de nível              | Precisam de IA. Opção online (Gemini, chave gratuita): segundos, qualquer aparelho, mas exige criar a chave uma vez                                               | ⚠️ Bom, com uma etapa de configuração    |
-| IA no navegador (WebLLM)                       | Testada de verdade: download de 0,9–2,3 GB, só em computadores com WebGPU, **1 a 6 minutos por texto**; o modelo de 1B escreveu com erros e às vezes em português | ⚠️ Viável só como opção avançada/offline |
-| **MP3 com Kokoro** (grátis)                    | Testado: texto de 1 página (≈ 4 min de áudio) levou **7 min com placa de vídeo** e **14 min só com processador**; listas de palavras são rápidas                  | ⚠️ Lento para textos longos              |
+| Aspecto                                        | Situação                                                                                                                                         | Avaliação                             |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------- |
+| Abrir e usar                                   | Abre direto no navegador, instalável (PWA), funciona offline                                                                                     | ✅ Muito bom                          |
+| Celular                                        | Layout responsivo testado em 390 px, sem rolagem lateral                                                                                         | ✅ Bom                                |
+| **Mergulhar no tema** e **Por nível** (sem IA) | Wikipédia: resultado em ~1 s, em qualquer aparelho                                                                                               | ✅ Muito bom                          |
+| **Diálogos** e adaptação de nível              | Google Gemini com chave gratuita: segundos, qualquer aparelho; exige criar a chave uma vez                                                       | ⚠️ Bom, com uma etapa de configuração |
+| **MP3 com Kokoro** (grátis)                    | Testado: texto de 1 página (≈ 4 min de áudio) levou **7 min com placa de vídeo** e **14 min só com processador**; listas de palavras são rápidas | ⚠️ Lento para textos longos           |
 
-**Decisão tomada nesta versão:** como o app precisa ser prático, a IA **online (Gemini)** passou a ser a opção padrão — grátis, rápida e funciona no celular — e a IA **no navegador** ficou como alternativa para quem quer total independência/offline. Mergulho e texto por nível funcionam **sem IA nenhuma**, direto da Wikipédia.
+### 1.3 Simplificação já feita (versão 3.2)
 
-Alternativas avaliadas e descartadas:
+- ✅ **Removida a IA no navegador (WebLLM):** exigia download de 0,9–2,3 GB, só rodava em computadores com WebGPU e levava 1–6 minutos por texto. A IA agora é só o Gemini.
+- ✅ **Removido o MP3 pela OpenAI:** era pago e pouco usado. O MP3 agora é só o Kokoro, grátis.
+- ✅ **Removido o passo de tradução do tema** (feito para modelos pequenos): o Gemini entende temas em português, e assim cada texto usa um pedido a menos da cota gratuita.
+- ✅ Configurações reduzidas a: idioma, tema, chave do Gemini e vozes do MP3. Chaves antigas da OpenAI são apagadas do navegador automaticamente.
+- ✅ Mantido: sem frameworks e sem banco de dados no navegador (IndexedDB) — não compensam no tamanho atual do app.
 
-- **IA online gratuita sem chave** (serviço anônimo): testada — respostas de 30–37 s, falhas intermitentes e formato de resposta instável. Não é confiável para um app.
-- **Só IA no navegador**: independente, mas impraticável para a maioria dos usuários (celulares não rodam; downloads de GB; minutos por texto).
+Alternativa avaliada e descartada: **IA online gratuita sem chave** (serviço anônimo) — respostas de 30–37 s, falhas intermitentes e formato instável.
 
-## 2. Funcionalidades propostas
+## 2. Avaliação de uso
+
+**Veredito:** é um bom app — bonito, rápido, grátis, funciona no celular e offline, e o ciclo “criar texto → ouvir → gerar PDF/MP3” é útil de verdade. Pontos de atrito:
+
+| #   | Atrito observado                                                                                             | Impacto     |
+| --- | ------------------------------------------------------------------------------------------------------------ | ----------- |
+| U1  | **Os arquivos não explicam as palavras.** Quem estuda com o PDF/MP3 longe do app não tem a tradução          | Alto        |
+| U2  | **O PDF não tem atividades.** Só leitura; nada para praticar                                                 | Alto        |
+| U3  | **Muitas opções antes de começar.** A configuração do flashcard tem 8 controles; “Criar textos” tem 6 campos | Médio       |
+| U4  | **Listas de palavras incluem palavras inúteis** (“a”, “to”, “her”) — ocupam o PDF e o MP3                    | Médio       |
+| U5  | **PDF e MP3 são gerados separadamente** (dois cliques, dois fluxos)                                          | Baixo/Médio |
+| U6  | MP3 de textos longos é lento (minutos)                                                                       | Baixo/Médio |
+
+## 3. Propostas de funcionalidade (focadas nos arquivos de estudo)
 
 Esforço: **P** (até 1 dia), **M** (2–4 dias), **G** (1–2 semanas).
 
-### Fase A — Fechar as lacunas de aprendizado (maior impacto)
+| #   | Proposta                                                                                                                                                                                                       | Resolve | Esforço |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
+| K1  | **Glossário no PDF**: lista das palavras-chave do texto com a tradução em português (e, nas listas de palavras, a tradução ao lado de cada uma). Tradução pelo Gemini ou pelo tradutor embutido do Chrome/Edge | U1      | M       |
+| K2  | **Exercícios no PDF, com gabarito no final**: lacunas (sem IA) e perguntas de compreensão (com Gemini)                                                                                                         | U2      | M       |
+| K3  | **Filtrar palavras muito comuns** nas listas (lista de frequência embutida)                                                                                                                                    | U4      | P       |
+| K4  | **“Baixar kit de estudo”**: PDF + MP3 com um clique, com nomes de arquivo combinando                                                                                                                           | U5      | P       |
+| K5  | **MP3 alinhado ao PDF**: opção de falar o número do item (“número 3: window”) para acompanhar no papel                                                                                                         | U1      | P       |
+| K6  | **Começar em 1 clique**: padrões inteligentes e “Mais opções” recolhido no flashcard e no Criar textos                                                                                                         | U3      | P       |
+| K7  | **MP3 mais rápido em textos longos**: começar a mostrar/ouvir o áudio enquanto é gerado                                                                                                                        | U6      | M       |
 
-| #   | Proposta                                                                                     | Como (grátis e sem servidor)                                                          | Esforço |
-| --- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------- |
-| A1  | **Tradução e significado** (toque na palavra no leitor; verso do flashcard)                  | API de tradução embutida do Chrome/Edge (`Translator`, offline) → Gemini → Wiktionary | M       |
-| A2  | **Flashcards “Sei / Não sei”** com revisão espaçada **por palavra** (SM-2/FSRS, como o Anki) | Nova tela “Revisar vocabulário”                                                       | G       |
-| A3  | **Ignorar palavras muito comuns** (“the”, “a”, “to”) e destacar as difíceis                  | Lista de frequência NGSL (CC BY-SA) embutida                                          | P       |
-| A4  | **Ditado**: ouve a frase, digita, vê as diferenças                                           | Web Speech + comparação de texto                                                      | M       |
-| A5  | **Exercícios** a partir dos textos: lacunas, perguntas de compreensão                        | Lacunas sem IA; perguntas com IA                                                      | M       |
-| A6  | **Prática de pronúncia** com nota                                                            | `SpeechRecognition` (Chrome/Edge/Safari)                                              | M       |
-| A7  | **Glossário automático** dos textos criados                                                  | A1 + A3                                                                               | P       |
+**Sobre a “biblioteca dentro do app”** (proposta anterior): fazia sentido se o estudo acontecesse dentro do app. Como a ideia é estudar com os arquivos, ela foi **descartada** — o fluxo atual (gerar o PDF, estudar com ele e reabri-lo em “Revisar arquivo” no dia marcado) já atende e é mais simples.
 
-### Fase B — Praticidade e retenção
+## 4. Propostas de código (sem perder a simplicidade)
 
-| #   | Proposta                                                                                                                           | Esforço |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| B1  | **Biblioteca** de textos criados/salvos (sem precisar de PDF), com filtros por nível                                               | M       |
-| B2  | **MP3 mais rápido**: gerar em paralelo/por lotes e mostrar o áudio enquanto é gerado; avaliar TTS do Gemini (chave já configurada) | M       |
-| B3  | Meta diária e lembrete (notificação do PWA)                                                                                        | M       |
-| B4  | Tela inicial com “continuar de onde parou” e palavras do dia                                                                       | P       |
-| B5  | Interface também em inglês (imersão)                                                                                               | M       |
-| B6  | Sincronização opcional entre aparelhos (arquivo ou Google Drive do usuário)                                                        | G       |
+O formato atual — arquivos estáticos, ES modules nativos, **sem etapa de build** — é o mais simples para um app web no GitHub Pages e deve ser mantido.
 
-## 3. Qualidade de código e engenharia (padrões de mercado)
+| #   | Proposta                                                                                                                                | Por quê                                            | Esforço |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ------- |
+| C1  | **Unificar exportações**: a lógica de “gerar PDF + registrar + agendar revisão” está repetida em 4 telas; um único `exportarMaterial()` | Menos código duplicado; base para o K4             | P       |
+| C2  | **Tipos com JSDoc + `tsc --checkJs` no CI** (sem migrar para TypeScript, sem build)                                                     | Pega erros de contrato com custo zero no navegador | M       |
+| C3  | **Dividir telas grandes** (`StudyScreen` 864 linhas, `TextScreen` 630) em partes menores                                                | Manutenção                                         | M       |
+| C4  | **Teste de fumaça no navegador (Playwright) no CI**, formalizando os fluxos que verifiquei manualmente                                  | Pega regressões visuais e de fluxo antes do merge  | M       |
+| C5  | **Proteção da branch `main`** exigindo CI verde                                                                                         | Evita publicar algo quebrado                       | P       |
+| C6  | **Content-Security-Policy** via `<meta>`                                                                                                | Protege a chave do Gemini guardada no navegador    | P       |
 
-| #   | Proposta                                                                                                  | Por quê                                                             | Esforço    |
-| --- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ---------- |
-| C1  | **Tipagem**: JSDoc + `tsc --checkJs` e migração gradual para **TypeScript**                               | Contratos garantidos (ex.: pacote do PDF, preferências)             | M → G      |
-| C2  | **Build com Vite** + deploy pelo **GitHub Actions** no Pages                                              | Minificação, arquivos com hash, sem lista manual no `sw.js`         | M          |
-| C3  | **Service worker gerado** (Workbox / `vite-plugin-pwa`)                                                   | Fim do controle manual de versão e de arquivos                      | P (com C2) |
-| C4  | **Dependências pelo npm** (jsPDF, PDF.js, WebLLM, Kokoro, lamejs) em vez de CDN                           | Versões auditadas pelo Dependabot, offline garantido                | M (com C2) |
-| C5  | **Testes E2E com Playwright** no CI (os fluxos que verifiquei manualmente)                                | Pega regressões de interface antes do merge                         | M          |
-| C6  | **Acessibilidade (axe-core)** e **Lighthouse CI**                                                         | Nota mínima de acessibilidade/PWA por PR                            | P          |
-| C7  | Dividir telas grandes (`StudyScreen` ~800 linhas) em componentes; avaliar **Lit** ou **Preact + Signals** | Menos código manual de eventos                                      | G          |
-| C8  | Persistência em **IndexedDB**                                                                             | O localStorage é limitado (~5 MB) e síncrono; necessário para A2/B1 | M          |
-| C9  | **Conventional Commits** + **release-please**                                                             | CHANGELOG e versões automáticos                                     | P          |
-| C10 | **Proteção da branch `main`** exigindo CI verde                                                           | Evita publicar algo quebrado                                        | P          |
-| C11 | **Content-Security-Policy** e **Subresource Integrity**                                                   | Segurança contra scripts injetados/CDN comprometida                 | P          |
+## 5. Ordem sugerida
 
-## 4. Ordem sugerida
+1. **K3, K4 + C1, C5** — rápidos e já melhoram os arquivos.
+2. **K1** (glossário com tradução) — o maior ganho para quem estuda sozinho.
+3. **K2** (exercícios com gabarito) e **K5**.
+4. **K6, K7** e **C2, C3, C4, C6**.
 
-1. **Sprint 1:** A3, A1, C10, C9.
-2. **Sprint 2:** A2 (+ C8), A7.
-3. **Sprint 3:** C2 + C3 + C4 + C5 (fundação de engenharia de uma vez).
-4. **Sprint 4:** A4, A5, A6, B2.
-5. Depois: Fase B, C1 gradual, C7.
+## 6. Limitações conhecidas (versão atual)
 
-## 5. Limitações conhecidas (versão atual)
-
-- **Gemini**: exige criar uma chave gratuita no Google AI Studio (conta Google). O plano gratuito tem limite de pedidos por minuto/dia; o app avisa quando ele é atingido.
-- **IA no navegador**: exige WebGPU e download de 0,9 a 2,3 GB; leva minutos por texto. O modelo “Leve” (1B) tem qualidade baixa — use “Equilibrado” ou “Qualidade”.
-- Modelos pequenos às vezes escrevem acima do nível pedido; o app tenta simplificar uma vez e a métrica de legibilidade avisa quando ainda ficou difícil.
+- **Gemini**: exige criar uma chave gratuita no Google AI Studio (conta Google). O plano gratuito tem limite de pedidos por minuto/dia; o app avisa quando ele é atingido. Sem chave, “Mergulhar no tema” e “Por nível” funcionam só com a Wikipédia.
+- A IA às vezes escreve acima do nível pedido; o app tenta simplificar uma vez e a métrica de legibilidade avisa quando ainda ficou difícil.
 - **Wikipédia** como fonte de nível: a Simple English nem sempre é simples em temas técnicos (a métrica mostra isso). Em temas de situação (“pedir comida”), artigos genéricos desviam o diálogo — por isso a Wikipédia vem desligada por padrão no modo Diálogo.
-- **Kokoro** (MP3 grátis) fala apenas inglês e é lento para textos longos; para outros idiomas ou mais rapidez, há a opção OpenAI com chave própria.
+- **Kokoro** (MP3) fala apenas inglês e é lento para textos longos.

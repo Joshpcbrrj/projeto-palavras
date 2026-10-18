@@ -1,6 +1,6 @@
 /**
  * Criar textos: diálogo sobre um tema, mergulho no tema (estilo enciclopédia)
- * e texto por nível de compreensão. Tudo grátis: Wikipédia + IA no navegador.
+ * e texto por nível de compreensão. Tudo grátis: Wikipédia + Google Gemini (chave gratuita).
  */
 
 import { IDIOMAS, NIVEIS, TIPOS } from '../config.js';
@@ -159,7 +159,7 @@ export class CreateScreen {
                   f.modo === MODOS.MERGULHO
                     ? alternador({
                         id: 'criarAdaptar',
-                        rotulo: 'Adaptar ao meu nível com a IA local',
+                        rotulo: 'Adaptar ao meu nível com a IA',
                         ajuda: 'Reescreve o artigo com palavras do nível escolhido.',
                         marcado: f.adaptarComIA,
                       })
@@ -313,7 +313,7 @@ export class CreateScreen {
       <div class="cartao criar__resultado">
         <div class="secao__cabecalho">
           <h3 class="secao__titulo">${r.titulo}</h3>
-          <span class="selo selo--neutro">${NIVEIS[r.nivel].nome}${r.geradoPorIA ? ' · IA local' : ' · Wikipédia'}</span>
+          <span class="selo selo--neutro">${NIVEIS[r.nivel].nome}${r.geradoPorIA ? ' · IA (Gemini)' : ' · Wikipédia'}</span>
         </div>
         <div class="leitor__texto">${r.texto}</div>
         ${
@@ -327,11 +327,6 @@ export class CreateScreen {
         ${
           r.fonte
             ? html`<p class="texto-pequeno texto-suave">Fonte: <a href="${r.fonte.url}" target="_blank" rel="noopener">${r.fonte.nome} — ${r.fonte.titulo}</a> (${r.fonte.licenca})${r.geradoPorIA ? ', adaptado pela IA' : ''}.</p>`
-            : ''
-        }
-        ${
-          r.alternativas?.length
-            ? html`<p class="texto-pequeno texto-suave">Não era esse o assunto? Tente: ${r.alternativas.slice(0, 3).map((t, i) => html`${i ? ', ' : ''}<button type="button" class="link" data-alternativa="${t}">${t}</button>`)}</p>`
             : ''
         }
         <div class="acoes">
@@ -362,13 +357,6 @@ export class CreateScreen {
   ligarResultado() {
     const area = $('#areaResultado', this.raiz);
     area.onclick = async (e) => {
-      const alternativa = e.target.closest('[data-alternativa]');
-      if (alternativa) {
-        this.form.tema = alternativa.dataset.alternativa;
-        $('#criarTema', this.raiz).value = this.form.tema;
-        this.criar();
-        return;
-      }
       const botao = e.target.closest('[data-acao]');
       if (!botao) return;
       const r = this.resultado;

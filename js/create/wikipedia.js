@@ -167,6 +167,10 @@ export async function obterArtigo(
   };
 }
 
+/** Notas de navegação do topo dos artigos ("For the American sport, see ..."), que não são conteúdo. */
+const NOTA_NAVEGACAO =
+  /^(for (the|other|a|an) [^.]{0,80}, see\b|this article is about\b|not to be confused with\b|"[^"]{1,60}" redirects here\b|para outros significados|não confundir com\b)/i;
+
 /**
  * Limpa o texto do artigo e o corta em um tamanho de leitura (1–2 páginas),
  * mantendo a introdução e as seções na ordem original.
@@ -183,7 +187,7 @@ export function prepararArtigo(extrato, { maxPalavras = 900 } = {}) {
     const cabecalho = linha.match(/^(={2,6})\s*(.+?)\s*\1$/);
     if (cabecalho) {
       secoes.push({ titulo: cabecalho[2], nivel: cabecalho[1].length, paragrafos: [] });
-    } else if (linha.trim()) {
+    } else if (linha.trim() && !NOTA_NAVEGACAO.test(linha.trim())) {
       secoes.at(-1).paragrafos.push(linha.trim().replace(/\s{2,}/g, ' '));
     }
   }

@@ -1,5 +1,5 @@
 /**
- * Montagem dos pedidos (prompts) para a IA local e limpeza das respostas.
+ * Montagem dos pedidos (prompts) para a IA e limpeza das respostas.
  *
  * Modelos pequenos seguem melhor instruções curtas, diretas e repetidas no fim.
  * Por isso cada pedido termina com o formato exato esperado.
@@ -68,52 +68,6 @@ function descreverTema(tema, referencia) {
     return `"${tema}" (related encyclopedia article: "${referencia.titulo}")`;
   }
   return `"${tema}"`;
-}
-
-const SINAIS_PORTUGUES =
-  /[ãõçáéíóúâêôà]|\b(de|do|da|dos|das|num|numa|no|na|nos|nas|para|com|em|um|uma|os|as|pedir|fazer|como)\b/i;
-
-/** O tema parece escrito em outro idioma (ex.: português) quando o texto é em inglês? */
-export function temaPrecisaTraducao(tema, idioma) {
-  // Sempre traduz quando há um tema: a detecção por palavras falha em casos como
-  // "meio ambiente", e a IA devolve o próprio tema se ele já estiver no idioma certo.
-  return Boolean(String(tema || '').trim() && idioma);
-}
-
-/** O tema tem sinais claros de português (usado para avisos). */
-export function temaEmPortugues(tema) {
-  return SINAIS_PORTUGUES.test(String(tema || ''));
-}
-
-/** Pedido curto para traduzir o tema antes de escrever o texto. */
-export function promptTraduzirTema(tema, idioma) {
-  const lingua = nomeIdiomaIngles(idioma);
-  return {
-    mensagens: [
-      {
-        role: 'system',
-        content: `You translate short phrases into ${lingua}. Answer with the translation only.`,
-      },
-      {
-        role: 'user',
-        content: `Translate into ${lingua} (if it is already in ${lingua}, repeat it): "${tema}"`,
-      },
-    ],
-    maxTokens: 40,
-  };
-}
-
-/** Limpa a tradução do tema (primeira linha, sem aspas nem pontuação final). */
-export function limparTraducaoTema(texto, original) {
-  const linha = String(texto || '')
-    .split('\n')
-    .map((l) => l.trim())
-    .find(Boolean);
-  const limpa = (linha || '')
-    .replace(/^(translation|tradução)\s*:\s*/i, '')
-    .replace(/^["'“”]+|["'“”.!]+$/g, '')
-    .trim();
-  return limpa && limpa.length <= 100 ? limpa : original;
 }
 
 /** Última linha do pedido: modelos pequenos dão mais peso ao que vem no fim. */

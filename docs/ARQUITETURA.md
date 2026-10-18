@@ -20,6 +20,9 @@ flowchart LR
   screens --> audio[audio/*]
   screens --> pdf[pdf/*]
   screens --> services[services/*]
+  screens --> create[create/*]
+  create --> text
+  screens --> export[audio/export/*]
   study --> utils[core/utils.js]
   audio --> text[text/extract.js]
   pdf --> text
@@ -39,14 +42,13 @@ flowchart LR
 
 ### Criação de textos (`js/create/`)
 
-| Arquivo                    | Responsabilidade                                                                                                                                         |
-| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `wikipedia.js`             | Busca bilíngue (tema em português → link interlíngua para o idioma de estudo), Simple English para iniciantes, limpeza e corte do artigo em 1–2 páginas. |
-| `levels.js`                | Orientações por nível (CEFR) e métrica de legibilidade (Flesch) para estimar o nível do texto gerado.                                                    |
-| `prompts.js`               | Montagem dos pedidos para a IA e limpeza das respostas (markdown, introduções, formato "Nome: fala").                                                    |
-| `llm.js` + `llm-worker.js` | IA local com [WebLLM](https://github.com/mlc-ai/web-llm) em um Web Worker (WebGPU). Modelo baixado uma vez e guardado no cache do navegador.             |
-| `gemini.js` + `engine.js`  | IA online pelo Google Gemini (chave gratuita do usuário, streaming SSE) e escolha do motor; ambos expõem a mesma interface `gerar()` da IA local.        |
-| `generator.js`             | Orquestra os três modos: busca a referência, chama a IA e aplica alternativas (sem internet → só IA; sem IA → Wikipédia).                                |
+| Arquivo                   | Responsabilidade                                                                                                                                         |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `wikipedia.js`            | Busca bilíngue (tema em português → link interlíngua para o idioma de estudo), Simple English para iniciantes, limpeza e corte do artigo em 1–2 páginas. |
+| `levels.js`               | Orientações por nível (CEFR) e métrica de legibilidade (Flesch) para estimar o nível do texto gerado.                                                    |
+| `prompts.js`              | Montagem dos pedidos para a IA e limpeza das respostas (markdown, introduções, formato "Nome: fala").                                                    |
+| `gemini.js` + `engine.js` | IA pelo Google Gemini (chave gratuita do usuário, streaming SSE); `engine.js` devolve o motor pronto ou `null` sem chave.                                |
+| `generator.js`            | Orquestra os três modos: busca a referência, chama a IA e aplica alternativas (sem internet → só IA; sem IA → Wikipédia).                                |
 
 ### Exportação de áudio (`js/audio/export/`)
 
@@ -55,8 +57,8 @@ A Web Speech API não permite gravar o áudio, então o MP3 é gerado por outro 
 ```text
 planejarAudio(conteúdo) → trechos [{texto, voz, pausa}]
         │
-        ├─ KokoroMotor (Web Worker, kokoro-js, vozes neurais em inglês, grátis)
-        └─ OpenAIMotor (API /v1/audio/speech, chave do usuário, PCM 24 kHz)
+        └─ KokoroMotor (Web Worker, kokoro-js, vozes neurais em inglês, grátis;
+           usa a placa de vídeo quando disponível)
         │
 Mp3Builder (lamejs): junta os trechos + silêncios em um único MP3 mono 24 kHz
 ```
@@ -82,4 +84,6 @@ StudySession ──item──▶      │
 
 ## Offline
 
-`sw.js` guarda todos os arquivos do app (lista explícita, verificada por teste) e, à parte, as bibliotecas de PDF do cdnjs. Ao publicar, troque `VERSAO` para invalidar o cache.
+`sw.js` guarda todos os arquivos do app (lista explícita, verificada por teste) e, à parte, as bibliotecas externas com versão fixa na URL (jsPDF e PDF.js do cdnjs são pré-carregadas; Kokoro e lamejs do jsDelivr ficam em cache após o primeiro uso). O modelo de voz é guardado pelas próprias bibliotecas no Cache Storage do navegador. Ao publicar, troque `VERSAO` para invalidar o cache.
+
+O Web Worker `audio/export/kokoro-worker.js` importa a biblioteca por URL fixa; um teste garante que ela é igual à de `config.js`.

@@ -21,6 +21,13 @@ O Base64 mantém o campo em ASCII puro, então acentos e escritas não latinas s
   "criadoEm": "2026-10-18T14:00:00.000Z",
   "itens": ["apple", "banana"],   // para palavras e frases
   "texto": "…",                   // para textos
+  "nivel": "iniciante",           // opcional: "iniciante" | "intermediario" | "fluente" (textos criados)
+  "fonte": {                      // opcional: origem do conteúdo (atribuição exigida pela licença)
+    "nome": "Wikipédia",
+    "titulo": "Economics",
+    "url": "https://simple.wikipedia.org/wiki/Economics",
+    "licenca": "CC BY-SA 4.0"
+  },
   "revisao": {                    // opcional
     "etapa": 1,                   // posição em [1, 3, 7, 14, 30, 60] dias
     "intervaloDias": 3,
@@ -50,6 +57,7 @@ Implementação: [`js/pdf/format.js`](../js/pdf/format.js). O mesmo pacote é us
 
 - Cabeçalho com título, tipo e idioma; faixa com data de geração, quantidade e data de revisão.
 - Palavras em três colunas, frases numeradas, ou o texto em parágrafos.
+- Quando o conteúdo tem `fonte`, uma linha de atribuição (com link) aparece após o texto.
 - Rodapé com número de página e instruções de revisão.
 - As fontes padrão do PDF cobrem apenas o Latin-1. Textos com outros caracteres (cirílico, CJK…) são desenhados como imagem via canvas com as fontes do sistema; os dados exatos continuam no pacote.
 

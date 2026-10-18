@@ -6,8 +6,6 @@
 import {
   IDIOMAS,
   IDIOMA_PADRAO,
-  MODELOS_IA,
-  MODELO_IA_PADRAO,
   NIVEIS,
   TEMPO_PADRAO,
   TIPOS,
@@ -19,14 +17,14 @@ import { storage } from './storage.js';
 const CHAVE = 'ap_preferencias';
 
 const MP3_PADRAO = Object.freeze({
-  motor: 'kokoro', // 'kokoro' (grátis, no navegador) | 'openai' (chave do usuário)
   vozKokoro: VOZES_KOKORO[0].id,
   vozKokoro2: 'am_michael', // segunda voz, usada nos diálogos
-  vozOpenai: 'coral',
-  vozOpenai2: 'echo',
-  chaveOpenai: '',
   pausaMs: 900,
 });
+
+/** Campos de versões anteriores que não existem mais (removidos ao carregar). */
+const CAMPOS_REMOVIDOS = ['motorIA', 'modeloIA'];
+const CAMPOS_MP3_REMOVIDOS = ['motor', 'vozOpenai', 'vozOpenai2', 'chaveOpenai'];
 
 const PADRAO = Object.freeze({
   tema: null, // null = segue o sistema operacional
@@ -37,9 +35,7 @@ const PADRAO = Object.freeze({
   repeticoes: 1,
   tempo: { ...TEMPO_PADRAO },
   embaralhar: true,
-  motorIA: 'gemini', // 'gemini' (online, chave gratuita) | 'local' (no navegador, offline)
-  chaveGemini: '',
-  modeloIA: MODELO_IA_PADRAO,
+  chaveGemini: '', // chave gratuita do Google Gemini (IA para criar textos)
   nivelTexto: 'iniciante',
   mp3: { ...MP3_PADRAO },
 });
@@ -62,11 +58,12 @@ function normalizar(dados) {
   prefs.vozes = { ...(dados?.vozes || {}) };
   prefs.tempo = { ...TEMPO_PADRAO, ...(dados?.tempo || {}) };
   prefs.mp3 = { ...MP3_PADRAO, ...(dados?.mp3 || {}) };
+  // A IA no navegador e o MP3 pela OpenAI foram removidos: apaga os dados antigos,
+  // inclusive a chave da OpenAI, que não deve ficar guardada sem uso.
+  CAMPOS_REMOVIDOS.forEach((campo) => delete prefs[campo]);
+  CAMPOS_MP3_REMOVIDOS.forEach((campo) => delete prefs.mp3[campo]);
   if (!IDIOMAS[prefs.idioma]) prefs.idioma = IDIOMA_PADRAO;
-  if (!MODELOS_IA[prefs.modeloIA]) prefs.modeloIA = MODELO_IA_PADRAO;
-  if (!['gemini', 'local'].includes(prefs.motorIA)) prefs.motorIA = 'gemini';
   if (!NIVEIS[prefs.nivelTexto]) prefs.nivelTexto = 'iniciante';
-  if (!['kokoro', 'openai'].includes(prefs.mp3.motor)) prefs.mp3.motor = 'kokoro';
   if (prefs.tema !== 'dark' && prefs.tema !== 'light') prefs.tema = null;
   return prefs;
 }
@@ -80,6 +77,10 @@ export const settings = {
     const salvo = storage.lerJSON(CHAVE);
     if (salvo) {
       cache = normalizar(salvo);
+      const temCamposAntigos =
+        CAMPOS_REMOVIDOS.some((c) => c in salvo) ||
+        CAMPOS_MP3_REMOVIDOS.some((c) => c in (salvo.mp3 || {}));
+      if (temCamposAntigos) storage.salvarJSON(CHAVE, cache);
     } else {
       cache = normalizar(migrarLegado());
       storage.salvarJSON(CHAVE, cache);

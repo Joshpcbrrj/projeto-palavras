@@ -39,6 +39,22 @@ describe('preferências', () => {
     expect(settings.carregar()).toMatchObject({ idioma: 'en-US', tema: null });
   });
 
+  test('apaga campos de recursos removidos, inclusive a chave antiga da OpenAI', () => {
+    localStorage.setItem(
+      'ap_preferencias',
+      JSON.stringify({
+        motorIA: 'local',
+        modeloIA: 'leve',
+        mp3: { motor: 'openai', chaveOpenai: 'sk-antiga', pausaMs: 1500 },
+      })
+    );
+    const prefs = settings.carregar();
+    expect(prefs.motorIA).toBeUndefined();
+    expect(prefs.mp3).not.toHaveProperty('chaveOpenai');
+    expect(prefs.mp3.pausaMs).toBe(1500);
+    expect(localStorage.getItem('ap_preferencias')).not.toContain('sk-antiga');
+  });
+
   test('notifica ouvintes', () => {
     const mudancas = [];
     settings.aoMudar((chave, valor) => mudancas.push([chave, valor]));

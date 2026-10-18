@@ -3,7 +3,7 @@
  * (criada em https://aistudio.google.com/app/apikey). Responde em segundos e
  * funciona em qualquer aparelho, inclusive celulares.
  *
- * Tem a mesma interface da IA local (`gerar`), então as duas são intercambiáveis.
+ * Expõe `gerar()`, usado pelo gerador de textos (fácil de simular nos testes).
  */
 
 const MODELO = 'gemini-flash-latest';
@@ -57,7 +57,7 @@ export class GeminiMotor {
   }
 
   /**
-   * Gera um texto em streaming. Mesma assinatura da IA local.
+   * Gera um texto em streaming.
    * @returns {Promise<string>}
    */
   async gerar({ mensagens, maxTokens = 800, temperatura = 0.7, aoTexto, signal }) {
