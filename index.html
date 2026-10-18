@@ -1,119 +1,85 @@
 <!doctype html>
-<html lang="pt-br">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Aprendendo Palavras - Flashcard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Aprendendo Palavras</title>
+    <meta
+      name="description"
+      content="Estude idiomas com flashcards, leitura em voz alta e PDFs que o próprio app consegue revisar."
+    />
+    <meta name="theme-color" content="#6d28d9" />
+    <meta name="color-scheme" content="light dark" />
 
-    <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#667eea" />
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Aprender" />
-    <link rel="apple-touch-icon" href="icons/icon-152.png" />
+    <meta name="apple-mobile-web-app-title" content="Palavras" />
 
-    <!-- CSS personalizados -->
-    <link rel="stylesheet" href="css/base.css" />
-    <link rel="stylesheet" href="css/dark-mode.css" />
-    <link rel="stylesheet" href="css/components.css" />
-
-    <!-- Tailwind CSS via CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- PDF.js para ler arquivos PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-
-    <!-- jsPDF para gerar PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  </head>
-  <body class="bg-gradient-to-br from-purple-600 to-blue-500 min-h-screen py-8">
-    <!-- Botão Modo Escuro -->
-    <button id="themeToggle" class="theme-toggle" style="background: white">🌙</button>
-
-    <div class="container mx-auto max-w-4xl px-4">
-      <div class="bg-white rounded-2xl shadow-xl p-8 mb-6">
-        <h1 class="text-4xl font-bold text-center text-gray-800 mb-2">📚 Aprendendo Palavras</h1>
-        <p class="text-center text-gray-600">Flashcard para estudo de idiomas</p>
-      </div>
-      <div id="app"></div>
-    </div>
-
-    <!-- Botão fixo Voltar ao Início -->
-    <button
-      id="btnVoltarInicio"
-      class="fixed bottom-6 right-6 bg-purple-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-purple-700 transition flex items-center gap-2 z-50 font-semibold"
-    >
-      🏠 Voltar ao Início
-    </button>
-
-    <!-- ============================================ -->
-    <!-- JAVASCRIPT MODULES - ESTRUTURA ORGANIZADA     -->
-    <!-- ============================================ -->
-
-    <!-- Configuração (raiz) -->
-    <script src="js/config.js"></script>
-
-    <!-- Serviços (services/) -->
-    <script src="js/services/StorageService.js"></script>
-    <script src="js/services/TextoPersonalizadoService.js"></script>
-    <script src="js/services/ValidatorService.js"></script>
-    <script src="js/services/ShufflerService.js"></script>
-    <script src="js/services/ProgressService.js"></script>
-    <script src="js/services/ErrorHandler.js"></script>
-    <script src="js/services/LoadingManager.js"></script>
-
-    <!-- Modelos (models/) -->
-    <script src="js/models/PalavrasModel.js"></script>
-    <script src="js/models/FrasesModel.js"></script>
-
-    <!-- Núcleo (core/) -->
-    <script src="js/core/AppState.js"></script>
-    <script src="js/core/AppTimer.js"></script>
-    <script src="js/core/AppAudio.js"></script>
-    <script src="js/core/AppNavigation.js"></script>
-    <script src="js/core/AudioIdiomas.js"></script>
-    <script src="js/core/AudioPlayer.js"></script>
-    <script src="js/core/AnalisadorEstatisticas.js"></script>
-    <script src="js/core/AnalisadorExtracao.js"></script>
-    <script src="js/core/PDFGenerator.js"></script>
-
-    <!-- Interface do usuário (ui/) -->
-    <script src="js/ui/ThemeManager.js"></script>
-    <script src="js/ui/NavigationManager.js"></script>
-    <script src="js/ui/AudioUISelector.js"></script>
-    <script src="js/ui/AnalisadorUI.js"></script>
-    <script src="js/ui/ProgressoUI.js"></script>
-    <script src="js/ui/Toast.js"></script>
-
-    <!-- Aplicações (apps/) -->
-    <script src="js/apps/AppBase.js"></script>
-    <script src="js/apps/AppPalavras.js"></script>
-    <script src="js/apps/AppFrases.js"></script>
-    <script src="js/apps/AppTextoPersonalizado.js"></script>
-    <script src="js/apps/AppRevisaoTexto.js"></script>
-    <script src="js/apps/AppAnalisador.js"></script>
-    <script src="js/apps/AppProgresso.js"></script>
-
-    <!-- Menu principal (raiz) -->
-    <script src="js/app.js"></script>
-
-    <!-- ============================================ -->
-    <!-- SERVICE WORKER PARA PWA                      -->
-    <!-- ============================================ -->
     <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker
-            .register('/sw.js')
-            .then((registration) => {
-              console.log('✅ Service Worker registrado com sucesso:', registration);
-            })
-            .catch((error) => {
-              console.log('❌ Falha ao registrar Service Worker:', error);
-            });
-        });
-      }
+      // Aplica o tema antes da primeira pintura para evitar o "flash" de tema errado.
+      (function () {
+        var tema = null;
+        try {
+          tema = (JSON.parse(localStorage.getItem('ap_preferencias')) || {}).tema;
+          if (!tema) tema = localStorage.getItem('theme');
+        } catch (e) {}
+        if (tema !== 'dark' && tema !== 'light') {
+          tema = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.dataset.theme = tema;
+        // O Windows não tem emojis de bandeira; usa a fonte de bandeiras embutida.
+        if (/Windows/.test(navigator.userAgent)) {
+          document.documentElement.classList.add('bandeiras-polyfill');
+        }
+      })();
     </script>
+
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/components.css" />
+    <link rel="stylesheet" href="css/screens.css" />
+    <script type="module" src="js/main.js"></script>
+  </head>
+  <body>
+    <a class="pular" href="#app">Pular para o conteúdo</a>
+
+    <header class="topo">
+      <a class="marca" href="#/" aria-label="Aprendendo Palavras — início">
+        <img class="marca__logo" src="icons/icon.svg" alt="" width="40" height="40" />
+        <span class="marca__textos">
+          <span class="marca__nome">Aprendendo Palavras</span>
+          <span class="marca__slogan">Flashcards e leitura em voz alta</span>
+        </span>
+      </a>
+      <nav class="topo__acoes">
+        <button type="button" id="btnInicio" class="btn btn--vidro" hidden>
+          🏠 <span class="so-desktop">Início</span>
+        </button>
+        <button
+          type="button"
+          id="btnTema"
+          class="btn btn--vidro btn--icone"
+          aria-pressed="false"
+          aria-label="Alternar tema"
+        >
+          <span class="icone-tema icone-tema--lua" aria-hidden="true">🌙</span>
+          <span class="icone-tema icone-tema--sol" aria-hidden="true">☀️</span>
+        </button>
+      </nav>
+    </header>
+
+    <main id="app" class="conteudo" tabindex="-1">
+      <noscript>
+        <div class="cartao">Ative o JavaScript para usar o Aprendendo Palavras.</div>
+      </noscript>
+    </main>
+
+    <footer class="rodape">
+      <span>Aprendendo Palavras · código aberto (MIT)</span>
+      <a href="https://github.com/Joshpcbrrj/projeto-palavras" target="_blank" rel="noopener"
+        >GitHub</a
+      >
+    </footer>
   </body>
 </html>

@@ -1,81 +1,129 @@
-// sw.js - Service Worker para PWA
+/**
+ * Service worker: permite usar o app offline e instalá-lo como PWA.
+ *
+ * Ao publicar uma nova versão, altere VERSAO para que os clientes baixem os
+ * arquivos atualizados. Os caminhos são relativos para funcionar em
+ * subdiretórios (ex.: GitHub Pages em /projeto-palavras/).
+ */
 
-const CACHE_NAME = 'aprendendo-palavras-v1';
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/css/base.css',
-  '/css/components.css',
-  '/css/dark-mode.css',
-  '/js/config.js',
-  '/js/app.js',
-  '/js/apps/AppBase.js',
-  '/js/apps/AppPalavras.js',
-  '/js/apps/AppFrases.js',
-  '/js/apps/AppAnalisador.js',
-  '/js/apps/AppProgresso.js',
-  '/js/core/AppState.js',
-  '/js/core/AppTimer.js',
-  '/js/core/AppAudio.js',
-  '/js/core/AppNavigation.js',
-  '/js/core/AudioIdiomas.js',
-  '/js/core/AudioPlayer.js',
-  '/js/core/AnalisadorEstatisticas.js',
-  '/js/core/AnalisadorExtracao.js',
-  '/js/core/PDFGenerator.js',
-  '/js/models/PalavrasModel.js',
-  '/js/models/FrasesModel.js',
-  '/js/services/StorageService.js',
-  '/js/services/ValidatorService.js',
-  '/js/services/ShufflerService.js',
-  '/js/services/ProgressService.js',
-  '/js/services/ErrorHandler.js',
-  '/js/services/LoadingManager.js',
-  '/js/ui/ThemeManager.js',
-  '/js/ui/NavigationManager.js',
-  '/js/ui/AudioUISelector.js',
-  '/js/ui/AnalisadorUI.js',
-  '/js/ui/ProgressoUI.js',
-  '/js/ui/Toast.js',
-  'https://cdn.tailwindcss.com',
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+const VERSAO = 'v3.0.0';
+const CACHE_APP = `aprendendo-palavras-${VERSAO}`;
+const CACHE_CDN = 'aprendendo-palavras-cdn';
+
+const ARQUIVOS_APP = [
+  './',
+  './index.html',
+  './manifest.json',
+  './icons/icon.svg',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/icon-maskable-512.png',
+  './icons/apple-touch-icon.png',
+  './fonts/TwemojiCountryFlags.woff2',
+  './css/base.css',
+  './css/components.css',
+  './css/screens.css',
+  './js/main.js',
+  './js/config.js',
+  './js/audio/index.js',
+  './js/audio/reader.js',
+  './js/audio/speaker.js',
+  './js/audio/voices.js',
+  './js/core/dom.js',
+  './js/core/nav.js',
+  './js/core/router.js',
+  './js/core/utils.js',
+  './js/pdf/exporter.js',
+  './js/pdf/format.js',
+  './js/pdf/importer.js',
+  './js/pdf/legacy.js',
+  './js/pdf/libs.js',
+  './js/pdf/raster.js',
+  './js/screens/MenuScreen.js',
+  './js/screens/ProgressScreen.js',
+  './js/screens/ReviewScreen.js',
+  './js/screens/StudyScreen.js',
+  './js/screens/TextScreen.js',
+  './js/services/progress.js',
+  './js/services/settings.js',
+  './js/services/storage.js',
+  './js/study/session.js',
+  './js/text/extract.js',
+  './js/ui/components.js',
+  './js/ui/dialog.js',
+  './js/ui/theme.js',
+  './js/ui/toast.js',
 ];
 
-// Instalação do Service Worker
+// Bibliotecas de PDF (carregadas sob demanda). Guardadas para uso offline.
+const ARQUIVOS_CDN = [
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.1/jspdf.umd.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js',
+];
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('Cache aberto');
-      return cache.addAll(urlsToCache);
-    })
+    (async () => {
+      const cache = await caches.open(CACHE_APP);
+      await cache.addAll(ARQUIVOS_APP);
+      // As bibliotecas são opcionais: uma falha de rede não deve impedir a instalação.
+      const cdn = await caches.open(CACHE_CDN);
+      await Promise.all(ARQUIVOS_CDN.map((url) => cdn.add(url).catch(() => undefined)));
+      await self.skipWaiting();
+    })()
   );
 });
 
-// Busca em cache (estratégia: cache first, network fallback)
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      if (response) {
-        return response;
-      }
-      return fetch(event.request);
-    })
-  );
-});
-
-// Atualização do cache
 self.addEventListener('activate', (event) => {
-  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
-          }
-        })
+    (async () => {
+      const nomes = await caches.keys();
+      await Promise.all(
+        nomes
+          .filter(
+            (nome) =>
+              nome.startsWith('aprendendo-palavras') && nome !== CACHE_APP && nome !== CACHE_CDN
+          )
+          .map((nome) => caches.delete(nome))
       );
-    })
+      await self.clients.claim();
+    })()
   );
+});
+
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  if (request.method !== 'GET') return;
+  const url = new URL(request.url);
+
+  if (url.origin === self.location.origin) {
+    event.respondWith(
+      (async () => {
+        const cache = await caches.open(CACHE_APP);
+        const emCache = await cache.match(request, { ignoreSearch: true });
+        if (emCache) return emCache;
+        try {
+          return await fetch(request);
+        } catch (erro) {
+          if (request.mode === 'navigate') return cache.match('./index.html');
+          throw erro;
+        }
+      })()
+    );
+    return;
+  }
+
+  if (url.hostname === 'cdnjs.cloudflare.com') {
+    event.respondWith(
+      (async () => {
+        const cache = await caches.open(CACHE_CDN);
+        const emCache = await cache.match(request);
+        if (emCache) return emCache;
+        const resposta = await fetch(request);
+        if (resposta.ok) cache.put(request, resposta.clone());
+        return resposta;
+      })()
+    );
+  }
 });

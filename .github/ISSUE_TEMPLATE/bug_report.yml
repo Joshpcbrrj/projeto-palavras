@@ -1,0 +1,49 @@
+name: 🐞 Relatar um problema
+description: Algo não funciona como deveria.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Obrigado por ajudar a melhorar o Aprendendo Palavras! Quanto mais detalhes, mais rápido conseguimos corrigir.
+  - type: textarea
+    id: descricao
+    attributes:
+      label: O que aconteceu?
+      description: Descreva o problema e o que você esperava que acontecesse.
+    validations:
+      required: true
+  - type: textarea
+    id: passos
+    attributes:
+      label: Como reproduzir
+      placeholder: |
+        1. Abra "Estudar palavras"
+        2. Cole o texto ...
+        3. Clique em ...
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área
+      options:
+        - Flashcards (palavras/frases)
+        - Leitura de texto / áudio
+        - Geração de PDF
+        - Revisar arquivo (leitura de PDF)
+        - Progresso / backup
+        - Visual / tema escuro
+        - Instalação (PWA) / offline
+        - Outra
+  - type: input
+    id: navegador
+    attributes:
+      label: Navegador e sistema
+      placeholder: 'Ex.: Chrome 129 no Windows 11, Safari no iPhone (iOS 18)'
+    validations:
+      required: true
+  - type: textarea
+    id: extras
+    attributes:
+      label: Capturas de tela ou arquivo
+      description: Se o problema for com um PDF, anexe-o (se não tiver dados pessoais).

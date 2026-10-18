@@ -1,12 +1,14 @@
-# .gitignore
+# Dependências e saídas
 node_modules/
 dist/
 coverage/
+
+# Ambiente / sistema
 .env
 .DS_Store
+Thumbs.db
 *.log
+
+# Editores
 .vscode/
 .idea/
-
-# Ícones gerados
-icons/*.png

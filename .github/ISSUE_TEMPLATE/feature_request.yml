@@ -1,0 +1,19 @@
+name: 💡 Sugerir uma melhoria
+description: Ideia de recurso novo ou de melhoria em algo existente.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: Qual necessidade essa ideia resolve?
+      placeholder: 'Ex.: Quando estudo frases longas, eu gostaria de...'
+    validations:
+      required: true
+  - type: textarea
+    id: solucao
+    attributes:
+      label: Como você imagina a solução?
+  - type: textarea
+    id: alternativas
+    attributes:
+      label: Alternativas consideradas

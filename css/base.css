@@ -1,90 +1,343 @@
-/**
- * base.css
- * Estilos base e configurações globais
- */
+/* ==========================================================================
+   Base: tokens de tema, reset, layout geral, topo e rodapé
+   ========================================================================== */
 
-/* Reset e configurações básicas */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* O Windows não desenha emojis de bandeira (mostra "BR", "US"...). Esta fonte
+   contém apenas as bandeiras e só é baixada quando a classe abaixo está ativa. */
+@font-face {
+  font-family: 'Twemoji Country Flags';
+  src: url('../fonts/TwemojiCountryFlags.woff2') format('woff2');
+  unicode-range:
+    U+1F1E6-1F1FF, U+1F3F4, U+E0062-E0063, U+E0065, U+E0067, U+E006C, U+E006E, U+E0073-E0074,
+    U+E0077, U+E007F;
+  font-display: swap;
 }
 
-/* Transições suaves para tudo */
+:root {
+  color-scheme: light;
+  --fundo-app: linear-gradient(135deg, #6d28d9 0%, #4f46e5 48%, #2563eb 100%);
+  --superficie: #ffffff;
+  --superficie-2: #f8fafc;
+  --superficie-3: #eef2f7;
+  --borda: #e2e8f0;
+  --borda-forte: #cbd5e1;
+  --texto: #0f172a;
+  --texto-2: #475569;
+  --texto-3: #64748b;
+  --texto-sobre-cor: #ffffff;
+
+  --primaria: #6d28d9;
+  --primaria-hover: #5b21b6;
+  --primaria-suave: #ede9fe;
+  --primaria-texto: #5b21b6;
+  --sucesso: #047857;
+  --sucesso-hover: #065f46;
+  --sucesso-suave: #d1fae5;
+  --sucesso-texto: #065f46;
+  --aviso-suave: #fef3c7;
+  --aviso-texto: #92400e;
+  --perigo: #dc2626;
+  --perigo-hover: #b91c1c;
+  --perigo-suave: #fee2e2;
+  --perigo-texto: #b91c1c;
+  --info-suave: #e0f2fe;
+  --info-texto: #075985;
+
+  --flashcard: linear-gradient(135deg, #7c3aed 0%, #4f46e5 55%, #2563eb 100%);
+  --destaque-leitura: #fde68a;
+  --destaque-leitura-texto: #0f172a;
+
+  --sombra-1: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.08);
+  --sombra-2: 0 12px 32px rgba(15, 23, 42, 0.14);
+  --sombra-foco: 0 0 0 3px rgba(124, 58, 237, 0.35);
+
+  --raio: 14px;
+  --raio-grande: 20px;
+  --raio-pilula: 999px;
+  --fonte:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  --largura: 960px;
+  --transicao: 160ms ease;
+}
+
+:root.bandeiras-polyfill {
+  --fonte:
+    'Twemoji Country Flags', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'Noto Sans', sans-serif;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --fundo-app:
+    radial-gradient(1200px 600px at 10% -10%, rgba(124, 58, 237, 0.28), transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, rgba(37, 99, 235, 0.22), transparent 60%), #0b1120;
+  --superficie: #131c2e;
+  --superficie-2: #182338;
+  --superficie-3: #22304a;
+  --borda: #2a3a55;
+  --borda-forte: #3b4d6b;
+  --texto: #e5e9f0;
+  --texto-2: #c3cad6;
+  --texto-3: #8f9bb0;
+
+  --primaria: #7c3aed;
+  --primaria-hover: #6d28d9;
+  --primaria-suave: rgba(139, 92, 246, 0.18);
+  --primaria-texto: #c4b5fd;
+  --sucesso: #047857;
+  --sucesso-hover: #065f46;
+  --sucesso-suave: rgba(16, 185, 129, 0.16);
+  --sucesso-texto: #6ee7b7;
+  --aviso-suave: rgba(245, 158, 11, 0.16);
+  --aviso-texto: #fcd34d;
+  --perigo: #dc2626;
+  --perigo-hover: #b91c1c;
+  --perigo-suave: rgba(239, 68, 68, 0.16);
+  --perigo-texto: #fca5a5;
+  --info-suave: rgba(56, 189, 248, 0.14);
+  --info-texto: #7dd3fc;
+
+  --flashcard: linear-gradient(135deg, #5b21b6 0%, #3730a3 55%, #1e40af 100%);
+  --destaque-leitura: rgba(250, 204, 21, 0.28);
+  --destaque-leitura-texto: #fef9c3;
+
+  --sombra-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --sombra-2: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+
 *,
 *::before,
 *::after {
-  transition:
-    background-color 0.3s ease,
-    color 0.3s ease,
-    border-color 0.3s ease;
+  box-sizing: border-box;
 }
 
-/* Configurações do body */
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
 body {
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   min-height: 100vh;
-  background: linear-gradient(135deg, #6d28d9 0%, #2563eb 100%);
-  color: #0f172a;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--fonte);
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--texto);
+  background: #4f46e5;
+  -webkit-font-smoothing: antialiased;
 }
 
-#app {
-  animation: fadeIn 0.35s ease-out;
+:root[data-theme='dark'] body {
+  background: #0b1120;
 }
 
-.container > .bg-white {
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.16);
+/* Fundo fixo cobrindo toda a janela (background-attachment: fixed falha no iOS). */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--fundo-app);
 }
 
-/* Scrollbar personalizada */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+img,
+svg {
+  display: block;
+  max-width: 100%;
 }
 
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 10px;
+a {
+  color: var(--primaria-texto);
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
+:focus-visible {
+  outline: none;
+  box-shadow: var(--sombra-foco);
 }
 
-/* Animações */
-@keyframes fadeIn {
+[hidden] {
+  display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Estrutura
+   -------------------------------------------------------------------------- */
+
+.pular {
+  position: absolute;
+  left: 1rem;
+  top: -100px;
+  padding: 0.5rem 1rem;
+  border-radius: var(--raio);
+  background: var(--superficie);
+  color: var(--texto);
+  z-index: 100;
+}
+
+.pular:focus {
+  top: 1rem;
+}
+
+.topo {
+  width: 100%;
+  max-width: var(--largura);
+  margin: 0 auto;
+  padding: max(1rem, env(safe-area-inset-top)) 1rem 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  color: #fff;
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: inherit;
+  text-decoration: none;
+  min-width: 0;
+}
+
+.marca__logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+.marca__textos {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.marca__nome {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.marca__slogan {
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.topo__acoes {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.icone-tema--sol,
+:root[data-theme='dark'] .icone-tema--lua {
+  display: none;
+}
+
+:root[data-theme='dark'] .icone-tema--sol {
+  display: inline;
+}
+
+.conteudo {
+  width: 100%;
+  max-width: var(--largura);
+  margin: 0 auto;
+  padding: 0.75rem 1rem 2rem;
+  flex: 1;
+  outline: none;
+}
+
+.rodape {
+  width: 100%;
+  max-width: var(--largura);
+  margin: 0 auto;
+  padding: 1rem 1rem max(1.5rem, env(safe-area-inset-bottom));
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.rodape a {
+  color: #fff;
+}
+
+/* --------------------------------------------------------------------------
+   Utilitários
+   -------------------------------------------------------------------------- */
+
+.texto-suave {
+  color: var(--texto-2);
+}
+
+.texto-pequeno {
+  font-size: 0.875rem;
+}
+
+.texto-centro {
+  text-align: center;
+}
+
+.separador {
+  height: 1px;
+  background: var(--borda);
+  margin: 1.25rem 0;
+}
+
+@media (max-width: 560px) {
+  .so-desktop {
+    display: none;
+  }
+
+  .marca__slogan {
+    display: none;
+  }
+
+  .marca__nome {
+    font-size: 1.1rem;
+  }
+}
+
+@keyframes surgir {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }
 
-.fade-in {
-  animation: fadeIn 0.5s ease-out;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
   }
-  50% {
-    transform: scale(1.05);
-  }
-}
-
-.pulse {
-  animation: pulse 0.5s ease-in-out;
 }
