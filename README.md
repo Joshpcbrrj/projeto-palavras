@@ -100,7 +100,7 @@ O áudio usa a [Web Speech API](https://developer.mozilla.org/docs/Web/API/Web_S
 
 O app é feito de arquivos estáticos (HTML, CSS e ES modules nativos) — **não há etapa de build**. Qualquer servidor estático funciona.
 
-**Requisitos:** Node.js 20+ (apenas para o servidor de desenvolvimento e os testes).
+**Requisitos:** Node.js 22+ (apenas para o servidor de desenvolvimento e os testes).
 
 ```bash
 git clone https://github.com/Joshpcbrrj/projeto-palavras.git

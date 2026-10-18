@@ -17,7 +17,7 @@ npm install          # também instala o hook de pre-commit
 npm run dev          # http://localhost:5173
 ```
 
-Requisitos: Node.js 20 ou superior.
+Requisitos: Node.js 22 ou superior.
 
 ## Fluxo de trabalho
 
