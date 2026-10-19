@@ -162,6 +162,14 @@ export async function interpretarPdf(dadosBinarios, nomeArquivo, pdfjsLib) {
   }
 }
 
+/** Arquivo de áudio (ex.: o MP3 do kit de estudo, que fica na mesma pasta do PDF). */
+export function ehArquivoDeAudio(arquivo) {
+  return (
+    /^audio\//.test(arquivo?.type || '') ||
+    ['mp3', 'wav', 'm4a', 'ogg', 'aac'].includes(extensao(arquivo?.name))
+  );
+}
+
 /**
  * Lê um arquivo selecionado pelo usuário.
  * @param {File} arquivo

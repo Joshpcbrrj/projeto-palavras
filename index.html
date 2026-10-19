@@ -2,6 +2,15 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
+    <!--
+      Política de segurança: só carrega código do próprio site e das CDNs usadas, e só
+      conversa com a Wikipédia e o Gemini. Protege a chave do Gemini guardada no navegador.
+      O hash corresponde ao script de tema abaixo (um teste confere; ao editá-lo, atualize).
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'sha256-126c9SpsMLxJKrjLpXxhMvJK4y8NjqXDYLuSd6/mw6k=' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net 'wasm-unsafe-eval'; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' https://*.wikipedia.org https://generativelanguage.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'"
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Aprendendo Palavras</title>
     <meta

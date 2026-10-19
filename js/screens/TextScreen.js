@@ -576,6 +576,8 @@ ${this.texto}</textarea
         id: this.material?.id,
         fonte: this.fonte,
         nivel: this.nivel,
+        // Texto reaberto e não alterado: reaproveita o glossário (não traduz de novo).
+        glossario: this.texto === this.material?.texto ? this.material?.glossario : undefined,
         revisao: dias
           ? criarRevisao({
               etapa: anterior?.etapa ?? 0,
@@ -614,6 +616,7 @@ ${this.texto}</textarea
         itens,
         idioma: this.idioma,
         texto: this.texto,
+        glossario: this.material?.glossario,
       });
     };
     $('#btnEstudarPalavras', r).addEventListener('click', () => estudar(TIPOS.PALAVRAS));

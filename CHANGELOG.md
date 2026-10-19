@@ -5,6 +5,25 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e 
 
 ## [Não lançado]
 
+## [3.4.0] - 2026-10-18
+
+Áudio melhor e mais rápido, tradução também no estudo e revisão mais robusta.
+
+### Adicionado
+
+- **Ouvir enquanto gera**: o MP3 começa a tocar assim que os primeiros trechos ficam prontos.
+- **Tradução falada no MP3** (opcional, nas listas): “window… janela”.
+- **Tradução nos flashcards**: ao estudar um PDF que tem tradução, ela aparece abaixo de cada item (pode ser ocultada).
+- **“Mais opções”** recolhido no flashcard e em Criar textos: as telas começam só com o essencial.
+- **Content-Security-Policy**: a página só carrega código do próprio site e das CDNs e só conversa com a Wikipédia, o Gemini e o Hugging Face (modelo da voz), protegendo a chave do Gemini.
+
+### Alterado
+
+- **Volume do MP3 nivelado**: o Kokoro termina as frases bem mais baixo do que começa, o que soava como “trechos baixos e rompantes”; agora cada trecho é nivelado e as emendas são suavizadas.
+- **MP3 mais rápido**: número do item e palavra num trecho só, frases curtas agrupadas, voz carregada enquanto o PDF do kit é gerado e áudio reaproveitado ao gerar de novo na mesma visita (lista numerada: −35% de tempo).
+- **Revisar arquivo**: combina só arquivos do mesmo tipo e idioma; mostra as traduções em “Ver” e um selo “com tradução”; MP3 selecionados junto com os PDFs do kit são ignorados (antes davam erro).
+- Textos reabertos mantêm o glossário ao exportar de novo (sem traduzir outra vez), e as palavras/frases tiradas deles levam as traduções para os flashcards.
+
 ## [3.3.0] - 2026-10-18
 
 Arquivos de estudo mais completos para quem estuda sozinho.

@@ -62,10 +62,12 @@ export class StudyScreen {
    * @param {string[]} [parametros.itens] itens prontos para estudar
    * @param {object} [parametros.material] pacote de origem (para manter id e revisão)
    * @param {string} [parametros.texto] texto para preencher a primeira etapa
+   * @param {{termo: string, traducao: string}[]} [parametros.glossario] traduções (de PDFs revisados)
    */
   constructor(tipo, parametros = {}) {
     this.tipo = tipo;
     this.material = parametros.material || null;
+    this.definirGlossario(parametros.glossario || this.material?.glossario || []);
     this.texto = parametros.texto || '';
     this.itensDisponiveis = parametros.itens?.length ? [...parametros.itens] : [];
     this.etapa = this.itensDisponiveis.length ? 1 : 0;
@@ -85,6 +87,11 @@ export class StudyScreen {
     this.sessaoRegistrada = false;
     this.eventos = criarEscopoEventos();
     this.seletorVoz = null;
+  }
+
+  definirGlossario(glossario) {
+    this.glossario = glossario;
+    this.traducoes = new Map(glossario.map((g) => [g.termo.toLowerCase(), g.traducao]));
   }
 
   get nome() {
@@ -288,10 +295,37 @@ ${this.texto}</textarea
 
     return html`
       ${this.material ? this.htmlOrigemMaterial() : ''}
-      <div class="grade-2">
-        <div class="cartao">
+      <div class="cartao">
+        <div class="grade-2 grade-2--compacta">
+          ${seletorIdioma({ id: 'cfgIdioma', valor: c.idioma })}
+          <div class="campo">
+            <label class="campo__rotulo" for="cfgQuantidade"
+              >Quantidade: <strong id="cfgQuantidadeValor">${c.quantidade}</strong> de
+              ${total}</label
+            >
+            <input
+              type="range"
+              id="cfgQuantidade"
+              class="faixa"
+              min="1"
+              max="${total}"
+              step="1"
+              value="${c.quantidade}"
+              ${total === 1 ? html`disabled` : ''}
+            />
+          </div>
+        </div>
+        <div class="resumo-sessao" id="resumoSessao"></div>
+
+        <details class="mais-opcoes">
+          <summary class="mais-opcoes__titulo">
+            ⚙️ Mais opções
+            <span class="texto-suave texto-pequeno">voz, repetição, velocidade, pausa e ordem</span>
+          </summary>
+          <div class="grade-2">
+        <div>
           <h3 class="secao__titulo">🔊 Áudio</h3>
-          ${seletorIdioma({ id: 'cfgIdioma', valor: c.idioma })} ${seletorVoz({ id: 'cfgVoz' })}
+          ${seletorVoz({ id: 'cfgVoz' })}
           ${alternador({
             id: 'cfgAudio',
             rotulo: `Falar cada ${this.nomeSingular} automaticamente`,
@@ -311,7 +345,7 @@ ${this.texto}</textarea
           ${controleVelocidade({ id: 'cfgVelocidade', valor: c.velocidade })}
         </div>
 
-        <div class="cartao">
+        <div>
           <h3 class="secao__titulo">⏱️ Sessão</h3>
           <div class="campo">
             <label class="campo__rotulo" for="cfgTempo">Pausa entre ${this.nome} (segundos)</label>
@@ -336,30 +370,15 @@ ${this.texto}</textarea
               Com o áudio ligado, a pausa começa depois que a pronúncia termina.
             </p>
           </div>
-          <div class="campo">
-            <label class="campo__rotulo" for="cfgQuantidade"
-              >Quantidade: <strong id="cfgQuantidadeValor">${c.quantidade}</strong> de
-              ${total}</label
-            >
-            <input
-              type="range"
-              id="cfgQuantidade"
-              class="faixa"
-              min="1"
-              max="${total}"
-              step="1"
-              value="${c.quantidade}"
-              ${total === 1 ? html`disabled` : ''}
-            />
-          </div>
           ${alternador({
             id: 'cfgEmbaralhar',
             rotulo: 'Ordem aleatória',
             ajuda: 'Embaralhar ajuda a memorizar sem depender da sequência.',
             marcado: c.embaralhar,
           })}
-          <div class="resumo-sessao" id="resumoSessao"></div>
         </div>
+          </div>
+        </details>
       </div>
 
       <div class="cartao acoes acoes--entre">
@@ -528,6 +547,7 @@ ${this.texto}</textarea
 
         <div class="flashcard ${this.tipo === TIPOS.FRASES ? 'flashcard--frase' : ''}">
           <p class="flashcard__texto" id="flashcardTexto" aria-live="polite"></p>
+          <p class="flashcard__traducao" id="flashcardTraducao" hidden></p>
           <button type="button" class="btn btn--claro" id="btnOuvir" title="Ouvir (Enter)">
             🔊 Ouvir ${IDIOMAS[this.config.idioma]?.bandeira || ''}
           </button>
@@ -579,6 +599,15 @@ ${this.texto}</textarea
             rotulo: 'Áudio automático',
             marcado: this.config.audioAutomatico,
           })}
+          ${
+            this.traducoes.size
+              ? alternador({
+                  id: 'estTraducao',
+                  rotulo: 'Mostrar tradução',
+                  marcado: settings.get('mostrarTraducao'),
+                })
+              : ''
+          }
         </div>
         <p class="atalhos" aria-hidden="true">
           <kbd>Espaço</kbd> pausar · <kbd>←</kbd> <kbd>→</kbd> navegar · <kbd>Enter</kbd> ouvir ·
@@ -608,6 +637,10 @@ ${this.texto}</textarea
       settings.set('audioAutomatico', e.target.checked);
       if (!e.target.checked) speaker.cancelar();
     });
+    $('#estTraducao', r)?.addEventListener('change', (e) => {
+      settings.set('mostrarTraducao', e.target.checked);
+      if (s.vistos.size) this.mostrarTraducao(s.itemAtual);
+    });
 
     this.eventos.on(document, 'keydown', (e) => {
       if (e.target.closest?.('input, textarea, select') || e.altKey || e.ctrlKey || e.metaKey)
@@ -630,6 +663,15 @@ ${this.texto}</textarea
     this.atualizarEstado(s.estado);
   }
 
+  /** Tradução abaixo do item (vem do glossário do PDF revisado). */
+  mostrarTraducao(item) {
+    const el = $('#flashcardTraducao', this.raiz);
+    if (!el) return;
+    const traducao = settings.get('mostrarTraducao') ? this.traducoes.get(item.toLowerCase()) : '';
+    el.textContent = traducao || '';
+    el.hidden = !traducao;
+  }
+
   mostrarItem(item, indice, total) {
     const texto = $('#flashcardTexto', this.raiz);
     if (!texto) return;
@@ -640,6 +682,7 @@ ${this.texto}</textarea
     texto.classList.remove('flashcard__texto--entrada');
     void texto.offsetWidth; // reinicia a animação
     texto.classList.add('flashcard__texto--entrada');
+    this.mostrarTraducao(item);
 
     $('#estudoContador', this.raiz).textContent =
       `${this.nomeSingular.replace(/^./, (l) => l.toUpperCase())} ${indice + 1} de ${total}`;
@@ -814,6 +857,7 @@ ${this.texto}</textarea
     });
     $('#btnNovo', r).addEventListener('click', () => {
       this.material = null;
+      this.definirGlossario([]);
       this.titulo = '';
       this.itensDisponiveis = [];
       this.irPara(0);
@@ -850,12 +894,15 @@ ${this.texto}</textarea
             })
           : null,
         id: this.material?.id,
+        // Reaproveita as traduções já conhecidas (só o que faltar é traduzido).
+        glossario: this.glossario,
       };
     };
     const aoGerarPdf = (resultado) => {
       if (!resultado) return;
       this.material = resultado.pacote;
       this.titulo = resultado.pacote.titulo;
+      this.definirGlossario(resultado.pacote.glossario || this.glossario);
     };
 
     $('#btnExportarMp3', r).addEventListener('click', () => abrirExportacaoMp3(dadosExportacao()));

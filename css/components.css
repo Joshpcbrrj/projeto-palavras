@@ -854,3 +854,39 @@ kbd {
     width: min(380px, calc(100vw - 2rem));
   }
 }
+
+/* ---------------------------------------------------------- Mais opções */
+.mais-opcoes {
+  margin-top: 1rem;
+  border-top: 1px solid var(--borda);
+  padding-top: 0.75rem;
+}
+
+.mais-opcoes__titulo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.6rem;
+  cursor: pointer;
+  font-weight: 700;
+  list-style: none;
+  padding: 0.35rem 0;
+}
+
+.mais-opcoes__titulo::-webkit-details-marker {
+  display: none;
+}
+
+.mais-opcoes__titulo::before {
+  content: '▸';
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+
+.mais-opcoes[open] > .mais-opcoes__titulo::before {
+  transform: rotate(90deg);
+}
+
+.mais-opcoes[open] > .mais-opcoes__titulo {
+  margin-bottom: 0.75rem;
+}

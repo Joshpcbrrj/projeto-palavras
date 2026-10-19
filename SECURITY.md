@@ -18,15 +18,18 @@ Você deve receber uma resposta em até 7 dias.
 
 - O app roda inteiramente no navegador; não há servidor próprio nem contas.
 - Progresso e preferências ficam no `localStorage` do próprio navegador.
-- A **chave do Gemini** (opcional) também fica no `localStorage` deste navegador e é enviada somente ao Google. Qualquer script executado na página poderia lê-las; por isso não use o app com suas chaves em computadores compartilhados e você pode removê-la a qualquer momento em Configurações.
+- A **chave do Gemini** (opcional) também fica no `localStorage` deste navegador e é enviada somente ao Google. Qualquer script executado na página poderia lê-la; por isso a página tem uma **Content-Security-Policy** (em `index.html`) que só permite código do próprio site e das CDNs das bibliotecas, e conexões só com a Wikipédia, o Gemini, essas CDNs e o Hugging Face (download do modelo de voz). Mesmo assim, não use o app com a sua chave em computadores compartilhados; você pode removê-la a qualquer momento em Configurações.
 - Arquivos abertos em “Revisar arquivo” são processados localmente. Todo texto vindo de arquivos, da Wikipédia ou de uma IA é escapado antes de ser exibido.
 - Requisições externas, feitas apenas quando o recurso é usado:
 
-  | Destino                                      | Quando                               | O que é enviado                                      |
-  | -------------------------------------------- | ------------------------------------ | ---------------------------------------------------- |
-  | `cdnjs.cloudflare.com`, `cdn.jsdelivr.net`   | Ao gerar/abrir PDF ou gerar MP3      | Nada além do pedido do arquivo da biblioteca         |
-  | `*.wikipedia.org`                            | Criar textos usando a Wikipédia      | O tema digitado                                      |
-  | `generativelanguage.googleapis.com` (Gemini) | Criar textos com a IA online         | O tema, o nível e o texto de referência; a sua chave |
-  | `huggingface.co` e repositórios de modelos   | Primeira geração de MP3 (voz Kokoro) | Nada (apenas o download dos modelos)                 |
+  | Destino                                      | Quando                               | O que é enviado                                       |
+  | -------------------------------------------- | ------------------------------------ | ----------------------------------------------------- |
+  | `cdnjs.cloudflare.com`, `cdn.jsdelivr.net`   | Ao gerar/abrir PDF ou gerar MP3      | Nada além do pedido do arquivo da biblioteca          |
+  | `*.wikipedia.org`                            | Criar textos usando a Wikipédia      | O tema digitado                                       |
+  | `generativelanguage.googleapis.com` (Gemini) | Criar textos com a IA online         | O tema, o nível e o texto de referência; a sua chave  |
+  | `generativelanguage.googleapis.com` (Gemini) | Tradução no PDF/MP3, se houver chave | As palavras/frases ou o texto a traduzir; a sua chave |
+  | `huggingface.co` e repositórios de modelos   | Primeira geração de MP3 (voz Kokoro) | Nada (apenas o download dos modelos)                  |
+
+- Sem chave do Gemini, a tradução usa o tradutor embutido do Chrome/Edge, que roda no aparelho (o navegador só baixa o pacote do idioma na primeira vez).
 
 - A síntese de voz dentro do app é feita pelo navegador; algumas vozes “online” do Edge/Chrome são processadas pelo provedor do navegador.
