@@ -5,6 +5,23 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e 
 
 ## [Não lançado]
 
+## [3.10.0] - 2026-10-19
+
+Criação de textos bem mais rápida.
+
+### Alterado
+
+- **Textos escritos em partes ao mesmo tempo**: 2 a 4 partes de ≈ 450 palavras, todas pedidas juntas, cada uma com um trecho do roteiro (no “Mergulhar no tema”, um trecho seguido do artigo da Wikipédia). Em teste com um Gemini simulado, o intermediário caiu de ~25 s para ~8 s e o fluente de ~25 s para ~9 s, já com o tamanho completo.
+- **Raciocínio baixo** no Gemini (resposta mais rápida); se o modelo não aceitar o ajuste, o app segue sem ele.
+- Só as partes que ficarem difíceis demais para o nível são simplificadas (antes, o texto inteiro era reescrito).
+- No máximo 2 pedidos para continuar um texto curto (antes, 3).
+- Wikipédia: buscas em inglês e em português em paralelo; artigo guardado durante a visita (“Gerar de novo” não busca de novo).
+
+### Adicionado
+
+- **Barra de progresso** em Criar textos: porcentagem, palavras escritas, tempo e partes prontas.
+- **Preferência da IA** em Configurações: **Qualidade (Gemini Flash)** ou **Rapidez (Flash-Lite)**, ambos grátis; se o Flash-Lite não estiver disponível para a chave, o app usa o Flash.
+
 ## [3.9.1] - 2026-10-19
 
 ### Corrigido

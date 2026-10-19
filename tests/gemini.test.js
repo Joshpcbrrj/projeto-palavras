@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, test, vi } from 'vitest';
-import { GeminiMotor, paraFormatoGemini, textoDoEvento } from '../js/create/gemini.js';
+import { GeminiMotor, MODELOS, paraFormatoGemini, textoDoEvento } from '../js/create/gemini.js';
 import { obterMotorIA } from '../js/create/engine.js';
 import { settings } from '../js/services/settings.js';
 
@@ -65,6 +65,49 @@ describe('GeminiMotor', () => {
     const corpo = JSON.parse(opcoes.body);
     expect(corpo.generationConfig).toMatchObject({ temperature: 0.8, maxOutputTokens: 8192 });
     expect(corpo.systemInstruction.parts[0].text).toBe('s');
+  });
+
+  test('pede raciocínio baixo (resposta mais rápida) e usa o modelo escolhido', async () => {
+    const fetchFn = vi.fn(async () => respostaSSE([evento('ok')]));
+    await new GeminiMotor({ chave: 'x', fetchFn, modelo: MODELOS.rapidez }).gerar({
+      mensagens: [{ role: 'user', content: 'u' }],
+    });
+    const [url, opcoes] = fetchFn.mock.calls[0];
+    expect(url).toContain('/gemini-flash-lite-latest:');
+    expect(JSON.parse(opcoes.body).generationConfig.thinkingConfig).toEqual({
+      thinkingLevel: 'low',
+    });
+  });
+
+  test('se o modelo recusar o ajuste de raciocínio, tenta de novo sem ele', async () => {
+    const fetchFn = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        json: async () => ({
+          error: { message: 'Thinking level is not supported for this model.' },
+        }),
+      })
+      .mockResolvedValueOnce(respostaSSE([evento('ok')]));
+    const motor = new GeminiMotor({ chave: 'x', fetchFn });
+    expect(await motor.gerar({ mensagens: [{ role: 'user', content: 'u' }] })).toBe('ok');
+    expect(JSON.parse(fetchFn.mock.calls[1][1].body).generationConfig).not.toHaveProperty(
+      'thinkingConfig'
+    );
+  });
+
+  test('modelo rápido indisponível: usa o modelo padrão (e lembra disso)', async () => {
+    const fetchFn = vi.fn(async (url) =>
+      url.includes('lite')
+        ? { ok: false, status: 404, json: async () => ({ error: { message: 'not found' } }) }
+        : respostaSSE([evento('ok')])
+    );
+    const motor = new GeminiMotor({ chave: 'x', fetchFn, modelo: MODELOS.rapidez });
+    expect(await motor.gerar({ mensagens: [{ role: 'user', content: 'u' }] })).toBe('ok');
+    expect(fetchFn.mock.calls[1][0]).toContain('/gemini-flash-latest:');
+    const outro = new GeminiMotor({ chave: 'x', fetchFn, modelo: MODELOS.rapidez });
+    expect(outro.modelo).toBe(MODELOS.qualidade);
   });
 
   test('mensagens claras para os erros comuns', async () => {

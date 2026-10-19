@@ -12,7 +12,7 @@ import { PALAVRAS_POR_NIVEL, nomeNivel, paginasAproximadas } from '../create/lev
 import { iaDisponivel, obterMotorIA } from '../create/engine.js';
 import { progresso } from '../services/progress.js';
 import { settings } from '../services/settings.js';
-import { extrairFrases, extrairPalavras } from '../text/extract.js';
+import { contarPalavras, extrairFrases, extrairPalavras } from '../text/extract.js';
 import { montarPainelIA } from '../ui/aiPanel.js';
 import {
   alternador,
@@ -65,6 +65,53 @@ const SUGESTOES = [
   'Futebol',
   'Meio ambiente',
 ];
+
+/**
+ * Barra de progresso da criação: porcentagem pelas palavras já escritas em relação
+ * ao tamanho do nível, contagem de palavras e tempo decorrido. Atualiza no máximo
+ * uma vez por quadro (o texto chega em muitos pedacinhos).
+ */
+export function mostrarProgressoCriacao(area, alvo) {
+  const barra = $('#criarBarra', area);
+  const valor = $('#criarBarraValor', area);
+  const porcentagem = $('#criarPorcentagem', area);
+  const contagem = $('#criarContagem', area);
+  const inicio = Date.now();
+  let palavras = 0;
+  let pendente = null;
+  let agendado = false;
+
+  const desenhar = (pct) => {
+    valor.style.width = `${pct}%`;
+    barra.setAttribute('aria-valuenow', String(pct));
+    porcentagem.textContent = `${pct}%`;
+    const segundos = Math.round((Date.now() - inicio) / 1000);
+    contagem.textContent = `${palavras.toLocaleString('pt-BR')} de ${alvo.toLocaleString('pt-BR')} palavras · ${segundos} s`;
+  };
+  // Até terminar, fica no máximo em 99%.
+  const atual = () => Math.min(99, Math.round((palavras / alvo) * 100));
+  const relogio = setInterval(() => desenhar(atual()), 1000);
+
+  return {
+    atualizar(texto) {
+      pendente = texto;
+      if (agendado) return;
+      agendado = true;
+      const quadro = globalThis.requestAnimationFrame || ((fn) => setTimeout(fn, 16));
+      quadro(() => {
+        agendado = false;
+        palavras = contarPalavras(pendente);
+        desenhar(atual());
+      });
+    },
+    concluir() {
+      desenhar(100);
+    },
+    parar() {
+      clearInterval(relogio);
+    },
+  };
+}
 
 /** Dica quando o nível estimado não bate com o pedido (gerar de novo só ajuda com a IA). */
 function dicaNivel(resultado, analise) {
@@ -265,15 +312,24 @@ export class CreateScreen {
     this.controle = new AbortController();
     botao.textContent = '✕ Cancelar';
     this.resultado = null;
+    const alvo = PALAVRAS_POR_NIVEL[f.nivel];
     render(
       area,
       html`<div class="cartao">
         <p class="criar__etapa" id="criarEtapa" aria-live="polite">Começando…</p>
+        <div class="criar__progresso">
+          <div class="barra" role="progressbar" aria-label="Progresso da criação" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="criarBarra">
+            <div class="barra__preenchimento" id="criarBarraValor"></div>
+          </div>
+          <strong class="criar__porcentagem" id="criarPorcentagem">0%</strong>
+        </div>
+        <p class="texto-pequeno texto-suave" id="criarContagem">0 de ${alvo.toLocaleString('pt-BR')} palavras · 0 s</p>
         <div class="leitor__texto criar__previa" id="criarPrevia"></div>
       </div>`
     );
     const etapa = $('#criarEtapa', area);
     const previa = $('#criarPrevia', area);
+    const progressoVisual = mostrarProgressoCriacao(area, alvo);
 
     try {
       const resultado = await criarTexto({
@@ -285,9 +341,11 @@ export class CreateScreen {
         aoTexto: (parcial) => {
           previa.textContent = parcial;
           previa.scrollTop = previa.scrollHeight;
+          progressoVisual.atualizar(parcial);
         },
         signal: this.controle.signal,
       });
+      progressoVisual.concluir();
       this.resultado = { ...resultado, id: gerarId() };
       progresso().contarCriado('textos');
       render(area, this.htmlResultado());
@@ -305,6 +363,7 @@ export class CreateScreen {
         );
       }
     } finally {
+      progressoVisual.parar();
       this.controle = null;
       botao.textContent = '✨ Criar texto';
     }

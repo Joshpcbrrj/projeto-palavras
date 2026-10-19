@@ -6,7 +6,7 @@ import { VOZES_KOKORO } from '../config.js';
 import { $, html, render } from '../core/dom.js';
 import { settings } from '../services/settings.js';
 import { montarPainelIA } from '../ui/aiPanel.js';
-import { cabecalhoTela, seletorIdioma } from '../ui/components.js';
+import { cabecalhoTela, segmentado, seletorIdioma, valorSegmentado } from '../ui/components.js';
 import { aplicarTemaEscolhido } from '../ui/theme.js';
 import { toast } from '../ui/toast.js';
 
@@ -51,6 +51,16 @@ export class SettingsScreen {
           <div class="cartao">
             <h3 class="secao__titulo">🤖 IA para criar textos</h3>
             <div id="cfgPainelIA"></div>
+            ${segmentado({
+              nome: 'cfgVelocidadeIA',
+              rotulo: 'Ao criar textos, priorizar',
+              valor: p.velocidadeIA,
+              opcoes: [
+                { valor: 'qualidade', rotulo: '✨ Qualidade (Gemini Flash)' },
+                { valor: 'rapidez', rotulo: '⚡ Rapidez (Flash-Lite)' },
+              ],
+            })}
+            <p class="campo__ajuda">Os dois são grátis. O Flash-Lite responde mais rápido; o Flash escreve textos um pouco melhores.</p>
             ${p.chaveGemini ? html`<button type="button" class="btn btn--fantasma btn--pequeno" id="cfgRemoverChaveGemini">🗑️ Remover a chave do Gemini</button>` : ''}
           </div>
 
@@ -85,6 +95,12 @@ export class SettingsScreen {
     );
 
     montarPainelIA($('#cfgPainelIA', r));
+    r.querySelectorAll('input[name="cfgVelocidadeIA"]').forEach((opcao) =>
+      opcao.addEventListener('change', () => {
+        settings.set('velocidadeIA', valorSegmentado(r, 'cfgVelocidadeIA'));
+        toast.sucesso('Preferência da IA salva.');
+      })
+    );
     $('#cfgRemoverChaveGemini', r)?.addEventListener('click', () => {
       settings.set('chaveGemini', '');
       toast.sucesso('Chave do Gemini removida deste navegador.');

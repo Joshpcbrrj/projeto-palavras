@@ -81,7 +81,7 @@
 4. **Ao terminar** — baixe o **kit de estudo** (PDF + MP3) ou só um deles, escolhendo quando quer revisar e se o PDF terá a tradução no final. O progresso da sessão é salvo automaticamente.
 5. **Revisar** — no dia marcado, abra **Revisar arquivo**, selecione o PDF e clique em **Estudar** (ou **Ouvir**, para textos). Pode selecionar a pasta do kit inteira: os MP3 são ignorados, pois o PDF já guarda tudo. Vários PDFs do mesmo tipo e idioma podem ser combinados num único estudo.
 6. **Ler e ouvir um texto** — cole o texto, vá para a aba **Ouvir** e acompanhe o destaque. Dali você também pode exportar o MP3 ou transformar o texto em flashcards.
-7. **Configurações** (⚙️ no topo) — idioma de estudo, tema, chave do Gemini e vozes do MP3.
+7. **Configurações** (⚙️ no topo) — idioma de estudo, tema, chave do Gemini, preferência da IA (qualidade ou rapidez) e vozes do MP3.
 
 ## PDFs revisáveis
 
@@ -118,7 +118,8 @@ O nível define a dificuldade **e o tamanho** do texto — no mínimo 700 palavr
 | Intermediário | 1.200             | ≈ 4 páginas |
 | Fluente       | 2.000             | ≈ 6 páginas |
 
-- **Com o Gemini:** se o texto sair mais curto que o pedido, o app pede para a IA continuar (até 3 vezes), sem repetir o que já foi escrito. Textos longos são divididos em seções com título.
+- **Com o Gemini:** o texto é escrito em **2 a 4 partes ao mesmo tempo** (≈ 450 palavras cada, cada uma com um trecho do roteiro: o que é, história, como funciona, exemplos, prós e contras, futuro), então fica pronto em segundos mesmo nos níveis maiores. Uma **barra de progresso** mostra a porcentagem, as palavras já escritas e o tempo. Se alguma parte sair difícil demais para o nível, só ela é simplificada; se o total ficar abaixo do mínimo, a IA continua (até 2 vezes). Textos longos são divididos em seções com título.
+- **Velocidade:** a IA usa raciocínio baixo (responde mais rápido) e, em **Configurações**, dá para trocar **Qualidade (Gemini Flash)** por **Rapidez (Flash-Lite)** — os dois grátis. Artigos da Wikipédia ficam guardados durante a visita, então “Gerar de novo” sobre o mesmo tema é mais rápido.
 - **Só com a Wikipédia:** o artigo é usado até o tamanho do nível, sem pular parágrafos. A Simple English costuma ser curta; ela é completada com as seções do mesmo artigo na Wikipédia em inglês normal (para iniciantes, essa parte é mais difícil — o app avisa). Se o artigo inteiro for curto, o app também avisa.
 
 ### Tradução no final do PDF

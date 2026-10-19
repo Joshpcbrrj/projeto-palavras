@@ -14,6 +14,9 @@ import {
   similaridade,
 } from '../js/create/wikipedia.js';
 import {
+  ROTEIRO_DIALOGO,
+  ROTEIRO_TEXTO,
+  dividirRoteiro,
   limparResposta,
   promptAdaptarArtigo,
   promptDialogo,
@@ -21,7 +24,13 @@ import {
   pareceIdioma,
   resumirReferencia,
 } from '../js/create/prompts.js';
-import { MODOS, criarTexto } from '../js/create/generator.js';
+import {
+  MODOS,
+  criarTexto,
+  dividirEmTrechos,
+  palavrasPorParte,
+  quantasPartes,
+} from '../js/create/generator.js';
 
 /** Simula a API da Wikipédia respondendo conforme os parâmetros da URL. */
 function wikipediaFalsa({ buscas = {}, links = {}, artigos = {} } = {}) {
@@ -224,7 +233,7 @@ describe('pedidos para a IA', () => {
     const pedido = mensagens.at(-1).content;
     expect(mensagens[0].content).toContain('British English');
     expect(pedido).toContain('A1-A2');
-    expect(pedido).toContain('at least 700 words');
+    expect(pedido).toContain('about 700 words');
     expect(pedido).toContain('about 70 lines');
     expect(pedido).toContain('Anna: ...');
     expect(pedido).toContain('A restaurant is a place');
@@ -243,6 +252,46 @@ describe('pedidos para a IA', () => {
         nivel: 'intermediario',
       }).mensagens[1].content
     ).toContain('B1-B2');
+  });
+
+  test('partes: só a primeira apresenta o tema e só a última conclui', () => {
+    const foco = 'its history and origin';
+    const pedido = (indice) =>
+      promptTextoNivel({
+        tema: 'coffee',
+        idioma: 'en-US',
+        nivel: 'intermediario',
+        palavras: 440,
+        parte: { indice, total: 3, foco },
+      }).mensagens[1].content;
+    expect(pedido(1)).toContain('part 1 of 3');
+    expect(pedido(1)).toContain('Start with a short introduction');
+    expect(pedido(1)).toContain('Do not write a conclusion');
+    expect(pedido(2)).toContain('Do not write an introduction');
+    expect(pedido(2)).toContain(foco);
+    expect(pedido(3)).toContain('End with a short conclusion');
+    expect(pedido(2)).toContain('about 440 words');
+  });
+
+  test('diálogo em partes: não cumprimenta de novo nem se despede antes da hora', () => {
+    const pedido = (indice) =>
+      promptDialogo({
+        tema: 'airport',
+        idioma: 'en-US',
+        nivel: 'fluente',
+        palavras: 550,
+        parte: { indice, total: 4, foco: 'x' },
+      }).mensagens[1].content;
+    expect(pedido(1)).toContain('starting with Anna');
+    expect(pedido(2)).toContain('do not greet again');
+    expect(pedido(2)).toContain('Do not end the conversation');
+    expect(pedido(4)).toContain('End the conversation naturally');
+  });
+
+  test('o roteiro é dividido entre as partes, sem sobrar nem faltar item', () => {
+    expect(dividirRoteiro(ROTEIRO_TEXTO, 3).map((g) => g.length)).toEqual([2, 2, 2]);
+    expect(dividirRoteiro(ROTEIRO_TEXTO, 4).flat()).toEqual([...ROTEIRO_TEXTO]);
+    expect(dividirRoteiro(ROTEIRO_DIALOGO, 2)).toHaveLength(2);
   });
 
   test('a referência é encurtada para caber no contexto de modelos pequenos', () => {
@@ -326,21 +375,51 @@ describe('criarTexto (orquestração)', () => {
     };
   }
 
-  test('diálogo usa a Wikipédia como base e devolve a fonte', async () => {
+  /** IA falsa que responde conforme a parte pedida ("part 1 of 2"...). */
+  function iaPorParte(respostas, { atraso = 0 } = {}) {
+    let simultaneas = 0;
+    const ia = {
+      maxSimultaneas: 0,
+      gerar: vi.fn(async ({ mensagens, aoTexto }) => {
+        simultaneas++;
+        ia.maxSimultaneas = Math.max(ia.maxSimultaneas, simultaneas);
+        const pedido = mensagens[1].content;
+        const parte = Number(pedido.match(/part (\d+) of \d+/)?.[1] || 0);
+        const resposta =
+          typeof respostas === 'function' ? respostas(parte, pedido) : respostas[parte];
+        // Partes de número maior terminam antes, para testar a ordem final.
+        await new Promise((r) => setTimeout(r, atraso * (5 - parte)));
+        aoTexto?.(String(resposta ?? '').slice(0, 10));
+        simultaneas--;
+        return resposta ?? '';
+      }),
+    };
+    return ia;
+  }
+
+  test('diálogo usa a Wikipédia como base, escreve em partes e devolve a fonte', async () => {
     const { fetchFn } = wiki();
-    const ia = iaFalsa(
-      'Anna: Hi!\nBen: Hello!\nAnna: Are you hungry?\nBen: Yes, very.\nAnna: Let us eat.'
-    );
+    const ia = iaPorParte({
+      1: 'Anna: Hi!\nBen: Hello!\nAnna: Are you hungry?',
+      2: 'Ben: Yes, very.\nAnna: Let us eat.',
+    });
     const etapas = [];
     const r = await criarTexto({
       modo: MODOS.DIALOGO,
       tema: 'restaurant',
-      nivel: 'iniciante',
+      nivel: 'iniciante', // 700 palavras → 2 partes
       ia,
       fetchFn,
       aoEtapa: (e) => etapas.push(e),
     });
-    expect(r.texto.split('\n')).toHaveLength(5);
+    expect(r.texto.split('\n')).toEqual([
+      'Anna: Hi!',
+      'Ben: Hello!',
+      'Anna: Are you hungry?',
+      'Ben: Yes, very.',
+      'Anna: Let us eat.',
+    ]);
+    expect(ia.gerar.mock.calls[1][0].mensagens[1].content).toContain('part 2 of 2');
     // O artigo simples do teste é curto: foi completado com a Wikipédia em inglês.
     expect(r.fonte).toMatchObject({
       nome: 'Wikipédia',
@@ -351,6 +430,76 @@ describe('criarTexto (orquestração)', () => {
     expect(r.analise.nivelEstimado).toBe('iniciante');
     expect(ia.gerar.mock.calls[0][0].mensagens[1].content).toContain('Economics is the study');
     expect(etapas[0]).toContain('Wikipédia');
+    expect(etapas.some((e) => e.includes('2 partes ao mesmo tempo'))).toBe(true);
+  });
+
+  test('as partes são pedidas ao mesmo tempo e o texto sai na ordem certa', async () => {
+    const paragrafo = (n) => `Section ${n}\n\n${'People learn new words every day. '.repeat(70)}`;
+    const ia = iaPorParte((parte) => paragrafo(parte), { atraso: 20 });
+    const parciais = [];
+    const inicio = Date.now();
+    const r = await criarTexto({
+      modo: MODOS.NIVEL,
+      tema: 'travel',
+      nivel: 'intermediario', // 1200 palavras → 3 partes
+      ia,
+      usarWikipedia: false,
+      aoTexto: (t) => parciais.push(t),
+    });
+    const tempo = Date.now() - inicio;
+    expect(ia.gerar).toHaveBeenCalledTimes(3); // 3 × ~490 palavras: não precisa continuar
+    expect(ia.maxSimultaneas).toBe(3); // as três ao mesmo tempo
+    expect(tempo).toBeLessThan(80 + 60 + 40); // menos que a soma dos atrasos (em série)
+    expect(r.texto.indexOf('Section 1')).toBeLessThan(r.texto.indexOf('Section 2'));
+    expect(r.texto.indexOf('Section 2')).toBeLessThan(r.texto.indexOf('Section 3'));
+    expect(parciais.length).toBeGreaterThan(3); // a tela é atualizada enquanto escreve
+  });
+
+  test('uma parte que falha (ex.: limite por minuto) é tentada de novo', async () => {
+    let falhou = false;
+    const ia = iaPorParte((parte) => {
+      if (parte === 2 && !falhou) {
+        falhou = true;
+        throw new Error('O limite gratuito do Gemini foi atingido por agora.');
+      }
+      return `Part ${parte}. ${'We study a lot. '.repeat(100)}`;
+    });
+    const r = await criarTexto({
+      modo: MODOS.NIVEL,
+      tema: 'travel',
+      ia,
+      usarWikipedia: false,
+    });
+    expect(ia.gerar).toHaveBeenCalledTimes(3); // 2 partes + 1 nova tentativa
+    expect(r.texto).toContain('Part 2.');
+  });
+
+  test('só a parte que ficou difícil é simplificada', async () => {
+    const facil = 'I like my town. It has a big park. We play there. '.repeat(30);
+    const dificil =
+      'Notwithstanding considerable macroeconomic volatility, contemporary governmental institutions systematically implemented comprehensive regulatory frameworks. '.repeat(
+        12
+      );
+    const simplificada = 'The town has many shops. People buy food there. It is fun. '.repeat(25);
+    const ia = iaPorParte((parte, pedido) => {
+      if (pedido.includes('too difficult')) return simplificada;
+      if (pedido.includes('Continue the text')) return '';
+      return parte === 1 ? facil : dificil;
+    });
+    const r = await criarTexto({
+      modo: MODOS.NIVEL,
+      tema: 'town',
+      nivel: 'iniciante',
+      ia,
+      usarWikipedia: false,
+    });
+    const pedidosSimplificar = ia.gerar.mock.calls.filter((c) =>
+      c[0].mensagens[1].content.includes('too difficult')
+    );
+    expect(pedidosSimplificar).toHaveLength(1); // só a parte 2
+    expect(r.texto).toContain('I like my town');
+    expect(r.texto).toContain('The town has many shops');
+    expect(r.texto).not.toContain('Notwithstanding');
   });
 
   test('se a IA responder em outro idioma, tenta de novo com instrução reforçada', async () => {
@@ -364,6 +513,7 @@ describe('criarTexto (orquestração)', () => {
     const r = await criarTexto({
       modo: MODOS.DIALOGO,
       tema: 'restaurant',
+      palavras: 300, // uma parte só
       ia,
       fetchFn,
       aoEtapa: (e) => etapas.push(e),
@@ -390,6 +540,7 @@ describe('criarTexto (orquestração)', () => {
       modo: MODOS.NIVEL,
       tema: 'economy',
       nivel: 'iniciante',
+      palavras: 300, // uma parte só
       ia,
       fetchFn,
       aoEtapa: (e) => etapas.push(e),
@@ -444,6 +595,7 @@ describe('criarTexto (orquestração)', () => {
       modo: MODOS.MERGULHO,
       tema: 'economy',
       nivel: 'iniciante',
+      palavras: 300, // um trecho só
       ia,
       fetchFn,
     });
@@ -472,7 +624,13 @@ describe('criarTexto (orquestração)', () => {
       throw new TypeError('offline');
     };
     const ia = iaFalsa('Paragraph one.\n\nParagraph two.');
-    const r = await criarTexto({ modo: MODOS.NIVEL, tema: 'travel', ia, fetchFn: offline });
+    const r = await criarTexto({
+      modo: MODOS.NIVEL,
+      tema: 'travel',
+      palavras: 300,
+      ia,
+      fetchFn: offline,
+    });
     expect(r.fonte).toBeNull();
     expect(r.texto).toBe('Paragraph one.\n\nParagraph two.');
   });
@@ -490,8 +648,8 @@ describe('criarTexto (orquestração)', () => {
       usarWikipedia: false,
       aoEtapa: (e) => etapas.push(e),
     });
-    expect(ia.gerar).toHaveBeenCalledTimes(4); // texto + 3 continuações
-    expect(ia.gerar.mock.calls[1][0].mensagens[1].content).toContain('Continue the text');
+    expect(ia.gerar).toHaveBeenCalledTimes(4); // 2 partes + 2 continuações
+    expect(ia.gerar.mock.calls[2][0].mensagens[1].content).toContain('Continue the text');
     expect(r.texto.split(/\s+/).length).toBeGreaterThan(700);
     expect(etapas.some((e) => /Continuando/.test(e))).toBe(true);
   });
@@ -500,11 +658,36 @@ describe('criarTexto (orquestração)', () => {
     const longo = 'people learn new words every day. '.repeat(130);
     const ia = { gerar: vi.fn(async () => longo) };
     await criarTexto({ modo: MODOS.NIVEL, tema: 'travel', ia, usarWikipedia: false });
-    expect(ia.gerar).toHaveBeenCalledTimes(1); // 910 palavras ≥ 90% de 700
+    expect(ia.gerar).toHaveBeenCalledTimes(2); // 2 partes já passam de 700 palavras
 
     const curto = { gerar: vi.fn(async () => 'I like to go by train. It is fun.') };
-    await criarTexto({ modo: MODOS.NIVEL, tema: 'travel', ia: curto, usarWikipedia: false });
+    await criarTexto({
+      modo: MODOS.NIVEL,
+      tema: 'travel',
+      palavras: 300,
+      ia: curto,
+      usarWikipedia: false,
+    });
     expect(curto.gerar).toHaveBeenCalledTimes(2); // a continuação repetiu o texto: encerra
+  });
+
+  test('mergulho com IA: o artigo é dividido em trechos seguidos, adaptados ao mesmo tempo', async () => {
+    const paragrafos = Array.from(
+      { length: 6 },
+      (_, i) => `Paragraph ${i + 1} ${'word '.repeat(80).trim()}.`
+    );
+    const artigo = [paragrafos[0], 'History', ...paragrafos.slice(1)].join('\n\n');
+    const trechos = dividirEmTrechos(artigo, 3);
+    expect(trechos).toHaveLength(3);
+    expect(trechos.join('\n\n')).toBe(artigo); // nada se perde nem muda de ordem
+    expect(trechos.some((t) => t.endsWith('History'))).toBe(false); // título fica com o parágrafo
+    expect(dividirEmTrechos('Only one paragraph.', 4)).toEqual(['Only one paragraph.']);
+  });
+
+  test('em quantas partes o texto é escrito (e quanto cada uma pede)', () => {
+    expect([700, 1200, 2000, 300].map(quantasPartes)).toEqual([2, 3, 4, 1]);
+    expect(palavrasPorParte(1200, 3)).toBe(440);
+    expect(palavrasPorParte(2000, 4)).toBe(550);
   });
 
   test('Simple English curta é completada com as seções da Wikipédia em inglês', async () => {
