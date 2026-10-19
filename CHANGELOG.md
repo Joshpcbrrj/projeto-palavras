@@ -5,6 +5,25 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e 
 
 ## [Não lançado]
 
+## [3.9.0] - 2026-10-19
+
+Revisão geral do app e da documentação.
+
+### Adicionado
+
+- **Número da versão no rodapé**, bem pequeno, à direita (vem de `js/config.js`; um teste garante que é igual ao `package.json` e ao service worker). O modelo de relato de problema pede essa versão.
+
+### Alterado
+
+- Capturas de tela da documentação refeitas com o app atual (inclui a página de tradução do PDF).
+- Documentação revisada: README (tamanho por nível, tradução, compatibilidade da tradução, testes, publicação), ARQUITETURA (arquivos da exportação de áudio), FORMATO-PDF (ordem do layout), ROADMAP, CONTRIBUTING e descrição do PWA.
+
+### Corrigido
+
+- O aviso “a parte final veio da Wikipédia normal, que é mais difícil” aparecia também no nível intermediário; agora só no iniciante.
+- Em textos da Wikipédia sem IA, a dica “gere de novo” (que traria o mesmo artigo) foi trocada por uma explicação sobre adaptar o nível com a IA.
+- Estilo CSS sem uso removido.
+
 ## [3.8.0] - 2026-10-19
 
 ### Adicionado

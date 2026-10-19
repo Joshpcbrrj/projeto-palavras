@@ -278,15 +278,46 @@ a {
   max-width: var(--largura);
   margin: 0 auto;
   padding: 1rem 1rem max(1.5rem, env(safe-area-inset-bottom));
-  display: flex;
-  justify-content: center;
+  /* Textos no centro e a versão, bem pequena, à direita. */
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
   gap: 0.75rem;
   font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.8);
 }
 
+.rodape__textos {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+.rodape__versao {
+  grid-column: 3;
+  justify-self: end;
+  font-size: 0.7rem;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+
 .rodape a {
   color: #fff;
+}
+
+@media (max-width: 560px) {
+  .rodape {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+
+  .rodape__textos,
+  .rodape__versao {
+    grid-column: 1;
+  }
 }
 
 /* --------------------------------------------------------------------------

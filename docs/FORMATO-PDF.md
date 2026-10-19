@@ -60,10 +60,11 @@ Implementação: [`js/pdf/format.js`](../js/pdf/format.js). O mesmo pacote é us
 - Cabeçalho com título, tipo e idioma; faixa com data de geração, quantidade e data de revisão.
 - Palavras em três colunas, frases numeradas, ou o texto em parágrafos.
 - Nos textos, linhas curtas sem pontuação final (títulos de seção) aparecem em destaque.
+- Quando o conteúdo tem `fonte`, uma linha de atribuição (com link) aparece após o texto.
+- Logo depois do conteúdo, o quadro “Como revisar este arquivo”.
 - Com `traducao`: uma página extra no fim, “Tradução (português)”, com a mesma numeração da lista (palavras/frases) ou os mesmos parágrafos e títulos (textos). Uma tradução de lista só é aceita se tiver um item para cada item da lista.
 - PDFs das versões 3.3 a 3.5 podem ter um campo `glossario` (tradução antiga); ele é ignorado na leitura.
-- Quando o conteúdo tem `fonte`, uma linha de atribuição (com link) aparece após o texto.
-- Rodapé com número de página e instruções de revisão.
+- Rodapé de cada página com o nome do app, a data de geração e “Página X de Y”.
 - As fontes padrão do PDF cobrem apenas o Latin-1. Textos com outros caracteres (cirílico, CJK…) são desenhados como imagem via canvas com as fontes do sistema; os dados exatos continuam no pacote.
 
 ## Compatibilidade futura

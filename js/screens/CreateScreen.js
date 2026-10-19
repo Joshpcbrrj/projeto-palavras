@@ -66,6 +66,14 @@ const SUGESTOES = [
   'Meio ambiente',
 ];
 
+/** Dica quando o nível estimado não bate com o pedido (gerar de novo só ajuda com a IA). */
+function dicaNivel(resultado, analise) {
+  if (analise.nivelEstimado === resultado.nivel) return '';
+  return resultado.geradoPorIA
+    ? ' — gere de novo se quiser mais próximo do pedido'
+    : ' — o texto vem da Wikipédia como está; com a IA (Gemini), ele é adaptado ao nível';
+}
+
 export class CreateScreen {
   constructor() {
     const prefs = settings.carregar();
@@ -318,7 +326,7 @@ export class CreateScreen {
           a
             ? html`<p class="texto-pequeno texto-suave">
               ${a.palavras} palavras · ${a.palavrasPorFrase} palavras por frase · legibilidade ${a.facilidade}/100
-              (parece nível <strong>${estimado.nome}</strong>${a.nivelEstimado !== r.nivel ? ' — gere de novo se quiser mais próximo do pedido' : ''})
+              (parece nível <strong>${estimado.nome}</strong>${dicaNivel(r, a)})
             </p>`
             : ''
         }

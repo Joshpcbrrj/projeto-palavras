@@ -13,8 +13,10 @@
 | **Conseguir material no nível certo**     | ✅ Criar textos (diálogo, mergulho no tema, por nível) com métrica de legibilidade                                  | Bom       |
 | **Levar o material para estudar sozinho** | ✅ Kit de estudo (PDF + MP3 com o mesmo nome); MP3 com voz natural, numeração alinhada ao PDF, repetições e pausas  | Muito bom |
 | **Textos que valem a pena estudar**       | ✅ Tamanho mínimo de 700 palavras (iniciante), 1.200 (intermediário) e 2.000 (fluente), com seções e títulos no PDF | Bom       |
+| **Entender e revisar rápido**             | ✅ Tradução para o português no fim do PDF (mesma numeração nas listas, mesmos parágrafos nos textos)               | Bom       |
 | **Revisar no tempo certo**                | ✅ Cada PDF guarda a data da próxima revisão; ao reabri-lo no app, a revisão avança (1 → 3 → 7 → 14 → 30 → 60 dias) | Bom       |
-| **Facilidade de uso**                     | ✅ Telas começam só com o essencial; voz, tempo, repetições, tamanho etc. ficam em “Mais opções”                    | Bom       |
+| **Progresso em vários aparelhos**         | ✅ Backup em JSON que pode ser juntado entre aparelhos sem contar em dobro, com lembrete na tela inicial            | Bom       |
+| **Facilidade de uso**                     | ✅ Telas começam só com o essencial; voz, tempo, repetições, pausa e ordem ficam em “Mais opções”                   | Bom       |
 
 Exercícios no PDF (lacunas, perguntas com gabarito) foram avaliados e **descartados**: não são necessários para o objetivo do app.
 
@@ -49,6 +51,7 @@ Medições feitas com o Kokoro real no Edge (Windows):
 
 | #   | Atrito observado                                                | Situação                                    |
 | --- | --------------------------------------------------------------- | ------------------------------------------- |
+| U1  | Os arquivos não traziam o significado do conteúdo               | ✅ Resolvido (K1: tradução no fim do PDF)   |
 | U2  | Textos gerados eram curtos (½ a 1 página)                       | ✅ Resolvido (K10)                          |
 | U3  | Muitas opções antes de começar                                  | ✅ Resolvido (K6)                           |
 | U4  | Listas de palavras incluíam palavras inúteis (“a”, “to”, “her”) | ✅ Resolvido (K3)                           |

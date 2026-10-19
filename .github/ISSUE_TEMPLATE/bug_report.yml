@@ -33,11 +33,18 @@ body:
         - Flashcards (palavras/frases)
         - Leitura de texto / áudio
         - Geração de PDF
+        - Tradução no fim do PDF
         - Revisar arquivo (leitura de PDF)
         - Progresso / backup
         - Visual / tema escuro
         - Instalação (PWA) / offline
         - Outra
+  - type: input
+    id: versao
+    attributes:
+      label: Versão do app
+      description: Aparece bem pequena no rodapé, à direita.
+      placeholder: 'Ex.: v3.9.0'
   - type: input
     id: navegador
     attributes:

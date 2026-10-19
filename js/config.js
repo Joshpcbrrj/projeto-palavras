@@ -6,7 +6,7 @@
 export const APP = Object.freeze({
   nome: 'Aprendendo Palavras',
   id: 'aprendendo-palavras',
-  versao: '3.8.0',
+  versao: '3.9.0',
 });
 
 export const TIPOS = Object.freeze({

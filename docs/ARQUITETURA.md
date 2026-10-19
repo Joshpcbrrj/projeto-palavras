@@ -27,6 +27,7 @@ flowchart LR
   audio --> text[text/extract.js]
   pdf --> text
   services --> pdf
+  services --> create
 ```
 
 | Pasta       | Responsabilidade                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
@@ -70,6 +71,15 @@ planejarAudio(conteúdo) → trechos [{texto, voz, pausa}]
 Mp3Builder (lamejs): junta os trechos + silêncios em um único MP3 mono 24 kHz
 ```
 
+| Arquivo            | Responsabilidade                                                                                   |
+| ------------------ | -------------------------------------------------------------------------------------------------- |
+| `plan.js`          | `planejarAudio`: divide o conteúdo em trechos, escolhe a voz (diálogos) e define as pausas.        |
+| `engines.js`       | `KokoroMotor`: conversa com o Web Worker e escolhe placa de vídeo (WebGPU) ou processador (WASM).  |
+| `kokoro-worker.js` | Web Worker que carrega o kokoro-js e sintetiza cada trecho fora da thread principal.               |
+| `mp3.js`           | `prepararTrecho` (aparar, `nivelar`, `suavizarBordas`) e `Mp3Builder` (codificação com o lamejs).  |
+| `preview.js`       | `OuvirEnquantoGera`: toca os trechos à medida que ficam prontos.                                   |
+| `index.js`         | `gerarMp3`: junta tudo, com cache da sessão; `criarMotor` mantém um único motor de voz por visita. |
+
 Cada chamada à voz tem um custo fixo (≈ 1,5 s); por isso o planejamento reduz o número de trechos. As medições que motivaram o nivelamento e os agrupamentos estão em [ROADMAP.md](ROADMAP.md#14-áudio-qualidade-e-velocidade-versão-34).
 
 ## Ciclo de vida das telas
@@ -93,7 +103,7 @@ StudySession ──item──▶      │
 
 ## Offline
 
-`sw.js` guarda todos os arquivos do app (lista explícita, verificada por teste) e, à parte, as bibliotecas externas com versão fixa na URL (jsPDF e PDF.js do cdnjs são pré-carregadas; Kokoro e lamejs do jsDelivr ficam em cache após o primeiro uso). O modelo de voz é guardado pelas próprias bibliotecas no Cache Storage do navegador. Ao publicar, troque `VERSAO` para invalidar o cache.
+`sw.js` guarda todos os arquivos do app (lista explícita, verificada por teste) e, à parte, as bibliotecas externas com versão fixa na URL (jsPDF e PDF.js do cdnjs são pré-carregadas; Kokoro e lamejs do jsDelivr ficam em cache após o primeiro uso). O modelo de voz é guardado pelas próprias bibliotecas no Cache Storage do navegador. Ao publicar, troque a versão (em `sw.js`, `js/config.js` e `package.json` — um teste confere) para invalidar o cache; a versão aparece no rodapé do app.
 
 O Web Worker `audio/export/kokoro-worker.js` importa a biblioteca por URL fixa; um teste garante que ela é igual à de `config.js`.
 
