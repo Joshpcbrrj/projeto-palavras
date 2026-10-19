@@ -7,7 +7,20 @@
  */
 
 const MODELO = 'gemini-flash-latest';
+/** Modelos por preferência de velocidade (ambos grátis com a chave do usuário). */
+export const MODELOS = Object.freeze({
+  qualidade: MODELO, // Flash: melhor texto
+  rapidez: 'gemini-flash-lite-latest', // Flash-Lite: mais leve e rápido
+});
+/**
+ * Nível de "raciocínio" antes de responder. Os modelos Flash pensam no nível médio
+ * por padrão, o que atrasa a primeira palavra em vários segundos; para escrever e
+ * traduzir textos de estudo, o nível baixo basta.
+ */
+const RACIOCINIO = 'low';
 const URL_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
+/** Modelos que responderam "não encontrado" nesta visita (usa o padrão no lugar). */
+const modelosIndisponiveis = new Set();
 export const URL_CRIAR_CHAVE = 'https://aistudio.google.com/app/apikey';
 
 /** Converte mensagens no formato chat (system/user/assistant) para o formato do Gemini. */
@@ -46,10 +59,16 @@ function traduzirErro(status, corpo) {
 }
 
 export class GeminiMotor {
-  constructor({ chave, fetchFn = globalThis.fetch?.bind(globalThis), modelo = MODELO } = {}) {
+  constructor({
+    chave,
+    fetchFn = globalThis.fetch?.bind(globalThis),
+    modelo = MODELO,
+    raciocinio = RACIOCINIO,
+  } = {}) {
     this.chave = String(chave || '').trim();
     this.fetchFn = fetchFn;
-    this.modelo = modelo;
+    this.modelo = modelosIndisponiveis.has(modelo) ? MODELO : modelo;
+    this.raciocinio = raciocinio;
   }
 
   get pronto() {
@@ -60,9 +79,11 @@ export class GeminiMotor {
    * Gera um texto em streaming.
    * @returns {Promise<string>}
    */
-  async gerar({ mensagens, maxTokens = 800, temperatura = 0.7, json = false, aoTexto, signal }) {
+  async gerar(opcoes) {
+    const { mensagens, maxTokens = 800, temperatura = 0.7, json = false, aoTexto, signal } = opcoes;
     if (!this.chave)
       throw new Error('Configure sua chave gratuita do Gemini para usar a IA online.');
+    const comRaciocinio = Boolean(this.raciocinio);
     let resposta;
     try {
       resposta = await this.fetchFn(`${URL_BASE}/${this.modelo}:streamGenerateContent?alt=sse`, {
@@ -76,6 +97,7 @@ export class GeminiMotor {
             // conta no limite, e textos de 2000 palavras precisam de ≈ 3400 tokens.
             maxOutputTokens: Math.max(maxTokens * 2, 8192),
             ...(json ? { responseMimeType: 'application/json' } : {}),
+            ...(comRaciocinio ? { thinkingConfig: { thinkingLevel: this.raciocinio } } : {}),
           },
         }),
         signal,
@@ -86,6 +108,18 @@ export class GeminiMotor {
     }
     if (!resposta.ok) {
       const corpo = await resposta.json().catch(() => null);
+      const mensagem = String(corpo?.error?.message || '');
+      // Se o modelo não aceitar o ajuste de raciocínio, segue sem ele (nunca quebra).
+      if (resposta.status === 400 && comRaciocinio && /think/i.test(mensagem)) {
+        this.raciocinio = null;
+        return this.gerar(opcoes);
+      }
+      // Modelo rápido indisponível para esta chave/região: usa o modelo padrão.
+      if (resposta.status === 404 && this.modelo !== MODELO) {
+        modelosIndisponiveis.add(this.modelo); // não tenta de novo nesta visita
+        this.modelo = MODELO;
+        return this.gerar(opcoes);
+      }
       throw new Error(traduzirErro(resposta.status, corpo));
     }
 

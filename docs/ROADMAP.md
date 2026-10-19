@@ -45,19 +45,45 @@ Medições feitas com o Kokoro real no Edge (Windows):
 - **Velocidade:** cada chamada à voz tem um custo fixo de ≈ 1,5 s, além do tempo proporcional ao áudio. ✅ O número do item vai no mesmo trecho da palavra, frases curtas do mesmo parágrafo são agrupadas, a voz é carregada enquanto o PDF do kit é gerado e o áudio já sintetizado é reaproveitado ao gerar de novo na mesma visita. Lista de 8 palavras numeradas: de 42,6 s para 27,9 s (−35%).
 - O tempo restante é da própria síntese neural (≈ 1,6× a duração do áudio com placa de vídeo, ≈ 3,5× só com processador) e não tem como cair muito sem trocar de voz. Para não esperar, há o **“Ouvir enquanto gera”**.
 
+### 1.5 Criação de textos: velocidade (versão 3.10)
+
+Antes, um texto intermediário (1.200 palavras) passava por etapas **em sequência**: Wikipédia (≈ 1 s) → a IA “pensava” no nível médio (padrão do Gemini Flash) → escrevia num pedido só, mas parava por volta de 550–600 palavras → até 3 pedidos para “continuar” (cada um reenviando o texto inteiro) → e, se o texto parecesse difícil, uma **reescrita completa**. Resultado: meio minuto ou mais.
+
+Agora:
+
+- ✅ **Partes ao mesmo tempo:** o texto é escrito em 2 a 4 partes de ≈ 450 palavras (700 → 2, 1.200 → 3, 2.000 → 4), todas pedidas juntas; cada parte cobre um trecho do roteiro (no mergulho, um trecho seguido do artigo), então não se repetem. O tempo total fica perto do tempo de uma parte.
+- ✅ **Raciocínio baixo** (`thinkingLevel: low`): a primeira palavra chega mais cedo; se o modelo não aceitar o ajuste, o app segue sem ele.
+- ✅ **Simplificação só da parte difícil**, em paralelo — nunca o texto inteiro.
+- ✅ **Barra de progresso** (porcentagem, palavras, tempo e partes prontas).
+- ✅ **Opção “Rapidez” (Flash-Lite)** nas Configurações, também grátis.
+- ✅ Wikipédia: buscas em inglês e português em paralelo e artigo guardado na visita.
+
+Medição com um **Gemini simulado** (mesmo simulador para as duas versões: “pensa” ~4 s no nível médio e ~1 s no baixo, escreve ~75 palavras/s e para em ~600 palavras por resposta, como o modelo real costuma fazer). Não há chave de API no ambiente de desenvolvimento; com o Gemini real os números absolutos mudam, mas a proporção deve se manter:
+
+| Nível         | Versão 3.9.1          | Versão 3.10                      |
+| ------------- | --------------------- | -------------------------------- |
+| Iniciante     | 31,0 s (601 palavras) | 13,2 s (786 palavras)            |
+| Intermediário | 25,0 s (601 palavras) | 7,6 s (1.335 palavras, 3 partes) |
+| Fluente       | 25,1 s (601 palavras) | 9,2 s (2.196 palavras, 4 partes) |
+
+(Na 3.9.1 o simulador repete o texto ao “continuar”, e o app para — por isso os 601 palavras; com o modelo real ela faria mais rodadas e demoraria ainda mais.) No iniciante, o simulador escreve frases longas demais para o nível, o que dispara a simplificação das partes; com textos já no nível, fica perto do intermediário.
+
+**Limite do plano grátis:** cada texto usa de 2 a 4 pedidos simultâneos (mais um ou dois se precisar simplificar/continuar). Se o limite por minuto for atingido, a parte é tentada de novo depois de 1,5 s; se continuar falhando, o app mostra a mensagem do Gemini.
+
 ## 2. Avaliação de uso
 
 **Veredito:** é um bom app — bonito, rápido, grátis, funciona no celular e offline, e o ciclo “criar texto → kit de estudo → revisar no dia certo” é útil de verdade.
 
-| #   | Atrito observado                                                | Situação                                    |
-| --- | --------------------------------------------------------------- | ------------------------------------------- |
-| U1  | Os arquivos não traziam o significado do conteúdo               | ✅ Resolvido (K1: tradução no fim do PDF)   |
-| U2  | Textos gerados eram curtos (½ a 1 página)                       | ✅ Resolvido (K10)                          |
-| U3  | Muitas opções antes de começar                                  | ✅ Resolvido (K6)                           |
-| U4  | Listas de palavras incluíam palavras inúteis (“a”, “to”, “her”) | ✅ Resolvido (K3)                           |
-| U5  | PDF e MP3 eram gerados separadamente                            | ✅ Resolvido (K4)                           |
-| U6  | MP3 de textos longos é lento (minutos)                          | ⚠️ Melhorado (K7, seção 1.4); limite da voz |
-| U7  | Áudio com trechos baixos e “rompantes”                          | ✅ Resolvido (nivelamento, seção 1.4)       |
+| #   | Atrito observado                                                      | Situação                                    |
+| --- | --------------------------------------------------------------------- | ------------------------------------------- |
+| U1  | Os arquivos não traziam o significado do conteúdo                     | ✅ Resolvido (K1: tradução no fim do PDF)   |
+| U2  | Textos gerados eram curtos (½ a 1 página)                             | ✅ Resolvido (K10)                          |
+| U3  | Muitas opções antes de começar                                        | ✅ Resolvido (K6)                           |
+| U4  | Listas de palavras incluíam palavras inúteis (“a”, “to”, “her”)       | ✅ Resolvido (K3)                           |
+| U5  | PDF e MP3 eram gerados separadamente                                  | ✅ Resolvido (K4)                           |
+| U6  | MP3 de textos longos é lento (minutos)                                | ⚠️ Melhorado (K7, seção 1.4); limite da voz |
+| U7  | Áudio com trechos baixos e “rompantes”                                | ✅ Resolvido (nivelamento, seção 1.4)       |
+| U8  | Criar textos intermediários e fluentes demorava (meio minuto ou mais) | ✅ Resolvido (K12, seção 1.5)               |
 
 ## 3. Funcionalidades
 
@@ -73,6 +99,7 @@ Medições feitas com o Kokoro real no Edge (Windows):
 | K8  | Tradução nos flashcards e falada no MP3                                                                                                                                       | Removida na v3.6 |
 | K10 | **Tamanho pelo nível**: 700 / 1.200 / 2.000 palavras no mínimo, com continuação pela IA e complemento da Wikipédia                                                            | ✅ v3.6          |
 | K11 | **Backup que junta aparelhos**: contadores de textos/PDFs/MP3/kits criados, importação com "Juntar" (sem contar em dobro) ou "Substituir", lembrete de backup na tela inicial | ✅ v3.8          |
+| K12 | **Criação rápida**: texto escrito em partes ao mesmo tempo, raciocínio baixo, simplificação só da parte difícil, barra de progresso e opção Flash-Lite                        | ✅ v3.10         |
 
 **Biblioteca dentro do app:** descartada — o estudo acontece com os arquivos, e o fluxo “gerar o PDF → estudar → reabrir em Revisar arquivo” já atende.
 

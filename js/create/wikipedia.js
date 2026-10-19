@@ -97,16 +97,23 @@ export async function buscarArtigo(
   const destinos = [codigoWiki(idioma, nivel)];
   if (destinos[0] === 'simple') destinos.push('en'); // nem todo tema existe na Simple English
 
+  // Tema digitado em português: também é procurado na Wikipédia em português (para
+  // seguir o link interlíngua). Essa busca roda junto com a busca direta.
+  let buscaEmPortugues = null;
+  const procurarEmPortugues = () =>
+    (buscaEmPortugues ??= pesquisar('pt', termo, fetchFn, 1).then((r) => r[0]));
+
   for (const wiki of destinos) {
     const candidatos = [];
-    const diretos = await pesquisar(wiki, termo, fetchFn);
+    const [diretos, emPortugues] = await Promise.all([
+      pesquisar(wiki, termo, fetchFn),
+      wiki !== 'pt' ? procurarEmPortugues() : null,
+    ]);
     diretos.forEach((titulo, i) =>
       candidatos.push({ titulo, pontos: similaridade(termo, titulo) - i * 0.01 })
     );
 
-    // Tema digitado em português: procura na Wikipédia em português e segue o link interlíngua.
     if (wiki !== 'pt') {
-      const emPortugues = (await pesquisar('pt', termo, fetchFn, 1))[0];
       if (emPortugues) {
         const traduzido = await linkInterlingua('pt', emPortugues, wiki, fetchFn);
         if (traduzido)

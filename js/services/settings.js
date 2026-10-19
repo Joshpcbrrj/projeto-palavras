@@ -40,6 +40,7 @@ const PADRAO = Object.freeze({
   ignorarComuns: true, // tira "the", "a", "to"... das listas de palavras
   incluirTraducao: true, // tradução para o português no fim do PDF
   chaveGemini: '', // chave gratuita do Google Gemini (IA para criar textos)
+  velocidadeIA: 'qualidade', // 'qualidade' (Gemini Flash) ou 'rapidez' (Flash-Lite)
   nivelTexto: 'iniciante',
   mp3: { ...MP3_PADRAO },
 });
@@ -68,6 +69,7 @@ function normalizar(dados) {
   CAMPOS_MP3_REMOVIDOS.forEach((campo) => delete prefs.mp3[campo]);
   if (!IDIOMAS[prefs.idioma]) prefs.idioma = IDIOMA_PADRAO;
   if (!NIVEIS[prefs.nivelTexto]) prefs.nivelTexto = 'iniciante';
+  if (!['qualidade', 'rapidez'].includes(prefs.velocidadeIA)) prefs.velocidadeIA = 'qualidade';
   if (prefs.tema !== 'dark' && prefs.tema !== 'light') prefs.tema = null;
   return prefs;
 }

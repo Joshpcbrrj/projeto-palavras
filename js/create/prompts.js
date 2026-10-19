@@ -96,12 +96,80 @@ function montar(idioma, partes, maxTokens) {
 }
 
 /**
+ * Roteiro dos textos longos. Eles são escritos em partes, ao mesmo tempo; cada
+ * parte cobre um trecho do roteiro, para as partes não se repetirem.
+ */
+export const ROTEIRO_TEXTO = Object.freeze([
+  'what it is and why it matters today',
+  'its history and origin',
+  'how it works and its main ideas',
+  'examples from everyday life',
+  'advantages, problems and debates',
+  'the future, and a short conclusion',
+]);
+
+export const ROTEIRO_DIALOGO = Object.freeze([
+  'they meet, greet each other and the situation starts',
+  'they ask questions and share details and opinions',
+  'a small problem or surprise appears and they discuss what to do',
+  'they solve it, make a plan and say goodbye',
+]);
+
+/** Divide um roteiro em `total` grupos seguidos (ex.: 6 itens em 3 partes → 2 + 2 + 2). */
+export function dividirRoteiro(roteiro, total) {
+  return Array.from({ length: total }, (_, i) =>
+    roteiro.slice(
+      Math.floor((i * roteiro.length) / total),
+      Math.floor(((i + 1) * roteiro.length) / total)
+    )
+  ).map((grupo, i) => (grupo.length ? grupo : [roteiro[Math.min(i, roteiro.length - 1)]]));
+}
+
+/** Instruções de uma parte (k de N) de um texto escrito em partes. */
+function instrucoesParte(parte, formato) {
+  if (!parte || parte.total <= 1) return '';
+  const { indice, total, foco } = parte;
+  const primeira = indice === 1;
+  const ultima = indice === total;
+  if (formato === 'dialogo') {
+    return [
+      `This is part ${indice} of ${total} of one continuous conversation. In this part: ${foco}.`,
+      primeira
+        ? ''
+        : 'Continue the conversation directly: do not greet again and do not restart it.',
+      ultima
+        ? 'End the conversation naturally.'
+        : 'Do not end the conversation or say goodbye yet.',
+    ]
+      .filter(Boolean)
+      .join(' ');
+  }
+  return [
+    `This is part ${indice} of ${total} of one longer text. In this part, write only about: ${foco}.`,
+    primeira
+      ? 'Start with a short introduction to the topic.'
+      : 'Do not write an introduction or explain again what the topic is: the previous part already did that.',
+    ultima ? 'End with a short conclusion.' : 'Do not write a conclusion.',
+    'Start this part with a short section title on its own line.',
+  ].join(' ');
+}
+
+/**
  * Pedido para criar um diálogo sobre o tema. O tamanho vem do nível
  * (ou de `palavras`, se informado).
  * @param {{tema: string, idioma: string, nivel: string, palavras?: number,
- *   referencia?: {titulo: string, texto: string}, reforcado?: boolean}} opcoes
+ *   referencia?: {titulo: string, texto: string}, reforcado?: boolean,
+ *   parte?: {indice: number, total: number, foco: string}}} opcoes
  */
-export function promptDialogo({ tema, idioma, nivel, palavras, referencia, reforcado = false }) {
+export function promptDialogo({
+  tema,
+  idioma,
+  nivel,
+  palavras,
+  referencia,
+  parte,
+  reforcado = false,
+}) {
   const alvo = tamanhoDoNivel(nivel);
   const total = palavras ?? alvo.palavras;
   const falas = Math.max(4, Math.round((total / alvo.palavras) * alvo.falas));
@@ -109,10 +177,11 @@ export function promptDialogo({ tema, idioma, nivel, palavras, referencia, refor
     idioma,
     [
       blocoReferencia(referencia),
-      `Write a long, natural, realistic conversation between two people, Anna and Ben, about the topic ${descreverTema(tema, referencia)}.`,
+      `Write a natural, realistic conversation between two people, Anna and Ben, about the topic ${descreverTema(tema, referencia)}.`,
       `Language level: ${ORIENTACOES_NIVEL[nivel]}`,
-      `Length: at least ${total} words in total, in about ${falas} lines, alternating speakers, starting with Anna. Do not stop early.`,
+      `Length: about ${total} words, in about ${falas} lines, alternating speakers${parte?.indice > 1 ? '' : ', starting with Anna'}. Do not stop early.`,
       'Make it useful for a learner: an everyday situation that develops step by step, questions and answers, opinions, small problems and how they are solved, and many useful expressions. Do not repeat the same idea.',
+      instrucoesParte(parte, 'dialogo'),
       referencia
         ? 'Keep the conversation focused on the topic above; use the reference only for a few interesting facts.'
         : '',
@@ -123,8 +192,16 @@ export function promptDialogo({ tema, idioma, nivel, palavras, referencia, refor
   );
 }
 
-/** Pedido para criar um texto explicativo no nível escolhido. */
-export function promptTextoNivel({ tema, idioma, nivel, palavras, referencia, reforcado = false }) {
+/** Pedido para criar um texto explicativo no nível escolhido (ou uma parte dele). */
+export function promptTextoNivel({
+  tema,
+  idioma,
+  nivel,
+  palavras,
+  referencia,
+  parte,
+  reforcado = false,
+}) {
   const total = palavras ?? tamanhoDoNivel(nivel).palavras;
   return montar(
     idioma,
@@ -132,7 +209,10 @@ export function promptTextoNivel({ tema, idioma, nivel, palavras, referencia, re
       blocoReferencia(referencia),
       `Write an interesting, informative study text about the topic ${descreverTema(tema, referencia)}.`,
       `Language level: ${ORIENTACOES_NIVEL[nivel]}`,
-      `Length: at least ${total} words. Do not stop early. Cover the topic in depth: what it is, its history or origin, how it works, examples from everyday life, advantages and problems, and the future.`,
+      parte?.total > 1
+        ? `Length: about ${total} words. Do not stop early.`
+        : `Length: at least ${total} words. Do not stop early. Cover the topic in depth: what it is, its history or origin, how it works, examples from everyday life, advantages and problems, and the future.`,
+      instrucoesParte(parte, 'texto'),
       'Organize the text in short paragraphs separated by a blank line. Every few paragraphs, add a short section title on its own line (plain text, no markdown, no numbers). Do not repeat sentences or ideas.',
       'Do not use bullet points or numbered lists. Do not quote words from other languages.',
       lembreteIdioma(idioma, reforcado),
@@ -141,13 +221,14 @@ export function promptTextoNivel({ tema, idioma, nivel, palavras, referencia, re
   );
 }
 
-/** Pedido para reescrever um artigo (mergulho no tema) no nível escolhido. */
+/** Pedido para reescrever um artigo (mergulho no tema) — ou uma parte dele — no nível escolhido. */
 export function promptAdaptarArtigo({
   titulo,
   texto,
   idioma,
   nivel,
   palavras,
+  parte,
   reforcado = false,
   retorno = '',
 }) {
@@ -156,7 +237,9 @@ export function promptAdaptarArtigo({
     idioma,
     [
       retorno,
-      `Rewrite the following article about "${titulo}" as a study text for a language learner.`,
+      parte?.total > 1
+        ? `Rewrite the following part (${parte.indice} of ${parte.total}) of an article about "${titulo}" as a study text for a language learner. Rewrite only this part, in the same order.${parte.indice > 1 ? ' Do not write an introduction.' : ''}${parte.indice < parte.total ? ' Do not write a conclusion.' : ''}`
+        : `Rewrite the following article about "${titulo}" as a study text for a language learner.`,
       `Language level: ${ORIENTACOES_NIVEL[nivel]}`,
       `Keep the important facts, the origin/history and the main ideas. Keep the section titles on their own lines (plain text). Length: at least ${total} words — if the article is short, explain the ideas in more detail with examples from everyday life, using what you know about the topic.`,
       '"""',

@@ -10,9 +10,13 @@
  */
 
 import { IDIOMAS, NIVEIS } from '../config.js';
-import { contarPalavras } from '../text/extract.js';
+import { esperar } from '../core/utils.js';
+import { contarPalavras, pareceTitulo } from '../text/extract.js';
 import { analisarTexto, tamanhoDoNivel } from './levels.js';
 import {
+  ROTEIRO_DIALOGO,
+  ROTEIRO_TEXTO,
+  dividirRoteiro,
   limparResposta,
   pareceIdioma,
   promptAdaptarArtigo,
@@ -32,8 +36,28 @@ export const MODOS = Object.freeze({
 const FRACAO_MINIMA = 1;
 /** Ao continuar um texto, pede pelo menos isto (pedidos muito pequenos rendem pouco). */
 const MIN_PALAVRAS_CONTINUACAO = 150;
-/** Quantas vezes, no máximo, a IA é chamada para continuar um texto curto. */
-const MAX_CONTINUACOES = 3;
+/**
+ * Quantas vezes, no máximo, a IA é chamada para continuar um texto curto. Com o
+ * texto escrito em partes, isso raramente é necessário.
+ */
+const MAX_CONTINUACOES = 2;
+/** Textos longos são escritos em partes de ≈ 450 palavras, todas ao mesmo tempo. */
+const PALAVRAS_POR_PARTE = 450;
+/** No máximo 4 pedidos simultâneos (o plano grátis limita os pedidos por minuto). */
+const MAX_PARTES = 4;
+/** Cada parte pede 10% a mais, para o total chegar ao mínimo sem precisar continuar. */
+const FOLGA_PARTES = 1.1;
+const ESPERA_NOVA_TENTATIVA_MS = 1500;
+
+/** Em quantas partes o texto é escrito: 700 → 2, 1200 → 3, 2000 → 4. */
+export function quantasPartes(palavras) {
+  return Math.max(1, Math.min(MAX_PARTES, Math.round(palavras / PALAVRAS_POR_PARTE)));
+}
+
+/** Palavras pedidas a cada parte (com folga). */
+export function palavrasPorParte(palavras, partes) {
+  return Math.ceil((palavras * FOLGA_PARTES) / partes / 10) * 10;
+}
 /** Referência (fatos de apoio) para diálogos e textos por nível. */
 const PALAVRAS_REFERENCIA = 900;
 /** Teto do artigo enviado à IA para adaptação. */
@@ -50,6 +74,33 @@ function fonteWikipedia(referencia) {
     fonte.titulo = `${referencia.titulo} (Simple English) e ${referencia.complemento.titulo} (English)`;
   }
   return fonte;
+}
+
+/**
+ * Artigos já buscados nesta visita: "Gerar de novo" sobre o mesmo tema não
+ * consulta a Wikipédia outra vez.
+ */
+const cacheReferencias = new Map();
+const LIMITE_CACHE_REFERENCIAS = 20;
+
+/** Somente para testes. */
+export function _limparCacheReferencias() {
+  cacheReferencias.clear();
+}
+
+async function buscarReferenciaComCache(opcoes, usarCache) {
+  if (!usarCache) return buscarReferencia(opcoes);
+  const chave = [opcoes.tema.toLowerCase(), opcoes.idioma, opcoes.nivel, opcoes.palavras].join('|');
+  if (cacheReferencias.has(chave)) {
+    opcoes.aoEtapa?.('Usando o artigo da Wikipédia já encontrado…');
+    return cacheReferencias.get(chave);
+  }
+  const referencia = await buscarReferencia(opcoes);
+  cacheReferencias.set(chave, referencia);
+  if (cacheReferencias.size > LIMITE_CACHE_REFERENCIAS) {
+    cacheReferencias.delete(cacheReferencias.keys().next().value);
+  }
+  return referencia;
 }
 
 /**
@@ -122,7 +173,7 @@ export async function criarTexto({
   usarWikipedia = true,
   usarIA = true,
   ia,
-  fetchFn = globalThis.fetch?.bind(globalThis),
+  fetchFn,
   aoEtapa,
   aoTexto,
   signal,
@@ -132,6 +183,9 @@ export async function criarTexto({
   if (!NIVEIS[nivel]) throw new Error('Nível inválido.');
   const iaDisponivel = Boolean(usarIA && ia);
   const alvo = palavras ?? tamanhoDoNivel(nivel).palavras;
+  // Com o `fetch` do navegador, os artigos ficam guardados durante a visita.
+  const usarCache = !fetchFn;
+  const buscar = fetchFn ?? globalThis.fetch?.bind(globalThis);
   const completar = (texto, formato) =>
     garantirTamanho({
       ia,
@@ -146,38 +200,47 @@ export async function criarTexto({
     });
 
   if (modo === MODOS.MERGULHO) {
-    const artigo = await buscarReferencia({
-      tema: assunto,
-      idioma,
-      nivel,
-      fetchFn,
-      aoEtapa,
-      // A IA recebe mais material do que vai escrever, para não precisar inventar.
-      palavras: iaDisponivel ? Math.min(MAX_PALAVRAS_ARTIGO, Math.round(alvo * 1.3)) : alvo,
-    });
+    const artigo = await buscarReferenciaComCache(
+      {
+        tema: assunto,
+        idioma,
+        nivel,
+        fetchFn: buscar,
+        aoEtapa,
+        // A IA recebe mais material do que vai escrever, para não precisar inventar.
+        palavras: iaDisponivel ? Math.min(MAX_PALAVRAS_ARTIGO, Math.round(alvo * 1.3)) : alvo,
+      },
+      usarCache
+    );
     let texto = artigo.texto;
     let aviso = '';
     if (iaDisponivel) {
-      aoEtapa?.(`Adaptando o conteúdo para o nível ${NIVEIS[nivel].nome.toLowerCase()}…`);
+      // O artigo é dividido em trechos seguidos, adaptados ao mesmo tempo.
+      const trechos = dividirEmTrechos(artigo.texto, quantasPartes(alvo));
+      aoEtapa?.(
+        `Adaptando o conteúdo para o nível ${NIVEIS[nivel].nome.toLowerCase()}${trechos.length > 1 ? ` (${trechos.length} partes ao mesmo tempo)` : ''}…`
+      );
       try {
-        texto = await gerarNoIdioma({
+        const partes = await escreverEmPartes({
           ia,
           idioma,
           formato: 'texto',
-          construir: (reforcado) =>
+          total: trechos.length,
+          construir: (parte, reforcado) =>
             promptAdaptarArtigo({
               titulo: artigo.titulo,
-              texto: artigo.texto,
+              texto: trechos[parte.indice - 1],
               idioma,
               nivel,
-              palavras: alvo,
+              palavras: palavrasPorParte(alvo, trechos.length),
+              parte,
               reforcado,
             }),
           aoTexto,
           aoEtapa,
           signal,
         });
-        texto = await completar(texto, 'texto');
+        texto = await completar(partes.join('\n\n'), 'texto');
       } catch (erro) {
         if (erro?.name === 'AbortError') throw erro;
         aoEtapa?.('Não foi possível adaptar; mostrando o artigo original.');
@@ -210,15 +273,18 @@ export async function criarTexto({
       // Para iniciante e intermediário, a referência vem da Simple English Wikipedia:
       // artigos complexos levam modelos pequenos a escrever acima do nível pedido.
       const nivelReferencia = nivel === 'fluente' ? 'fluente' : 'iniciante';
-      referencia = await buscarReferencia({
-        tema: assunto,
-        idioma,
-        nivel: nivelReferencia,
-        fetchFn,
-        aoEtapa,
-        // Sem IA, o próprio artigo vira o texto; com IA, é só a base de fatos.
-        palavras: iaDisponivel ? PALAVRAS_REFERENCIA : alvo,
-      });
+      referencia = await buscarReferenciaComCache(
+        {
+          tema: assunto,
+          idioma,
+          nivel: nivelReferencia,
+          fetchFn: buscar,
+          aoEtapa,
+          // Sem IA, o próprio artigo vira o texto; com IA, é só a base de fatos.
+          palavras: iaDisponivel ? PALAVRAS_REFERENCIA : alvo,
+        },
+        usarCache
+      );
     } catch (erro) {
       // Sem Wikipédia (offline ou tema não encontrado): a IA escreve sozinha.
       aoEtapa?.(`${erro.message} Continuando só com a IA…`);
@@ -245,41 +311,58 @@ export async function criarTexto({
     );
   }
 
-  aoEtapa?.(modo === MODOS.DIALOGO ? 'Escrevendo o diálogo…' : 'Escrevendo o texto…');
-  const opcoes = { tema: assunto, idioma, nivel, palavras: alvo, referencia };
-  const formato = modo === MODOS.DIALOGO ? 'dialogo' : 'texto';
-  let texto = await gerarNoIdioma({
+  const dialogo = modo === MODOS.DIALOGO;
+  const formato = dialogo ? 'dialogo' : 'texto';
+  const total = quantasPartes(alvo);
+  const focos = dividirRoteiro(dialogo ? ROTEIRO_DIALOGO : ROTEIRO_TEXTO, total).map((g) =>
+    g.join('; ')
+  );
+  aoEtapa?.(
+    `${dialogo ? 'Escrevendo o diálogo' : 'Escrevendo o texto'}${total > 1 ? ` em ${total} partes ao mesmo tempo` : ''}…`
+  );
+  const opcoes = {
+    tema: assunto,
+    idioma,
+    nivel,
+    palavras: palavrasPorParte(alvo, total),
+    referencia,
+  };
+  let partes = await escreverEmPartes({
     ia,
     idioma,
     formato,
-    temperatura: modo === MODOS.DIALOGO ? 0.8 : 0.7,
-    construir: (reforcado) =>
-      modo === MODOS.DIALOGO
-        ? promptDialogo({ ...opcoes, reforcado })
-        : promptTextoNivel({ ...opcoes, reforcado }),
+    total,
+    temperatura: dialogo ? 0.8 : 0.7,
+    construir: (parte, reforcado) => {
+      const comFoco = { ...parte, foco: focos[parte.indice - 1] };
+      return dialogo
+        ? promptDialogo({ ...opcoes, parte: comFoco, reforcado })
+        : promptTextoNivel({ ...opcoes, parte: comFoco, reforcado });
+    },
     aoTexto,
     aoEtapa,
     signal,
   });
-  if (modo === MODOS.DIALOGO && texto.split('\n').length < 4) {
+  const separador = dialogo ? '\n' : '\n\n';
+  if (dialogo && partes.join('\n').split('\n').length < 4) {
     throw new Error('A IA não conseguiu montar um diálogo válido. Tente de novo.');
   }
-  if (!texto.trim()) throw new Error('A IA não gerou texto. Tente novamente.');
+  if (!partes.join('').trim()) throw new Error('A IA não gerou texto. Tente novamente.');
 
   if (modo === MODOS.NIVEL) {
-    texto = await simplificarSeNecessario({
+    partes = await simplificarPartes({
       ia,
-      texto,
+      partes,
       tema: assunto,
       idioma,
       nivel,
-      palavras: alvo,
-      aoTexto,
+      palavras: opcoes.palavras,
+      aoTexto: (juntas) => aoTexto?.(juntas),
       aoEtapa,
       signal,
     });
   }
-  texto = await completar(texto, formato);
+  const texto = await completar(partes.join(separador), formato);
 
   const prefixo = modo === MODOS.DIALOGO ? 'Diálogo' : 'Texto';
   return resultado({
@@ -330,17 +413,108 @@ async function gerarNoIdioma({
   );
 }
 
+/**
+ * Escreve um texto em `total` partes AO MESMO TEMPO (uma chamada à IA por parte).
+ * O tempo total fica perto do tempo de uma parte só — bem menos que escrever tudo
+ * num pedido e depois pedir para continuar várias vezes. Cada parte aparece na tela
+ * enquanto é escrita, já na ordem certa.
+ * @param {object} opcoes
+ * @param {(parte: {indice: number, total: number}, reforcado: boolean) => object} opcoes.construir
+ * @returns {Promise<string[]>} o texto de cada parte, na ordem
+ */
+async function escreverEmPartes({
+  ia,
+  idioma,
+  formato,
+  total,
+  construir,
+  temperatura = 0.7,
+  aoTexto,
+  aoEtapa,
+  signal,
+}) {
+  const separador = formato === 'dialogo' ? '\n' : '\n\n';
+  const textos = Array.from({ length: total }, () => '');
+  const mostrar = () => aoTexto?.(textos.filter(Boolean).join(separador));
+  let prontas = 0;
+
+  const escreverParte = async (indice) => {
+    const gerar = () =>
+      gerarNoIdioma({
+        ia,
+        idioma,
+        formato,
+        temperatura,
+        construir: (reforcado) => construir({ indice, total }, reforcado),
+        aoTexto: (parcial) => {
+          textos[indice - 1] = parcial;
+          mostrar();
+        },
+        aoEtapa,
+        signal,
+      });
+    try {
+      textos[indice - 1] = await gerar();
+    } catch (erro) {
+      if (erro?.name === 'AbortError' || signal?.aborted) throw erro;
+      // Uma nova tentativa (ex.: limite de pedidos por minuto do plano grátis).
+      await esperar(ESPERA_NOVA_TENTATIVA_MS, signal);
+      textos[indice - 1] = await gerar();
+    }
+    mostrar();
+    prontas++;
+    if (total > 1 && prontas < total) aoEtapa?.(`${prontas} de ${total} partes prontas…`);
+  };
+
+  await Promise.all(Array.from({ length: total }, (_, i) => escreverParte(i + 1)));
+  return textos;
+}
+
+/** Divide um artigo em `total` trechos seguidos, de tamanho parecido (títulos ficam com o parágrafo seguinte). */
+export function dividirEmTrechos(texto, total) {
+  const blocos = String(texto)
+    .split(/\n{2,}/)
+    .map((b) => b.trim())
+    .filter(Boolean);
+  // Junta cada título ao parágrafo que vem depois dele.
+  const paragrafos = [];
+  for (const bloco of blocos) {
+    const anterior = paragrafos.at(-1);
+    if (anterior && pareceTitulo(anterior) && !anterior.includes('\n')) {
+      paragrafos[paragrafos.length - 1] = `${anterior}\n\n${bloco}`;
+    } else paragrafos.push(bloco);
+  }
+  const partes = Math.max(1, Math.min(total, paragrafos.length));
+  const alvo = contarPalavras(texto) / partes;
+  const trechos = [];
+  let atual = [];
+  let palavras = 0;
+  for (const [i, paragrafo] of paragrafos.entries()) {
+    atual.push(paragrafo);
+    palavras += contarPalavras(paragrafo);
+    const restantes = paragrafos.length - i - 1;
+    const faltamTrechos = partes - trechos.length - 1;
+    if (faltamTrechos > 0 && (palavras >= alvo || restantes === faltamTrechos)) {
+      trechos.push(atual.join('\n\n'));
+      atual = [];
+      palavras = 0;
+    }
+  }
+  if (atual.length) trechos.push(atual.join('\n\n'));
+  return trechos;
+}
+
 const ORDEM_NIVEL = { iniciante: 0, intermediario: 1, fluente: 2 };
 const MAX_PALAVRAS_FRASE = { iniciante: 10, intermediario: 16 };
 
 /**
- * Modelos pequenos costumam escrever acima do nível pedido. Se a métrica de
- * legibilidade indicar isso, pede uma reescrita mais simples (uma vez) e fica
- * com a versão que estiver mais próxima do nível.
+ * A IA às vezes escreve acima do nível pedido. Só as partes que ficaram difíceis
+ * demais (pela métrica de legibilidade) são reescritas, ao mesmo tempo — nunca o
+ * texto inteiro —, e fica a versão mais fácil de cada uma.
  */
-async function simplificarSeNecessario({
+async function simplificarPartes({
   ia,
-  texto,
+  partes,
   tema,
   idioma,
   nivel,
@@ -349,34 +523,49 @@ async function simplificarSeNecessario({
   aoEtapa,
   signal,
 }) {
-  if (!String(idioma).startsWith('en') || !(nivel in MAX_PALAVRAS_FRASE)) return texto;
-  const antes = analisarTexto(texto);
-  if (ORDEM_NIVEL[antes.nivelEstimado] <= ORDEM_NIVEL[nivel]) return texto;
+  if (!String(idioma).startsWith('en') || !(nivel in MAX_PALAVRAS_FRASE)) return partes;
+  const analises = partes.map((p) => analisarTexto(p));
+  const dificeis = analises
+    .map((a, i) => (ORDEM_NIVEL[a.nivelEstimado] > ORDEM_NIVEL[nivel] ? i : -1))
+    .filter((i) => i >= 0);
+  if (!dificeis.length) return partes;
 
-  aoEtapa?.('O texto ficou difícil demais para o nível escolhido. Simplificando…');
-  const pedido = promptAdaptarArtigo({
-    titulo: tema,
-    texto,
-    idioma,
-    nivel,
-    palavras,
-    retorno: `The previous version was too difficult (about ${Math.round(antes.palavrasPorFrase)} words per sentence). Use sentences of at most ${MAX_PALAVRAS_FRASE[nivel]} words and only common words.`,
-  });
-  try {
-    const resposta = await ia.gerar({
-      mensagens: pedido.mensagens,
-      maxTokens: pedido.maxTokens,
-      temperatura: 0.5,
-      aoTexto,
-      signal,
-    });
-    const simplificado = limparResposta(resposta, 'texto');
-    if (!simplificado || !pareceIdioma(simplificado, idioma)) return texto;
-    return analisarTexto(simplificado).facilidade > antes.facilidade ? simplificado : texto;
-  } catch (erro) {
-    if (erro?.name === 'AbortError') throw erro;
-    return texto;
-  }
+  aoEtapa?.(
+    dificeis.length === 1 && partes.length > 1
+      ? 'Uma parte ficou difícil demais para o nível. Simplificando só ela…'
+      : 'O texto ficou difícil demais para o nível escolhido. Simplificando…'
+  );
+  const resultado = [...partes];
+  await Promise.all(
+    dificeis.map(async (i) => {
+      const pedido = promptAdaptarArtigo({
+        titulo: tema,
+        texto: partes[i],
+        idioma,
+        nivel,
+        palavras,
+        parte: { indice: i + 1, total: partes.length },
+        retorno: `The previous version was too difficult (about ${Math.round(analises[i].palavrasPorFrase)} words per sentence). Use sentences of at most ${MAX_PALAVRAS_FRASE[nivel]} words and only common words.`,
+      });
+      try {
+        const resposta = await ia.gerar({
+          mensagens: pedido.mensagens,
+          maxTokens: pedido.maxTokens,
+          temperatura: 0.5,
+          signal,
+        });
+        const simplificado = limparResposta(resposta, 'texto');
+        if (!simplificado || !pareceIdioma(simplificado, idioma)) return;
+        if (analisarTexto(simplificado).facilidade > analises[i].facilidade) {
+          resultado[i] = simplificado;
+          aoTexto?.(resultado.join('\n\n'));
+        }
+      } catch (erro) {
+        if (erro?.name === 'AbortError') throw erro;
+      }
+    })
+  );
+  return resultado;
 }
 
 /**

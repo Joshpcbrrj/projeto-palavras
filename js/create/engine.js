@@ -4,11 +4,14 @@
  */
 
 import { settings } from '../services/settings.js';
-import { GeminiMotor } from './gemini.js';
+import { GeminiMotor, MODELOS } from './gemini.js';
 
 /** Motor de IA pronto para uso, ou null se a chave ainda não foi configurada. */
 export function obterMotorIA() {
-  const gemini = new GeminiMotor({ chave: settings.get('chaveGemini') });
+  const gemini = new GeminiMotor({
+    chave: settings.get('chaveGemini'),
+    modelo: MODELOS[settings.get('velocidadeIA')] || MODELOS.qualidade,
+  });
   return gemini.pronto ? gemini : null;
 }
 
