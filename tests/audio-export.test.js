@@ -55,18 +55,6 @@ describe('planejamento do áudio', () => {
     expect(plano.map((s) => s.texto)).toEqual(['Number 1. cat', 'Number 2. dog']);
   });
 
-  test('tradução falada depois do item (e das repetições)', () => {
-    const plano = planejarAudio(
-      { tipo: 'palavras', itens: ['window'] },
-      { repeticoes: 2, pausaMs: 1500, traducoes: new Map([['window', 'janela']]) }
-    );
-    expect(plano.map((s) => [s.texto, s.pausaDepoisMs])).toEqual([
-      ['window', 500],
-      ['window', 600],
-      ['janela', 1500],
-    ]);
-  });
-
   test('diálogo: uma voz por pessoa e sem ler o nome', () => {
     const plano = planejarAudio({
       tipo: 'texto',

@@ -100,8 +100,6 @@ export function validarPacote(dados) {
   const fonte = validarFonte(dados.fonte);
   if (fonte) pacote.fonte = fonte;
   if (NIVEIS[dados.nivel]) pacote.nivel = dados.nivel;
-  const glossario = validarGlossario(dados.glossario);
-  if (glossario.length) pacote.glossario = glossario;
 
   if (pacote.tipo === TIPOS.TEXTO) {
     pacote.texto = String(dados.texto || '');
@@ -113,22 +111,6 @@ export function validarPacote(dados) {
     if (!pacote.itens.length) return null;
   }
   return pacote;
-}
-
-/** Glossário com tradução: lista de { termo, traducao }. */
-function validarGlossario(glossario) {
-  if (!Array.isArray(glossario)) return [];
-  return glossario
-    .map((g) => ({
-      termo: String(g?.termo ?? '')
-        .trim()
-        .slice(0, 200),
-      traducao: String(g?.traducao ?? '')
-        .trim()
-        .slice(0, 200),
-    }))
-    .filter((g) => g.termo && g.traducao)
-    .slice(0, 500);
 }
 
 /** Fonte do conteúdo (ex.: artigo da Wikipédia), necessária para a atribuição exigida pela licença. */
@@ -163,7 +145,6 @@ export function criarPacote({
   criadoEm,
   fonte,
   nivel,
-  glossario,
 }) {
   return validarPacote({
     app: APP.id,
@@ -177,7 +158,6 @@ export function criarPacote({
     texto,
     fonte,
     nivel,
-    glossario,
     // `null` significa "não agendar"; sem o campo, agenda a primeira revisão.
     revisao: revisao === undefined ? criarRevisao() : revisao,
   });

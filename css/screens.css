@@ -267,15 +267,6 @@
   max-width: 100%;
 }
 
-.flashcard__traducao {
-  margin-top: -0.75rem;
-  font-size: clamp(1.05rem, 3.5vw, 1.35rem);
-  font-weight: 600;
-  opacity: 0.85;
-  max-width: 100%;
-  overflow-wrap: anywhere;
-}
-
 .flashcard__texto[data-tamanho='g'] {
   font-size: clamp(2.4rem, 9vw, 4.2rem);
 }
@@ -568,13 +559,6 @@
 .material__texto {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-}
-
-.material__glossario {
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--borda);
-  line-height: 1.7;
 }
 
 .material__itens {

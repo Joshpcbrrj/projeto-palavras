@@ -28,9 +28,6 @@ O Base64 mantém o campo em ASCII puro, então acentos e escritas não latinas s
     "url": "https://simple.wikipedia.org/wiki/Economics",
     "licenca": "CC BY-SA 4.0"
   },
-  "glossario": [                  // opcional: tradução para o português
-    { "termo": "apple", "traducao": "maçã" }
-  ],
   "revisao": {                    // opcional
     "etapa": 1,                   // posição em [1, 3, 7, 14, 30, 60] dias
     "intervaloDias": 3,
@@ -60,7 +57,8 @@ Implementação: [`js/pdf/format.js`](../js/pdf/format.js). O mesmo pacote é us
 
 - Cabeçalho com título, tipo e idioma; faixa com data de geração, quantidade e data de revisão.
 - Palavras em três colunas, frases numeradas, ou o texto em parágrafos.
-- Com `glossario`: palavras passam a duas colunas, com a tradução abaixo de cada uma; frases mostram a tradução embaixo; textos ganham a seção “Glossário” no fim.
+- Nos textos, linhas curtas sem pontuação final (títulos de seção) aparecem em destaque.
+- PDFs das versões 3.3 a 3.5 podem ter um campo `glossario` (tradução); ele é ignorado na leitura.
 - Quando o conteúdo tem `fonte`, uma linha de atribuição (com link) aparece após o texto.
 - Rodapé com número de página e instruções de revisão.
 - As fontes padrão do PDF cobrem apenas o Latin-1. Textos com outros caracteres (cirílico, CJK…) são desenhados como imagem via canvas com as fontes do sistema; os dados exatos continuam no pacote.

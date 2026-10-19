@@ -4,46 +4,8 @@
 
 import { html, render } from '../core/dom.js';
 import { exportarMaterialPdf, nomeBaseKit } from '../services/export.js';
-import { settings } from '../services/settings.js';
-import { alternador } from './components.js';
 import { abrirExportacaoMp3 } from './mp3Dialog.js';
 import { toast } from './toast.js';
-
-/** O material precisa de tradução? (não faz sentido traduzir português para português) */
-export function precisaTraducao(idioma) {
-  return !String(idioma || '').startsWith('pt');
-}
-
-/** Alternador "Incluir tradução" (oculto para material em português). */
-export function alternadorTraducao(idioma) {
-  return html`<div class="area-traducao" ${precisaTraducao(idioma) ? '' : html`hidden`}>
-    ${alternador({
-      id: 'incluirTraducao',
-      rotulo: 'Incluir tradução para o português',
-      ajuda:
-        'O PDF ganha a tradução de cada item (ou um glossário, nos textos) para estudar sem o app. Usa o Gemini, se configurado, ou o tradutor do Chrome/Edge.',
-      marcado: settings.get('incluirTraducao'),
-    })}
-  </div>`;
-}
-
-/** Mostra ou oculta o alternador quando o idioma do material muda. */
-export function atualizarAlternadorTraducao(raiz, idioma) {
-  const area = raiz.querySelector('.area-traducao');
-  if (area) area.hidden = !precisaTraducao(idioma);
-}
-
-/** Salva a preferência quando o alternador muda. */
-export function ligarAlternadorTraducao(raiz) {
-  raiz.querySelector('#incluirTraducao')?.addEventListener('change', (e) => {
-    settings.set('incluirTraducao', e.target.checked);
-  });
-}
-
-function avisar(resultado) {
-  if (resultado.aviso) toast.aviso(resultado.aviso);
-  toast.sucesso(`PDF gerado: ${resultado.nome}`);
-}
 
 /**
  * Gera o PDF mostrando o progresso no botão.
@@ -55,7 +17,7 @@ export async function exportarPdfComBotao(botao, dados) {
   render(botao, html`<span class="carregando" aria-hidden="true"></span> Gerando PDF…`);
   try {
     const resultado = await exportarMaterialPdf(dados);
-    avisar(resultado);
+    toast.sucesso(`PDF gerado: ${resultado.nome}`);
     return resultado;
   } catch (erro) {
     console.error(erro);
@@ -80,7 +42,7 @@ export function abrirKit(dados, { aoGerarPdf } = {}) {
       nomeBase,
       async gerarPdf() {
         const resultado = await exportarMaterialPdf(dados, { nomeArquivo: `${nomeBase}.pdf` });
-        avisar(resultado);
+        toast.sucesso(`PDF gerado: ${resultado.nome}`);
         aoGerarPdf?.(resultado);
         return resultado;
       },

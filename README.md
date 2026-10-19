@@ -43,7 +43,7 @@
 | 🔊 **Pronúncia automática**            | Cada item é falado ao aparecer, com repetição de 1× a 3×, velocidade ajustável e escolha da voz.                                                                                                                                                                  |
 | ⏯️ **Controle total do estudo**        | Pausar, voltar, avançar e ouvir de novo — com atalhos de teclado.                                                                                                                                                                                                 |
 | 🎧 **Leitura de textos**               | O texto é lido frase a frase com destaque na tela; clique em qualquer frase para ouvir a partir dela, repita a frase atual ou adicione pausas.                                                                                                                    |
-| 📦 **Kit de estudo**                   | PDF + MP3 com um clique, com o mesmo nome de arquivo. O PDF pode trazer a **tradução para o português** de cada palavra/frase (ou um glossário, nos textos), para estudar sem o app.                                                                              |
+| 📦 **Kit de estudo**                   | PDF + MP3 com um clique, com o mesmo nome de arquivo — só o conteúdo (texto, frases ou palavras), direto e simples para estudar sem o app.                                                                                                                        |
 | 📄 **PDFs revisáveis**                 | Os PDFs exportados guardam os dados exatos do estudo e a data da próxima revisão. Abra-os depois em “Revisar arquivo” para continuar.                                                                                                                             |
 | 🗓️ **Revisão espaçada**                | Cada revisão concluída agenda a próxima (1 → 3 → 7 → 14 → 30 → 60 dias). Revisões pendentes aparecem na tela inicial.                                                                                                                                             |
 | 📈 **Progresso**                       | Sessões, tempo de estudo, palavras mais estudadas, dias seguidos e backup em JSON.                                                                                                                                                                                |
@@ -78,8 +78,8 @@
    | <kbd>Enter</kbd>          | Ouvir de novo           |
    | <kbd>Esc</kbd>            | Encerrar                |
 
-4. **Ao terminar** — baixe o **kit de estudo** (PDF + MP3) ou só um deles, escolhendo quando quer revisar e se o PDF terá a tradução para o português. O progresso da sessão é salvo automaticamente.
-5. **Revisar** — no dia marcado, abra **Revisar arquivo**, selecione o PDF e clique em **Estudar** (ou **Ouvir**, para textos). Se o PDF tiver tradução, ela aparece abaixo de cada flashcard. Pode selecionar a pasta do kit inteira: os MP3 são ignorados, pois o PDF já guarda tudo. Vários PDFs do mesmo tipo e idioma podem ser combinados num único estudo.
+4. **Ao terminar** — baixe o **kit de estudo** (PDF + MP3) ou só um deles, escolhendo quando quer revisar. O progresso da sessão é salvo automaticamente.
+5. **Revisar** — no dia marcado, abra **Revisar arquivo**, selecione o PDF e clique em **Estudar** (ou **Ouvir**, para textos). Pode selecionar a pasta do kit inteira: os MP3 são ignorados, pois o PDF já guarda tudo. Vários PDFs do mesmo tipo e idioma podem ser combinados num único estudo.
 6. **Ler e ouvir um texto** — cole o texto, vá para a aba **Ouvir** e acompanhe o destaque. Dali você também pode exportar o MP3 ou transformar o texto em flashcards.
 7. **Configurações** (⚙️ no topo) — idioma de estudo, tema, chave do Gemini e vozes do MP3.
 
@@ -87,7 +87,7 @@
 
 Cada PDF tem duas camadas:
 
-- **O que você vê** — um layout limpo para ler e imprimir (palavras em colunas, frases numeradas ou o texto completo), com a data da próxima revisão e, opcionalmente, a tradução para o português.
+- **O que você vê** — um layout limpo para ler e imprimir (palavras em colunas, frases numeradas ou o texto completo), com a data da próxima revisão. Textos longos têm os títulos de seção em destaque.
 - **O que o app lê** — um pacote com os dados exatos (itens, idioma, título e agenda de revisão) guardado nas propriedades do documento. Assim a revisão não depende de “adivinhar” o conteúdo a partir do texto do PDF.
 
 <details>
@@ -99,22 +99,26 @@ PDFs gerados pelas **versões anteriores** do app continuam funcionando: o conte
 
 ## Criar textos
 
-| Modo                 | Precisa de IA?              | Como funciona                                                                                                         |
-| -------------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| 💬 Diálogo           | Sim                         | A IA escreve uma conversa entre duas pessoas sobre o tema, no nível escolhido.                                        |
-| 🌍 Mergulhar no tema | Não (opcional para adaptar) | Busca o artigo na Wikipédia (Simple English para iniciantes) e entrega de ½ a 2 páginas, com atribuição da fonte.     |
-| 📶 Por nível         | Não (melhor com IA)         | Com IA, escreve o texto no nível pedido e simplifica se ficar difícil; sem IA, usa a Wikipédia do nível mais próximo. |
+| Modo                 | Precisa de IA?              | Como funciona                                                                                                                     |
+| -------------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| 💬 Diálogo           | Sim                         | A IA escreve uma conversa entre duas pessoas sobre o tema, no nível escolhido.                                                    |
+| 🌍 Mergulhar no tema | Não (opcional para adaptar) | Busca o artigo na Wikipédia (Simple English para iniciantes) no tamanho do nível (700 a 2.000 palavras), com atribuição da fonte. |
+| 📶 Por nível         | Não (melhor com IA)         | Com IA, escreve o texto no nível pedido e simplifica se ficar difícil; sem IA, usa a Wikipédia do nível mais próximo.             |
 
 A IA é o **Google Gemini**: crie uma chave gratuita no [Google AI Studio](https://aistudio.google.com/app/apikey) (leva 1 minuto, só precisa de uma conta Google, sem cartão de crédito) e cole no painel da tela de criação — o painel traz um **passo a passo ilustrado**, um botão **Colar** e testa a chave na hora, explicando o problema se ela não funcionar. Responde em segundos e funciona no celular. Sem chave, os modos “Mergulhar no tema” e “Por nível” funcionam só com a Wikipédia. Limitações em [docs/ROADMAP.md](docs/ROADMAP.md).
 
-### Tradução no PDF
+### Tamanho dos textos
 
-Com a opção **Incluir tradução para o português** (ligada por padrão), listas de palavras e frases saem com a tradução embaixo de cada item, e textos ganham uma seção **Glossário** com as palavras-chave. A tradução é grátis e usa, nesta ordem:
+O nível define a dificuldade **e o tamanho** do texto — no mínimo 700 palavras, para dar um texto que valha a pena estudar:
 
-1. o **Google Gemini**, se a chave estiver configurada (escolhe as palavras-chave e traduz no contexto do texto);
-2. o **tradutor embutido do Chrome/Edge** (roda no aparelho; na primeira vez o navegador baixa o pacote do idioma).
+| Nível         | Palavras (mínimo) | No PDF      |
+| ------------- | ----------------- | ----------- |
+| Iniciante     | 700               | ≈ 2 páginas |
+| Intermediário | 1.200             | ≈ 4 páginas |
+| Fluente       | 2.000             | ≈ 6 páginas |
 
-Se nenhum estiver disponível, o PDF sai sem tradução e o app avisa.
+- **Com o Gemini:** se o texto sair mais curto que o pedido, o app pede para a IA continuar (até 3 vezes), sem repetir o que já foi escrito. Textos longos são divididos em seções com título.
+- **Só com a Wikipédia:** o artigo é usado até o tamanho do nível. Para iniciantes, a Simple English costuma ser curta; ela é completada com as seções do mesmo artigo na Wikipédia em inglês normal (mais difícil — o app avisa). Se o artigo inteiro for curto, o app também avisa.
 
 ## Áudio, vozes e MP3
 
@@ -128,7 +132,7 @@ O áudio dentro do app usa a [Web Speech API](https://developer.mozilla.org/docs
 **Exportar MP3:** a Web Speech API não permite gravar o áudio, então o MP3 é gerado pela voz neural **Kokoro**, que roda no próprio navegador, grátis e sem conta; fala apenas inglês. Na primeira vez baixa de 90 a 330 MB.
 
 - **Ouvir enquanto gera:** o áudio começa a tocar assim que os primeiros trechos ficam prontos.
-- **Listas:** repetições, pausa entre itens, número de cada item (“Number 3… window”, para acompanhar no PDF) e, opcionalmente, a tradução falada (“window… janela” — com sotaque inglês, serve de lembrete).
+- **Listas:** repetições, pausa entre itens e número de cada item (“Number 3… window”, para acompanhar no PDF).
 - **Volume uniforme:** cada trecho é nivelado (o Kokoro começa as frases forte e termina baixo) e as emendas são suavizadas.
 - **Tempo:** listas saem em segundos ou poucos minutos; textos longos levam minutos (bem menos com placa de vídeo). Gerar de novo com outras opções na mesma visita reaproveita o áudio já pronto.
 
@@ -177,7 +181,7 @@ O site é servido diretamente pelo GitHub Pages a partir da branch `main` (todos
 │   ├── config.js         # constantes (idiomas, limites, URLs das bibliotecas)
 │   ├── audio/            # vozes, fala, leitor frase a frase e exportação MP3 (export/)
 │   ├── core/             # DOM seguro, roteador, navegação e utilitários
-│   ├── create/           # criação de textos (Wikipédia, Gemini, níveis) e tradução do glossário
+│   ├── create/           # criação de textos (Wikipédia, Gemini, tamanho e nível)
 │   ├── pdf/              # formato do pacote, exportação, importação e formatos antigos
 │   ├── screens/          # telas (menu, criar, estudo, texto, revisar, progresso, configurações)
 │   ├── services/         # armazenamento, preferências, progresso e exportação de PDF

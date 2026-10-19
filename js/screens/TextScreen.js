@@ -28,13 +28,7 @@ import {
   seloRevisao,
   valorSegmentado,
 } from '../ui/components.js';
-import {
-  abrirKit,
-  alternadorTraducao,
-  atualizarAlternadorTraducao,
-  exportarPdfComBotao,
-  ligarAlternadorTraducao,
-} from '../ui/exportActions.js';
+import { abrirKit, exportarPdfComBotao } from '../ui/exportActions.js';
 import { abrirExportacaoMp3 } from '../ui/mp3Dialog.js';
 import { toast } from '../ui/toast.js';
 
@@ -236,7 +230,6 @@ ${this.texto}</textarea
     $('#textoIdioma', r).addEventListener('change', (e) => {
       this.idioma = e.target.value;
       settings.set('idioma', this.idioma);
-      atualizarAlternadorTraducao(r, this.idioma);
       this.salvarRascunho();
     });
     $('#textoArquivo', r).addEventListener('change', async (e) => {
@@ -388,7 +381,6 @@ ${this.texto}</textarea
       settings.set('idioma', this.idioma);
       leitor.setIdioma(this.idioma);
       this.seletorVoz.atualizar();
-      atualizarAlternadorTraducao(r, this.idioma);
       this.salvarRascunho();
     });
     this.seletorVoz = conectarSeletorVoz(
@@ -535,7 +527,6 @@ ${this.texto}</textarea
             etapaSugerida: this.material?.revisao?.etapa ?? 0,
           })}
         </div>
-        ${alternadorTraducao(this.idioma)}
         <div class="acoes">
           <button type="button" class="btn btn--primario" id="btnKit">📦 Kit de estudo (PDF + MP3)</button>
           <button type="button" class="btn btn--secundario" id="btnExportarTexto">📄 Só o PDF</button>
@@ -563,8 +554,6 @@ ${this.texto}</textarea
       return false;
     };
 
-    ligarAlternadorTraducao(r);
-
     const dadosExportacao = () => {
       const dias = Number($('#textoRevisao', r).value);
       const anterior = this.material?.revisao;
@@ -576,8 +565,6 @@ ${this.texto}</textarea
         id: this.material?.id,
         fonte: this.fonte,
         nivel: this.nivel,
-        // Texto reaberto e não alterado: reaproveita o glossário (não traduz de novo).
-        glossario: this.texto === this.material?.texto ? this.material?.glossario : undefined,
         revisao: dias
           ? criarRevisao({
               etapa: anterior?.etapa ?? 0,
@@ -616,7 +603,6 @@ ${this.texto}</textarea
         itens,
         idioma: this.idioma,
         texto: this.texto,
-        glossario: this.material?.glossario,
       });
     };
     $('#btnEstudarPalavras', r).addEventListener('click', () => estudar(TIPOS.PALAVRAS));

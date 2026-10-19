@@ -191,3 +191,17 @@ function quebrarLongo(texto, max) {
 export function contarPalavras(texto) {
   return extrairPalavras(texto, { removerDuplicadas: false }).length;
 }
+
+/**
+ * A linha parece um título de seção? (curta, sem pontuação final e que não é
+ * fala de diálogo). Usado no PDF (título em destaque) e no MP3 (pausa maior).
+ */
+export function pareceTitulo(linha) {
+  const t = String(linha).trim();
+  return (
+    t.length > 0 &&
+    t.length < 80 &&
+    !/[.!?…:;,"'”)\]]$/u.test(t) &&
+    !/^[\p{L}][\p{L} .'-]{0,23}:\s/u.test(t)
+  );
+}

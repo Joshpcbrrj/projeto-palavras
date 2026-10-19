@@ -21,13 +21,12 @@ const MP3_PADRAO = Object.freeze({
   vozKokoro2: 'am_michael', // segunda voz, usada nos diálogos
   pausaMs: 900,
   numerar: true, // falar "Number 3" antes de cada item, para acompanhar no PDF
-  falarTraducao: false, // falar a tradução depois de cada item (voz inglesa, com sotaque)
   ouvirAoGerar: true, // tocar os trechos enquanto o MP3 é gerado
 });
 
 /** Campos de versões anteriores que não existem mais (removidos ao carregar). */
-const CAMPOS_REMOVIDOS = ['motorIA', 'modeloIA'];
-const CAMPOS_MP3_REMOVIDOS = ['motor', 'vozOpenai', 'vozOpenai2', 'chaveOpenai'];
+const CAMPOS_REMOVIDOS = ['motorIA', 'modeloIA', 'incluirTraducao', 'mostrarTraducao'];
+const CAMPOS_MP3_REMOVIDOS = ['motor', 'vozOpenai', 'vozOpenai2', 'chaveOpenai', 'falarTraducao'];
 
 const PADRAO = Object.freeze({
   tema: null, // null = segue o sistema operacional
@@ -39,8 +38,6 @@ const PADRAO = Object.freeze({
   tempo: { ...TEMPO_PADRAO },
   embaralhar: true,
   ignorarComuns: true, // tira "the", "a", "to"... das listas de palavras
-  incluirTraducao: true, // glossário com tradução nos PDFs (quando houver tradutor)
-  mostrarTraducao: true, // tradução abaixo do flashcard (quando o PDF revisado a tiver)
   chaveGemini: '', // chave gratuita do Google Gemini (IA para criar textos)
   nivelTexto: 'iniciante',
   mp3: { ...MP3_PADRAO },
@@ -64,7 +61,7 @@ function normalizar(dados) {
   prefs.vozes = { ...(dados?.vozes || {}) };
   prefs.tempo = { ...TEMPO_PADRAO, ...(dados?.tempo || {}) };
   prefs.mp3 = { ...MP3_PADRAO, ...(dados?.mp3 || {}) };
-  // A IA no navegador e o MP3 pela OpenAI foram removidos: apaga os dados antigos,
+  // Recursos removidos (IA no navegador, MP3 pela OpenAI, tradução): apaga os dados antigos,
   // inclusive a chave da OpenAI, que não deve ficar guardada sem uso.
   CAMPOS_REMOVIDOS.forEach((campo) => delete prefs[campo]);
   CAMPOS_MP3_REMOVIDOS.forEach((campo) => delete prefs.mp3[campo]);

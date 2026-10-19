@@ -5,6 +5,7 @@ import {
   extrairFrases,
   extrairPalavras,
   normalizarTexto,
+  pareceTitulo,
 } from '../js/text/extract.js';
 
 describe('extrairPalavras', () => {
@@ -116,4 +117,13 @@ test('normalizarTexto remove espaços especiais e invisíveis', () => {
 
 test('contarPalavras conta repetições', () => {
   expect(contarPalavras('o gato e o rato')).toBe(5);
+});
+
+test('pareceTitulo reconhece títulos de seção, mas não frases nem falas', () => {
+  expect(pareceTitulo('A short history')).toBe(true);
+  expect(pareceTitulo('Markets today')).toBe(true);
+  expect(pareceTitulo('People trade goods every day.')).toBe(false);
+  expect(pareceTitulo('Anna: Hi there')).toBe(false);
+  expect(pareceTitulo('')).toBe(false);
+  expect(pareceTitulo('x'.repeat(90))).toBe(false);
 });

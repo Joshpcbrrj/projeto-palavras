@@ -1,18 +1,22 @@
 /**
  * Criação de textos de estudo em três modos:
  * - "dialogo": conversa entre duas pessoas sobre o tema;
- * - "mergulho": conteúdo explicativo de 1–2 páginas (Wikipédia, opcionalmente adaptado pela IA);
+ * - "mergulho": conteúdo explicativo baseado na Wikipédia (opcionalmente adaptado pela IA);
  * - "nivel": texto sobre o tema escrito para o nível escolhido.
  *
- * A Wikipédia fornece os fatos; a IA (Gemini) reescreve no formato e no nível pedidos.
+ * O nível define a dificuldade e o tamanho (iniciante 700, intermediário 1200 e
+ * fluente 2000 palavras). A Wikipédia fornece os fatos; a IA (Gemini) reescreve
+ * no formato e no nível pedidos e completa o texto se ele sair curto.
  */
 
 import { IDIOMAS, NIVEIS } from '../config.js';
-import { TAMANHOS, analisarTexto } from './levels.js';
+import { contarPalavras } from '../text/extract.js';
+import { analisarTexto, tamanhoDoNivel } from './levels.js';
 import {
   limparResposta,
   pareceIdioma,
   promptAdaptarArtigo,
+  promptContinuar,
   promptDialogo,
   promptTextoNivel,
 } from './prompts.js';
@@ -24,22 +28,72 @@ export const MODOS = Object.freeze({
   NIVEL: 'nivel',
 });
 
-/** Tamanho do conteúdo do "mergulho" (em palavras): curto ≈ meia página, longo ≈ 2 páginas. */
-const PALAVRAS_MERGULHO = { curto: 300, medio: 550, longo: 1000 };
+/** O tamanho do nível é um mínimo: abaixo dele, o texto é considerado curto. */
+const FRACAO_MINIMA = 1;
+/** Ao continuar um texto, pede pelo menos isto (pedidos muito pequenos rendem pouco). */
+const MIN_PALAVRAS_CONTINUACAO = 150;
+/** Quantas vezes, no máximo, a IA é chamada para continuar um texto curto. */
+const MAX_CONTINUACOES = 3;
+/** Referência (fatos de apoio) para diálogos e textos por nível. */
+const PALAVRAS_REFERENCIA = 900;
+/** Teto do artigo enviado à IA para adaptação. */
+const MAX_PALAVRAS_ARTIGO = 2500;
 
-function fonteWikipedia(artigo) {
-  return { nome: 'Wikipédia', titulo: artigo.titulo, url: artigo.url, licenca: LICENCA_WIKIPEDIA };
+function fonteWikipedia(referencia) {
+  const fonte = {
+    nome: 'Wikipédia',
+    titulo: referencia.titulo,
+    url: referencia.url,
+    licenca: LICENCA_WIKIPEDIA,
+  };
+  if (referencia.complemento) {
+    fonte.titulo = `${referencia.titulo} (Simple English) e ${referencia.complemento.titulo} (English)`;
+  }
+  return fonte;
 }
 
-async function buscarReferencia({ tema, idioma, nivel, fetchFn, aoEtapa, maxPalavras = 700 }) {
+/**
+ * Busca o artigo e prepara até `palavras` palavras. Artigos da Simple English
+ * costumam ser curtos (às vezes 200–600 palavras); nesse caso o texto é completado
+ * com as seções do mesmo artigo na Wikipédia em inglês normal.
+ */
+async function buscarReferencia({ tema, idioma, nivel, fetchFn, aoEtapa, palavras }) {
   aoEtapa?.('Buscando informações na Wikipédia…');
   const encontrado = await buscarArtigo(tema, { idioma, nivel, fetchFn });
   const artigo = await obterArtigo(encontrado.titulo, encontrado.wiki, { fetchFn });
-  return {
-    ...artigo,
-    alternativas: encontrado.alternativas,
-    texto: prepararArtigo(artigo.extrato, { maxPalavras }),
-  };
+  const texto = prepararArtigo(artigo.extrato, { maxPalavras: palavras });
+  const referencia = { ...artigo, alternativas: encontrado.alternativas, texto, complemento: null };
+
+  const tamanho = contarPalavras(texto);
+  if (artigo.wiki === 'simple' && tamanho < palavras * FRACAO_MINIMA) {
+    try {
+      aoEtapa?.('O artigo em inglês simples é curto. Completando com a Wikipédia em inglês…');
+      const completo = await obterArtigo(artigo.titulo, 'en', { fetchFn });
+      const extra = prepararArtigo(completo.extrato, {
+        maxPalavras: palavras - tamanho,
+        pularIntroducao: true,
+      });
+      if (extra) {
+        referencia.texto = `${texto}\n\n${extra}`;
+        referencia.complemento = completo;
+      }
+    } catch {
+      // Sem o artigo equivalente em inglês: segue só com o da Simple English.
+    }
+  }
+  return referencia;
+}
+
+/** Aviso para textos da Wikipédia entregues sem IA (mais difíceis ou mais curtos que o pedido). */
+function avisoSemIA(referencia, palavras) {
+  const total = contarPalavras(referencia.texto);
+  if (total < palavras * FRACAO_MINIMA) {
+    return `A Wikipédia só tem ${total} palavras sobre “${referencia.titulo}” (o nível pede ${palavras}). Para um texto maior, configure a IA (Gemini) ou escolha um tema mais amplo.`;
+  }
+  if (referencia.complemento) {
+    return 'O artigo em inglês simples era curto: a parte final veio da Wikipédia em inglês normal, que é mais difícil. Com a IA (Gemini) configurada, o texto todo sai no nível escolhido.';
+  }
+  return '';
 }
 
 /**
@@ -48,8 +102,8 @@ async function buscarReferencia({ tema, idioma, nivel, fetchFn, aoEtapa, maxPala
  * @param {'dialogo'|'mergulho'|'nivel'} opcoes.modo
  * @param {string} opcoes.tema
  * @param {string} opcoes.idioma idioma do texto (ex.: 'en-US')
- * @param {'iniciante'|'intermediario'|'fluente'} opcoes.nivel
- * @param {'curto'|'medio'|'longo'} [opcoes.tamanho]
+ * @param {'iniciante'|'intermediario'|'fluente'} opcoes.nivel define a dificuldade e o tamanho
+ * @param {number} [opcoes.palavras] tamanho alvo (padrão: o do nível)
  * @param {boolean} [opcoes.usarWikipedia=true] usar a Wikipédia como base de fatos
  * @param {boolean} [opcoes.usarIA=true] usar a IA (se `ia` foi informado)
  * @param {{gerar: Function}} [opcoes.ia] motor de IA carregado
@@ -63,7 +117,7 @@ export async function criarTexto({
   tema,
   idioma = 'en-US',
   nivel = 'iniciante',
-  tamanho = 'medio',
+  palavras,
   usarWikipedia = true,
   usarIA = true,
   ia,
@@ -76,18 +130,32 @@ export async function criarTexto({
   if (!assunto) throw new Error('Informe um tema.');
   if (!NIVEIS[nivel]) throw new Error('Nível inválido.');
   const iaDisponivel = Boolean(usarIA && ia);
+  const alvo = palavras ?? tamanhoDoNivel(nivel).palavras;
+  const completar = (texto, formato) =>
+    garantirTamanho({
+      ia,
+      texto,
+      formato,
+      idioma,
+      nivel,
+      palavras: alvo,
+      aoTexto,
+      aoEtapa,
+      signal,
+    });
 
   if (modo === MODOS.MERGULHO) {
-    const maxPalavras = PALAVRAS_MERGULHO[tamanho] ?? PALAVRAS_MERGULHO.medio;
     const artigo = await buscarReferencia({
       tema: assunto,
       idioma,
       nivel,
       fetchFn,
       aoEtapa,
-      maxPalavras,
+      // A IA recebe mais material do que vai escrever, para não precisar inventar.
+      palavras: iaDisponivel ? Math.min(MAX_PALAVRAS_ARTIGO, Math.round(alvo * 1.3)) : alvo,
     });
     let texto = artigo.texto;
+    let aviso = '';
     if (iaDisponivel) {
       aoEtapa?.(`Adaptando o conteúdo para o nível ${NIVEIS[nivel].nome.toLowerCase()}…`);
       try {
@@ -101,21 +169,24 @@ export async function criarTexto({
               texto: artigo.texto,
               idioma,
               nivel,
-              maxPalavras,
+              palavras: alvo,
               reforcado,
             }),
           aoTexto,
           aoEtapa,
           signal,
         });
+        texto = await completar(texto, 'texto');
       } catch (erro) {
         if (erro?.name === 'AbortError') throw erro;
         aoEtapa?.('Não foi possível adaptar; mostrando o artigo original.');
-        aoTexto?.(artigo.texto);
-        texto = artigo.texto;
+        texto = prepararArtigo(artigo.texto, { maxPalavras: alvo });
+        aoTexto?.(texto);
+        aviso = avisoSemIA({ ...artigo, texto }, alvo);
       }
     } else {
       aoTexto?.(texto);
+      aviso = avisoSemIA(artigo, alvo);
     }
     return resultado({
       modo,
@@ -126,6 +197,7 @@ export async function criarTexto({
       fonte: fonteWikipedia(artigo),
       geradoPorIA: iaDisponivel,
       alternativas: artigo.alternativas,
+      aviso,
     });
   }
 
@@ -143,6 +215,8 @@ export async function criarTexto({
         nivel: nivelReferencia,
         fetchFn,
         aoEtapa,
+        // Sem IA, o próprio artigo vira o texto; com IA, é só a base de fatos.
+        palavras: iaDisponivel ? PALAVRAS_REFERENCIA : alvo,
       });
     } catch (erro) {
       // Sem Wikipédia (offline ou tema não encontrado): a IA escreve sozinha.
@@ -153,18 +227,16 @@ export async function criarTexto({
   if (!iaDisponivel) {
     if (modo === MODOS.NIVEL && referencia) {
       // Sem IA: entrega o artigo da Wikipédia do nível mais próximo (Simple English para iniciantes).
-      const texto = prepararArtigo(referencia.extrato, {
-        maxPalavras: TAMANHOS[tamanho]?.palavras ?? TAMANHOS.medio.palavras,
-      });
-      aoTexto?.(texto);
+      aoTexto?.(referencia.texto);
       return resultado({
         modo,
         titulo: referencia.titulo,
-        texto,
+        texto: referencia.texto,
         idioma,
         nivel,
         fonte: fonteWikipedia(referencia),
         geradoPorIA: false,
+        aviso: avisoSemIA(referencia, alvo),
       });
     }
     throw new Error(
@@ -173,7 +245,7 @@ export async function criarTexto({
   }
 
   aoEtapa?.(modo === MODOS.DIALOGO ? 'Escrevendo o diálogo…' : 'Escrevendo o texto…');
-  const opcoes = { tema: assunto, idioma, nivel, tamanho, referencia };
+  const opcoes = { tema: assunto, idioma, nivel, palavras: alvo, referencia };
   const formato = modo === MODOS.DIALOGO ? 'dialogo' : 'texto';
   let texto = await gerarNoIdioma({
     ia,
@@ -200,12 +272,13 @@ export async function criarTexto({
       tema: assunto,
       idioma,
       nivel,
-      tamanho,
+      palavras: alvo,
       aoTexto,
       aoEtapa,
       signal,
     });
   }
+  texto = await completar(texto, formato);
 
   const prefixo = modo === MODOS.DIALOGO ? 'Diálogo' : 'Texto';
   return resultado({
@@ -270,7 +343,7 @@ async function simplificarSeNecessario({
   tema,
   idioma,
   nivel,
-  tamanho,
+  palavras,
   aoTexto,
   aoEtapa,
   signal,
@@ -285,7 +358,7 @@ async function simplificarSeNecessario({
     texto,
     idioma,
     nivel,
-    maxPalavras: TAMANHOS[tamanho]?.palavras ?? TAMANHOS.medio.palavras,
+    palavras,
     retorno: `The previous version was too difficult (about ${Math.round(antes.palavrasPorFrase)} words per sentence). Use sentences of at most ${MAX_PALAVRAS_FRASE[nivel]} words and only common words.`,
   });
   try {
@@ -303,6 +376,57 @@ async function simplificarSeNecessario({
     if (erro?.name === 'AbortError') throw erro;
     return texto;
   }
+}
+
+/**
+ * Os modelos costumam parar antes do tamanho pedido em textos longos. Enquanto o
+ * texto tiver menos palavras que o nível pede, pede para a IA continuar
+ * (até 3 vezes), sem repetir o que já foi escrito.
+ */
+async function garantirTamanho({
+  ia,
+  texto,
+  formato,
+  idioma,
+  nivel,
+  palavras,
+  aoTexto,
+  aoEtapa,
+  signal,
+}) {
+  const separador = formato === 'dialogo' ? '\n' : '\n\n';
+  let atual = texto;
+  for (let rodada = 0; rodada < MAX_CONTINUACOES; rodada++) {
+    const total = contarPalavras(atual);
+    if (total >= palavras * FRACAO_MINIMA) break;
+    aoEtapa?.(`O texto tem ${total} de ${palavras} palavras. Continuando a escrever…`);
+    const pedido = promptContinuar({
+      texto: atual,
+      formato,
+      idioma,
+      nivel,
+      faltam: Math.max(palavras - total, MIN_PALAVRAS_CONTINUACAO),
+    });
+    let resposta;
+    try {
+      resposta = await ia.gerar({
+        mensagens: pedido.mensagens,
+        maxTokens: pedido.maxTokens,
+        temperatura: 0.7,
+        aoTexto: (parcial) => aoTexto?.(`${atual}${separador}${parcial}`),
+        signal,
+      });
+    } catch (erro) {
+      if (erro?.name === 'AbortError') throw erro;
+      break; // fica com o que já tem
+    }
+    const extra = limparResposta(resposta, formato);
+    const repetido = extra && atual.includes(extra.slice(0, 80));
+    if (!extra || repetido || !pareceIdioma(extra, idioma) || contarPalavras(extra) < 20) break;
+    atual = `${atual}${separador}${extra}`;
+  }
+  aoTexto?.(atual);
+  return atual;
 }
 
 function resultado(dados) {

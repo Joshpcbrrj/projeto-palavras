@@ -8,7 +8,6 @@ import { formatarDuracao } from '../core/utils.js';
 import { criarMotor, gerarMp3 } from '../audio/export/index.js';
 import { ehDialogo, estimarDuracao, planejarAudio } from '../audio/export/plan.js';
 import { OuvirEnquantoGera } from '../audio/export/preview.js';
-import { obterTraducoesAudio } from '../services/export.js';
 import { settings } from '../services/settings.js';
 import { alternador } from './components.js';
 import { toast } from './toast.js';
@@ -34,17 +33,9 @@ export function abrirExportacaoMp3(conteudo, { kit } = {}) {
   const temItens = conteudo.tipo !== TIPOS.TEXTO;
   const dialogo = ehDialogo(conteudo.texto);
   const ingles = String(conteudo.idioma || '').startsWith('en');
-  const podeTraduzir = temItens && !String(conteudo.idioma || '').startsWith('pt');
   let controle = null;
   let urlAudio = null;
   let previa = null;
-  let glossarioKit = null;
-
-  // Para a estimativa de trechos/duração: a tradução tem mais ou menos o tamanho do item.
-  const traducoesEstimadas = () =>
-    estado.falarTraducao && podeTraduzir
-      ? new Map((conteudo.itens || []).map((i) => [String(i).trim().toLowerCase(), String(i)]))
-      : undefined;
 
   const el = document.createElement('dialog');
   el.className = 'dialogo dialogo--largo';
@@ -58,7 +49,6 @@ export function abrirExportacaoMp3(conteudo, { kit } = {}) {
       repeticoes: estado.repeticoes,
       pausaMs: estado.pausaMs,
       numerar: estado.numerar,
-      traducoes: traducoesEstimadas(),
     });
     render(
       el,
@@ -121,18 +111,7 @@ export function abrirExportacaoMp3(conteudo, { kit } = {}) {
                 rotulo: 'Falar o número de cada item',
                 ajuda: '“Number 3… window” — para acompanhar o áudio na lista do PDF.',
                 marcado: estado.numerar,
-              })}
-              ${
-                podeTraduzir
-                  ? alternador({
-                      id: 'mp3Traducao',
-                      rotulo: 'Falar a tradução em português',
-                      ajuda:
-                        'Depois de cada item: “window… janela”. A voz é inglesa, então o português sai com sotaque — serve de lembrete do significado, não de modelo de pronúncia.',
-                      marcado: estado.falarTraducao,
-                    })
-                  : ''
-              }`
+              })}`
               : ''
           }
           ${alternador({
@@ -185,11 +164,6 @@ export function abrirExportacaoMp3(conteudo, { kit } = {}) {
       settings.setMp3({ numerar: estado.numerar });
       desenhar();
     });
-    $('#mp3Traducao', el)?.addEventListener('change', (e) => {
-      estado.falarTraducao = e.target.checked;
-      settings.setMp3({ falarTraducao: estado.falarTraducao });
-      desenhar();
-    });
     $('#mp3Previa', el)?.addEventListener('change', (e) => {
       estado.ouvirAoGerar = e.target.checked;
       settings.setMp3({ ouvirAoGerar: estado.ouvirAoGerar });
@@ -208,8 +182,6 @@ export function abrirExportacaoMp3(conteudo, { kit } = {}) {
       status.textContent = progresso
         ? `Preparando a voz… ${Math.round(progresso * 100)}%`
         : 'Preparando a voz…';
-    } else if (fase === 'traduzindo') {
-      status.textContent = 'Traduzindo os itens…';
     } else if (fase === 'gerando') {
       barra.style.width = `${Math.round((atual / total) * 100)}%`;
       status.textContent = `Gerando trecho ${atual} de ${total}…`;
@@ -221,18 +193,6 @@ export function abrirExportacaoMp3(conteudo, { kit } = {}) {
   const pararPrevia = () => {
     previa?.parar();
     previa = null;
-  };
-
-  /** Traduções a falar no MP3 (as do PDF do kit, se houver; senão, traduz agora). */
-  const traducoesParaAudio = async (signal) => {
-    if (!estado.falarTraducao || !podeTraduzir) return undefined;
-    mostrarProgresso({ fase: 'traduzindo' });
-    const { traducoes, aviso } = await obterTraducoesAudio(
-      { ...conteudo, glossario: glossarioKit || conteudo.glossario },
-      { signal }
-    );
-    if (aviso) toast.aviso(aviso);
-    return traducoes;
   };
 
   const gerar = async () => {
@@ -252,15 +212,13 @@ export function abrirExportacaoMp3(conteudo, { kit } = {}) {
     try {
       if (kit && !pdfPronto) {
         $('#mp3Status', el).textContent = 'Gerando o PDF e preparando a voz…';
-        // A voz (10–30 s para carregar) é preparada enquanto o PDF é gerado e traduzido.
+        // A voz (10–30 s para carregar) é preparada enquanto o PDF é gerado.
         criarMotor()
           .carregar()
           .catch(() => {}); // o erro, se houver, aparece de novo em gerarMp3
-        const pdf = await kit.gerarPdf();
-        glossarioKit = pdf?.pacote?.glossario || null;
+        await kit.gerarPdf();
         pdfPronto = true; // se o MP3 for cancelado, tentar de novo não repete o PDF
       }
-      const traducoes = await traducoesParaAudio(controle.signal);
       const motor = criarMotor();
       const resultado = await gerarMp3(conteudo, {
         motor,
@@ -269,7 +227,6 @@ export function abrirExportacaoMp3(conteudo, { kit } = {}) {
         repeticoes: estado.repeticoes,
         pausaMs: estado.pausaMs,
         numerar: estado.numerar,
-        traducoes,
         aoProgresso: mostrarProgresso,
         aoTrecho: (pcm, taxa, pausaMs) => previa?.adicionar(pcm, taxa, pausaMs),
         signal: controle.signal,
