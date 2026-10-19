@@ -21,6 +21,8 @@ const MP3_PADRAO = Object.freeze({
   vozKokoro2: 'am_michael', // segunda voz, usada nos diálogos
   pausaMs: 900,
   numerar: true, // falar "Number 3" antes de cada item, para acompanhar no PDF
+  falarTraducao: false, // falar a tradução depois de cada item (voz inglesa, com sotaque)
+  ouvirAoGerar: true, // tocar os trechos enquanto o MP3 é gerado
 });
 
 /** Campos de versões anteriores que não existem mais (removidos ao carregar). */
@@ -38,6 +40,7 @@ const PADRAO = Object.freeze({
   embaralhar: true,
   ignorarComuns: true, // tira "the", "a", "to"... das listas de palavras
   incluirTraducao: true, // glossário com tradução nos PDFs (quando houver tradutor)
+  mostrarTraducao: true, // tradução abaixo do flashcard (quando o PDF revisado a tiver)
   chaveGemini: '', // chave gratuita do Google Gemini (IA para criar textos)
   nivelTexto: 'iniciante',
   mp3: { ...MP3_PADRAO },

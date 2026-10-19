@@ -5,10 +5,35 @@
 
 import { carimboArquivo, slug } from '../../core/utils.js';
 import { KokoroMotor } from './engines.js';
-import { Mp3Builder, TAXA_PADRAO, aparar, obterEncoderMp3, reamostrar } from './mp3.js';
+import { Mp3Builder, TAXA_PADRAO, obterEncoderMp3, prepararTrecho } from './mp3.js';
 import { planejarAudio } from './plan.js';
 
 let kokoroCompartilhado = null;
+
+/**
+ * Áudio já sintetizado nesta sessão (voz|velocidade|texto → amostras prontas).
+ * Gerar de novo com outra pausa, ou o kit depois do MP3, reaproveita tudo.
+ * Limite de ≈ 40 MB (cerca de 7 minutos de voz).
+ */
+const LIMITE_CACHE_AMOSTRAS = 10_000_000;
+const cacheSessao = new Map();
+let amostrasEmCache = 0;
+
+function guardarNoCache(chave, amostras) {
+  cacheSessao.set(chave, amostras);
+  amostrasEmCache += amostras.length;
+  for (const [antiga, valor] of cacheSessao) {
+    if (amostrasEmCache <= LIMITE_CACHE_AMOSTRAS || antiga === chave) break;
+    cacheSessao.delete(antiga);
+    amostrasEmCache -= valor.length;
+  }
+}
+
+/** Somente para testes. */
+export function _limparCacheAudio() {
+  cacheSessao.clear();
+  amostrasEmCache = 0;
+}
 
 /** Motor de voz compartilhado (o modelo é carregado uma vez por sessão). */
 export function criarMotor() {
@@ -30,8 +55,11 @@ export function nomeArquivoMp3(titulo, data = new Date()) {
  * @param {number} [opcoes.repeticoes]
  * @param {number} [opcoes.pausaMs]
  * @param {boolean} [opcoes.numerar] falar o número de cada item
+ * @param {Map<string, string>} [opcoes.traducoes] tradução falada depois de cada item
  * @param {Function} [opcoes.Mp3Encoder] (injetável para testes)
  * @param {(info: {fase: string, atual?: number, total?: number, progresso?: number}) => void} [opcoes.aoProgresso]
+ * @param {(pcm: Float32Array, taxa: number, pausaMs: number) => void} [opcoes.aoTrecho] recebe cada
+ *   trecho assim que fica pronto (para ouvir enquanto o MP3 é gerado)
  * @param {AbortSignal} [opcoes.signal]
  * @returns {Promise<{blob: Blob, nome: string, duracao: number, trechos: number}>}
  */
@@ -44,12 +72,14 @@ export async function gerarMp3(
     repeticoes = 1,
     pausaMs = 900,
     numerar = false,
+    traducoes,
     Mp3Encoder,
     aoProgresso,
+    aoTrecho,
     signal,
   }
 ) {
-  const segmentos = planejarAudio(conteudo, { repeticoes, pausaMs, numerar });
+  const segmentos = planejarAudio(conteudo, { repeticoes, pausaMs, numerar, traducoes });
   if (!segmentos.length) throw new Error('Não há conteúdo para gerar o áudio.');
 
   aoProgresso?.({ fase: 'carregando', progresso: 0 });
@@ -57,21 +87,22 @@ export async function gerarMp3(
   const Encoder = Mp3Encoder || (await obterEncoderMp3());
   const mp3 = new Mp3Builder(Encoder, { taxa: TAXA_PADRAO });
 
-  // Repetições do mesmo texto reaproveitam o áudio já sintetizado.
-  const cache = new Map();
+  // Repetições (e gerações anteriores nesta sessão) reaproveitam o áudio já sintetizado.
   mp3.silencio(300);
   for (const [i, segmento] of segmentos.entries()) {
     if (signal?.aborted) throw new DOMException('Exportação cancelada.', 'AbortError');
     aoProgresso?.({ fase: 'gerando', atual: i + 1, total: segmentos.length });
     const voz = vozes[segmento.voz] || vozes[0];
-    const chave = `${voz}|${segmento.texto}`;
-    if (!cache.has(chave)) {
+    const chave = `${voz}|${velocidade}|${segmento.texto}`;
+    let amostras = cacheSessao.get(chave);
+    if (!amostras) {
       const { pcm, taxa } = await motor.sintetizar(segmento.texto, { voz, velocidade, signal });
-      cache.set(chave, aparar(reamostrar(pcm, taxa, TAXA_PADRAO)));
-      if (cache.size > 50) cache.delete(cache.keys().next().value);
+      amostras = prepararTrecho(pcm, taxa, TAXA_PADRAO);
+      guardarNoCache(chave, amostras);
     }
-    mp3.adicionar(cache.get(chave));
+    mp3.adicionar(amostras);
     mp3.silencio(segmento.pausaDepoisMs);
+    aoTrecho?.(amostras, TAXA_PADRAO, segmento.pausaDepoisMs);
   }
 
   aoProgresso?.({ fase: 'finalizando' });

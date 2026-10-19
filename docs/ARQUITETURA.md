@@ -38,7 +38,7 @@ flowchart LR
 | `pdf/`      | `format.js` (pacote de dados e revisão espaçada), `exporter.js` (layout com jsPDF), `raster.js` (texto não latino como imagem), `importer.js` (PDF/TXT/JSON), `legacy.js` (formatos v1/v2), `libs.js` (carregamento sob demanda).                                                                  |
 | `services/` | `storage.js` (localStorage tolerante a falhas), `settings.js` (preferências + migração das chaves antigas), `progress.js` (sessões, estatísticas, agenda de revisões, backup, migração da v2), `export.js` (exportação única de PDF para todas as telas: pacote + glossário + histórico + agenda). |
 | `screens/`  | Uma classe por tela com `montar(raiz)`, `desmontar()` e, opcionalmente, `podeSair()` (pergunta antes de sair de um estudo não salvo).                                                                                                                                                              |
-| `ui/`       | Componentes compartilhados, diálogo modal, notificações, tema, diálogo do MP3/kit (`mp3Dialog.js`) e botões de exportação (`exportActions.js`).                                                                                                                                                    |
+| `ui/`       | Componentes compartilhados, diálogo modal, notificações, tema, diálogo do MP3/kit (`mp3Dialog.js`: opções, tradução falada, ouvir enquanto gera), botões de exportação (`exportActions.js`) e painel da IA com o passo a passo da chave (`aiPanel.js`, `guiaChave.js`).                            |
 
 ### Criação de textos (`js/create/`)
 
@@ -57,12 +57,21 @@ A Web Speech API não permite gravar o áudio, então o MP3 é gerado por outro 
 
 ```text
 planejarAudio(conteúdo) → trechos [{texto, voz, pausa}]
+        │   (número + item num trecho só; frases curtas do mesmo parágrafo agrupadas;
+        │    tradução falada opcional depois de cada item)
         │
-        └─ KokoroMotor (Web Worker, kokoro-js, vozes neurais em inglês, grátis;
-           usa a placa de vídeo quando disponível)
+        ├─ KokoroMotor (Web Worker, kokoro-js, vozes neurais em inglês, grátis;
+        │  usa a placa de vídeo quando disponível)
+        │
+        ├─ prepararTrecho: apara o silêncio, nivela o volume (nivelar) e suaviza as bordas
+        │  → guardado num cache da sessão (voz|velocidade|texto), reaproveitado ao gerar de novo
+        │
+        ├─ OuvirEnquantoGera (preview.js): toca cada trecho assim que fica pronto (Web Audio)
         │
 Mp3Builder (lamejs): junta os trechos + silêncios em um único MP3 mono 24 kHz
 ```
+
+Cada chamada à voz tem um custo fixo (≈ 1,5 s); por isso o planejamento reduz o número de trechos. As medições que motivaram o nivelamento e os agrupamentos estão em [ROADMAP.md](ROADMAP.md#14-áudio-qualidade-e-velocidade-versão-34).
 
 ## Ciclo de vida das telas
 
@@ -88,3 +97,9 @@ StudySession ──item──▶      │
 `sw.js` guarda todos os arquivos do app (lista explícita, verificada por teste) e, à parte, as bibliotecas externas com versão fixa na URL (jsPDF e PDF.js do cdnjs são pré-carregadas; Kokoro e lamejs do jsDelivr ficam em cache após o primeiro uso). O modelo de voz é guardado pelas próprias bibliotecas no Cache Storage do navegador. Ao publicar, troque `VERSAO` para invalidar o cache.
 
 O Web Worker `audio/export/kokoro-worker.js` importa a biblioteca por URL fixa; um teste garante que ela é igual à de `config.js`.
+
+## Segurança (Content-Security-Policy)
+
+`index.html` declara uma CSP em `<meta>`: código só do próprio site, do cdnjs e do jsDelivr; conexões só com a Wikipédia, o Gemini, as CDNs e o Hugging Face (modelo da voz). O script de tema inline é liberado por **hash**. O worker da voz herda a política, por isso `worker-src` inclui o jsDelivr (a biblioteca cria um worker a partir dele) e `connect-src` inclui `huggingface.co` e `*.hf.co`.
+
+Ao adicionar uma biblioteca, uma API ou editar o script de tema, atualize a CSP — `tests/project.test.js` confere o hash e as origens usadas em `config.js`, e um MP3 que trave em “Preparando a voz” costuma ser bloqueio da CSP (veja o console do worker).

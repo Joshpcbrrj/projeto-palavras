@@ -35,6 +35,7 @@ Requisitos: Node.js 22 ou superior.
 - **Estilo visual:** use os tokens de `css/base.css` (`--superficie`, `--texto`, `--primaria`...) para que o tema escuro funcione sem regras extras.
 - **Arquivos novos em `js/` ou `css/`** precisam entrar na lista `ARQUIVOS_APP` do `sw.js` (um teste verifica isso).
 - **Bibliotecas externas** têm a versão fixa na URL em `js/config.js` (`CDN`). Ao atualizar o Kokoro, atualize também a URL no Web Worker (`kokoro-worker.js`) — um teste compara as duas.
+- **Nova CDN, API ou mudança no script de tema do `index.html`** exige atualizar a Content-Security-Policy do `index.html` (um teste confere o hash do script e as origens do `config.js`). Veja [docs/ARQUITETURA.md](docs/ARQUITETURA.md#segurança-content-security-policy).
 - **Recursos que dependem de rede ou IA** (Wikipédia, Gemini, Kokoro) recebem `fetch`/motores por parâmetro, para serem testados com versões simuladas.
 - **Formato do PDF:** mudanças incompatíveis no pacote exigem nova versão do marcador e leitura da versão anterior. Veja [docs/FORMATO-PDF.md](docs/FORMATO-PDF.md).
 

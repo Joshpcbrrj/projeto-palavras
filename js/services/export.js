@@ -57,6 +57,25 @@ export async function adicionarGlossario(pacote, { ia, api, signal } = {}) {
   }
 }
 
+/**
+ * Traduções para falar no MP3 (item → tradução). Usa o glossário que o material já
+ * tiver e traduz só o que faltar.
+ * @returns {Promise<{traducoes: Map<string, string>, aviso: string}>}
+ */
+export async function obterTraducoesAudio(conteudo, { ia, api, signal } = {}) {
+  const base = criarPacote({ ...conteudo, revisao: null });
+  if (!base) return { traducoes: new Map(), aviso: '' };
+  const { pacote, aviso } = await adicionarGlossario(base, {
+    ia: ia === undefined ? obterMotorIA() : ia,
+    api,
+    signal,
+  });
+  const traducoes = new Map(
+    (pacote.glossario || []).map((g) => [g.termo.toLowerCase(), g.traducao])
+  );
+  return { traducoes, aviso: aviso.replace('O PDF saiu sem tradução.', 'O MP3 sai sem tradução.') };
+}
+
 /** Nome-base comum ao PDF e ao MP3 do kit de estudo (sem extensão). */
 export function nomeBaseKit(dados, data = new Date()) {
   return nomeArquivoPdf(dados, data).replace(/\.pdf$/, '');

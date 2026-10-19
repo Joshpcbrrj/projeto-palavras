@@ -68,7 +68,7 @@
 ## Como usar
 
 1. **Criar um texto** — em **Criar textos**, escolha o modo (diálogo, mergulhar no tema ou por nível), digite o tema (pode ser em português), o nível e clique em **Criar texto**. Depois, ouça, gere o PDF/MP3 ou transforme em flashcards.
-2. **Estudar palavras ou frases** — cole um texto (ou abra um `.txt`), escolha idioma, voz, velocidade e a pausa entre os itens e clique em **Iniciar estudo**.
+2. **Estudar palavras ou frases** — cole um texto (ou abra um `.txt`), confira o idioma e a quantidade e clique em **Iniciar estudo**. Voz, repetição, velocidade, pausa e ordem ficam em **Mais opções**.
 3. **Durante o estudo** — use os botões ou o teclado:
 
    | Tecla                     | Ação                    |
@@ -79,9 +79,9 @@
    | <kbd>Esc</kbd>            | Encerrar                |
 
 4. **Ao terminar** — baixe o **kit de estudo** (PDF + MP3) ou só um deles, escolhendo quando quer revisar e se o PDF terá a tradução para o português. O progresso da sessão é salvo automaticamente.
-5. **Revisar** — no dia marcado, abra **Revisar arquivo**, selecione o PDF e clique em **Estudar** (ou **Ouvir**, para textos). Vários PDFs do mesmo tipo podem ser combinados num único estudo.
+5. **Revisar** — no dia marcado, abra **Revisar arquivo**, selecione o PDF e clique em **Estudar** (ou **Ouvir**, para textos). Se o PDF tiver tradução, ela aparece abaixo de cada flashcard. Pode selecionar a pasta do kit inteira: os MP3 são ignorados, pois o PDF já guarda tudo. Vários PDFs do mesmo tipo e idioma podem ser combinados num único estudo.
 6. **Ler e ouvir um texto** — cole o texto, vá para a aba **Ouvir** e acompanhe o destaque. Dali você também pode exportar o MP3 ou transformar o texto em flashcards.
-7. **Configurações** (⚙️ no topo) — idioma de estudo, tema, IA usada para criar textos e vozes do MP3.
+7. **Configurações** (⚙️ no topo) — idioma de estudo, tema, chave do Gemini e vozes do MP3.
 
 ## PDFs revisáveis
 
@@ -105,7 +105,7 @@ PDFs gerados pelas **versões anteriores** do app continuam funcionando: o conte
 | 🌍 Mergulhar no tema | Não (opcional para adaptar) | Busca o artigo na Wikipédia (Simple English para iniciantes) e entrega de ½ a 2 páginas, com atribuição da fonte.     |
 | 📶 Por nível         | Não (melhor com IA)         | Com IA, escreve o texto no nível pedido e simplifica se ficar difícil; sem IA, usa a Wikipédia do nível mais próximo. |
 
-A IA é o **Google Gemini**: crie uma chave gratuita no [Google AI Studio](https://aistudio.google.com/app/apikey) (leva 1 minuto, só precisa de uma conta Google) e cole no painel da tela de criação. Responde em segundos e funciona no celular. Sem chave, os modos “Mergulhar no tema” e “Por nível” funcionam só com a Wikipédia. Limitações em [docs/ROADMAP.md](docs/ROADMAP.md).
+A IA é o **Google Gemini**: crie uma chave gratuita no [Google AI Studio](https://aistudio.google.com/app/apikey) (leva 1 minuto, só precisa de uma conta Google, sem cartão de crédito) e cole no painel da tela de criação — o painel traz um **passo a passo ilustrado**, um botão **Colar** e testa a chave na hora, explicando o problema se ela não funcionar. Responde em segundos e funciona no celular. Sem chave, os modos “Mergulhar no tema” e “Por nível” funcionam só com a Wikipédia. Limitações em [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ### Tradução no PDF
 
@@ -125,7 +125,12 @@ O áudio dentro do app usa a [Web Speech API](https://developer.mozilla.org/docs
 - **Sem voz para um idioma?** O app avisa. Instale a voz nas configurações do sistema (Windows: _Configurações → Hora e idioma → Fala_; Android: _Configurações → Idioma → Saída de conversão de texto em voz_; iOS/macOS: _Acessibilidade → Conteúdo falado → Vozes_).
 - Textos longos são lidos frase a frase, o que evita o corte de falas longas do Chrome e torna pausar/retomar confiável. Em diálogos, cada pessoa tem uma voz.
 
-**Exportar MP3:** a Web Speech API não permite gravar o áudio, então o MP3 é gerado pela voz neural **Kokoro**, que roda no navegador: voz neural que roda no navegador, grátis e sem conta; fala apenas inglês. Na primeira vez baixa de 90 a 330 MB. Listas de palavras saem rápido; textos longos podem levar alguns minutos (bem menos com placa de vídeo).
+**Exportar MP3:** a Web Speech API não permite gravar o áudio, então o MP3 é gerado pela voz neural **Kokoro**, que roda no próprio navegador, grátis e sem conta; fala apenas inglês. Na primeira vez baixa de 90 a 330 MB.
+
+- **Ouvir enquanto gera:** o áudio começa a tocar assim que os primeiros trechos ficam prontos.
+- **Listas:** repetições, pausa entre itens, número de cada item (“Number 3… window”, para acompanhar no PDF) e, opcionalmente, a tradução falada (“window… janela” — com sotaque inglês, serve de lembrete).
+- **Volume uniforme:** cada trecho é nivelado (o Kokoro começa as frases forte e termina baixo) e as emendas são suavizadas.
+- **Tempo:** listas saem em segundos ou poucos minutos; textos longos levam minutos (bem menos com placa de vídeo). Gerar de novo com outras opções na mesma visita reaproveita o áudio já pronto.
 
 ## Executar localmente
 
@@ -172,10 +177,10 @@ O site é servido diretamente pelo GitHub Pages a partir da branch `main` (todos
 │   ├── config.js         # constantes (idiomas, limites, URLs das bibliotecas)
 │   ├── audio/            # vozes, fala, leitor frase a frase e exportação MP3 (export/)
 │   ├── core/             # DOM seguro, roteador, navegação e utilitários
-│   ├── create/           # criação de textos: Wikipédia, IA (Gemini/navegador), níveis
+│   ├── create/           # criação de textos (Wikipédia, Gemini, níveis) e tradução do glossário
 │   ├── pdf/              # formato do pacote, exportação, importação e formatos antigos
 │   ├── screens/          # telas (menu, criar, estudo, texto, revisar, progresso, configurações)
-│   ├── services/         # armazenamento, preferências e progresso
+│   ├── services/         # armazenamento, preferências, progresso e exportação de PDF
 │   ├── study/            # sessão de flashcards (sem dependência de interface)
 │   ├── text/             # extração de palavras/frases
 │   └── ui/               # componentes, diálogos, notificações e tema
@@ -199,7 +204,7 @@ Visão geral das decisões técnicas em [docs/ARQUITETURA.md](docs/ARQUITETURA.m
 | Safari (macOS e iOS 15.4+)           | ✅                                     | ✅                                   |
 | Firefox                              | ✅                                     | ✅ (depende das vozes do sistema)    |
 
-Os dados (progresso, preferências e as chaves de API que você cadastrar) ficam só no `localStorage` deste navegador. Use **Meu progresso → Exportar backup** para levar o progresso para outro dispositivo.
+Os dados (progresso, preferências e a chave do Gemini, se você cadastrar) ficam só no `localStorage` deste navegador, protegidos por uma Content-Security-Policy que só permite falar com a Wikipédia, o Gemini e as CDNs das bibliotecas. Use **Meu progresso → Exportar backup** para levar o progresso para outro dispositivo.
 
 ## Contribuindo
 

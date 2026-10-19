@@ -8,7 +8,7 @@ import { $, baixarArquivo, html, render } from '../core/dom.js';
 import { ROTAS, navegar } from '../core/nav.js';
 import { carimboArquivo, formatarDataBR, unicos } from '../core/utils.js';
 import { statusRevisao } from '../pdf/format.js';
-import { ORIGENS, lerArquivo } from '../pdf/importer.js';
+import { ORIGENS, ehArquivoDeAudio, lerArquivo } from '../pdf/importer.js';
 import { progresso, revisaoEfetiva } from '../services/progress.js';
 import { settings } from '../services/settings.js';
 import { extrairFrases, extrairPalavras } from '../text/extract.js';
@@ -77,12 +77,17 @@ export class ReviewScreen {
       </div>`;
     }
 
-    const combinaveis = [TIPOS.PALAVRAS, TIPOS.FRASES]
-      .map((tipo) => {
-        const lista = materiaisAbertos.filter((m) => m.tipo === tipo);
-        return { tipo, arquivos: lista.length, itens: unicos(lista.flatMap((m) => m.itens)) };
-      })
-      .filter((c) => c.arquivos > 1);
+    // Só combina arquivos do mesmo tipo e do mesmo idioma (a pronúncia depende do idioma).
+    const grupos = new Map();
+    for (const m of materiaisAbertos) {
+      if (m.tipo === TIPOS.TEXTO) continue;
+      const chave = `${m.tipo}|${m.idioma}`;
+      if (!grupos.has(chave)) grupos.set(chave, { tipo: m.tipo, idioma: m.idioma, arquivos: 0 });
+      grupos.get(chave).arquivos++;
+    }
+    const combinaveis = [...grupos.values()]
+      .filter((c) => c.arquivos > 1)
+      .map((c) => ({ ...c, itens: this.itensCombinados(c.tipo, c.idioma) }));
 
     return html`
       <div class="cartao">
@@ -104,16 +109,29 @@ export class ReviewScreen {
       ${combinaveis.map(
         (c) => html`
           <div class="cartao cartao--info">
-            <h3 class="secao__titulo">🔗 Combinar ${nomeTipo(c.tipo)}</h3>
+            <h3 class="secao__titulo">
+              🔗 Combinar ${nomeTipo(c.tipo)} · ${IDIOMAS[c.idioma]?.bandeira || ''}
+              ${IDIOMAS[c.idioma]?.nome || c.idioma}
+            </h3>
             <p>
               <strong>${c.itens.length}</strong> ${nomeTipo(c.tipo)} únicas em ${c.arquivos}
               arquivos.
             </p>
             <div class="acoes">
-              <button type="button" class="btn btn--primario" data-combinar="${c.tipo}">
+              <button
+                type="button"
+                class="btn btn--primario"
+                data-combinar="${c.tipo}"
+                data-idioma="${c.idioma}"
+              >
                 ▶ Estudar todas
               </button>
-              <button type="button" class="btn btn--secundario" data-combinar-pdf="${c.tipo}">
+              <button
+                type="button"
+                class="btn btn--secundario"
+                data-combinar-pdf="${c.tipo}"
+                data-idioma="${c.idioma}"
+              >
                 📄 Exportar PDF combinado
               </button>
             </div>
@@ -126,6 +144,7 @@ export class ReviewScreen {
   htmlMaterial(m, i) {
     const revisao = revisaoEfetiva(m);
     const idioma = IDIOMAS[m.idioma];
+    const traducoes = new Map((m.glossario || []).map((g) => [g.termo.toLowerCase(), g.traducao]));
     const quantidade =
       m.tipo === TIPOS.TEXTO
         ? `${m.texto.split(/\s+/).filter(Boolean).length} palavras`
@@ -149,6 +168,7 @@ export class ReviewScreen {
           </p>
           <p class="material__selos">
             ${revisao ? seloRevisao(statusRevisao(revisao)) : ''} ${origem || ''}
+            ${m.glossario?.length ? html`<span class="selo selo--neutro">🇧🇷 com tradução</span>` : ''}
           </p>
         </div>
         <div class="material__acoes">
@@ -211,9 +231,20 @@ export class ReviewScreen {
         <div class="material__previa" id="previa${i}" hidden>
           ${
             m.tipo === TIPOS.TEXTO
-              ? html`<p class="material__texto">${m.texto}</p>`
+              ? html`<p class="material__texto">${m.texto}</p>
+                  ${
+                    m.glossario?.length
+                      ? html`<p class="material__glossario">
+                          <strong>Glossário:</strong>
+                          ${m.glossario.map((g, k) => html`${k ? ' · ' : ''}${g.termo} — <span class="texto-suave">${g.traducao}</span>`)}
+                        </p>`
+                      : ''
+                  }`
               : html`<ol class="material__itens">
-                ${m.itens.map((item) => html`<li>${item}</li>`)}
+                ${m.itens.map((item) => {
+                  const traducao = traducoes.get(item.toLowerCase());
+                  return html`<li>${item}${traducao ? html` <span class="texto-suave">— ${traducao}</span>` : ''}</li>`;
+                })}
               </ol>`
           }
         </div>
@@ -277,9 +308,9 @@ export class ReviewScreen {
         );
         return;
       }
-      if (botao.dataset.combinar) return this.estudarCombinado(botao.dataset.combinar);
-      if (botao.dataset.combinarPdf)
-        return this.exportarCombinado(botao, botao.dataset.combinarPdf);
+      const { combinar, combinarPdf, idioma } = botao.dataset;
+      if (combinar) return this.estudarCombinado(combinar, idioma);
+      if (combinarPdf) return this.exportarCombinado(botao, combinarPdf, idioma);
 
       const material = materiaisAbertos[Number(botao.dataset.i)];
       if (!material) return;
@@ -309,6 +340,8 @@ export class ReviewScreen {
           navegar(botao.dataset.acao === 'frases' ? ROTAS.FRASES : ROTAS.PALAVRAS, {
             itens,
             idioma: material.idioma,
+            // O glossário do texto traz a tradução das palavras-chave para os flashcards.
+            glossario: material.glossario,
           });
           break;
         }
@@ -330,7 +363,18 @@ export class ReviewScreen {
     render($('#areaMateriais', this.raiz), this.htmlMateriais());
   }
 
-  async abrir(arquivos) {
+  async abrir(selecionados) {
+    // O MP3 do kit costuma estar na mesma pasta do PDF: é ignorado, pois o PDF já
+    // guarda todo o conteúdo e a data de revisão.
+    const arquivos = selecionados.filter((a) => !ehArquivoDeAudio(a));
+    const audios = selecionados.length - arquivos.length;
+    if (audios) {
+      toast.info(
+        audios === 1
+          ? 'O MP3 foi ignorado: o PDF do kit já guarda o conteúdo e a revisão.'
+          : `${audios} arquivos de áudio ignorados: os PDFs do kit já guardam o conteúdo e a revisão.`
+      );
+    }
     if (!arquivos.length) return;
     const status = $('#statusArquivos', this.raiz);
     const erros = [];
@@ -366,31 +410,37 @@ export class ReviewScreen {
     erros.forEach((mensagem) => toast.erro(mensagem));
   }
 
-  itensCombinados(tipo) {
-    return unicos(materiaisAbertos.filter((m) => m.tipo === tipo).flatMap((m) => m.itens));
+  arquivosDoGrupo(tipo, idioma) {
+    return materiaisAbertos.filter((m) => m.tipo === tipo && m.idioma === idioma);
   }
 
-  estudarCombinado(tipo) {
-    const lista = materiaisAbertos.filter((m) => m.tipo === tipo);
+  itensCombinados(tipo, idioma) {
+    return unicos(this.arquivosDoGrupo(tipo, idioma).flatMap((m) => m.itens));
+  }
+
+  estudarCombinado(tipo, idioma) {
+    const lista = this.arquivosDoGrupo(tipo, idioma);
     navegar(tipo === TIPOS.FRASES ? ROTAS.FRASES : ROTAS.PALAVRAS, {
-      itens: this.itensCombinados(tipo),
-      idioma: lista[0]?.idioma,
+      itens: this.itensCombinados(tipo, idioma),
+      idioma,
+      glossario: lista.flatMap((m) => m.glossario || []),
     });
   }
 
-  async exportarCombinado(botao, tipo) {
-    const lista = materiaisAbertos.filter((m) => m.tipo === tipo);
+  async exportarCombinado(botao, tipo, idioma) {
+    const lista = this.arquivosDoGrupo(tipo, idioma);
+    const itens = this.itensCombinados(tipo, idioma);
     const ok = await confirmar({
       titulo: 'Exportar PDF combinado',
-      mensagem: `Gerar um único PDF com ${this.itensCombinados(tipo).length} ${nomeTipo(tipo)} de ${lista.length} arquivos?`,
+      mensagem: `Gerar um único PDF com ${itens.length} ${nomeTipo(tipo)} de ${lista.length} arquivos?`,
       confirmar: 'Gerar PDF',
     });
     if (!ok) return;
     await exportarPdfComBotao(botao, {
       tipo,
       titulo: `${nomeTipo(tipo, { maiuscula: true })} combinadas (${formatarDataBR(new Date())})`,
-      idioma: lista[0]?.idioma,
-      itens: this.itensCombinados(tipo),
+      idioma,
+      itens,
       // Mantém as traduções que os arquivos originais já tinham.
       glossario: lista.flatMap((m) => m.glossario || []),
     });

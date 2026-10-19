@@ -95,6 +95,7 @@ export class CreateScreen {
     this.resultado = null;
     this.controle = null;
     this.iaPronta = iaDisponivel();
+    this.maisOpcoesAbertas = false;
     this.eventos = criarEscopoEventos();
   }
 
@@ -150,6 +151,11 @@ export class CreateScreen {
               })}
             </div>
 
+            <details class="mais-opcoes" id="criarMaisOpcoes" ${this.maisOpcoesAbertas ? html`open` : ''}>
+              <summary class="mais-opcoes__titulo">
+                ⚙️ Mais opções
+                <span class="texto-suave texto-pequeno">tamanho e ${f.modo === MODOS.MERGULHO ? 'adaptação pela IA' : 'uso da Wikipédia'}</span>
+              </summary>
             <div class="grade-2 grade-2--compacta">
               ${segmentado({
                 nome: 'criarTamanho',
@@ -175,6 +181,7 @@ export class CreateScreen {
                 }
               </div>
             </div>
+            </details>
 
             <div id="painelIA" ${info.precisaIA || info.usaIA || f.adaptarComIA ? '' : html`hidden`}></div>
 
@@ -215,6 +222,11 @@ export class CreateScreen {
       })
     );
     $('#criarIdioma', r).addEventListener('change', (e) => (f.idioma = e.target.value));
+    // Mantém "Mais opções" aberto ao redesenhar (troca de modo ou nível).
+    $('#criarMaisOpcoes', r).addEventListener(
+      'toggle',
+      (e) => (this.maisOpcoesAbertas = e.target.open)
+    );
     r.querySelectorAll('input[name="criarNivel"]').forEach((i) =>
       i.addEventListener('change', () => {
         f.nivel = valorSegmentado(r, 'criarNivel');

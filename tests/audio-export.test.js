@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, expect, test, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { Mp3Encoder } from '@breezystack/lamejs';
 import {
   ehDialogo,
@@ -7,9 +7,18 @@ import {
   planejarAudio,
   separarFalante,
 } from '../js/audio/export/plan.js';
-import { Mp3Builder, aparar, paraInt16, reamostrar } from '../js/audio/export/mp3.js';
+import {
+  Mp3Builder,
+  aparar,
+  nivelar,
+  paraInt16,
+  reamostrar,
+  suavizarBordas,
+} from '../js/audio/export/mp3.js';
 import { KokoroMotor } from '../js/audio/export/engines.js';
-import { gerarMp3, nomeArquivoMp3 } from '../js/audio/export/index.js';
+import { _limparCacheAudio, gerarMp3, nomeArquivoMp3 } from '../js/audio/export/index.js';
+
+beforeEach(() => _limparCacheAudio());
 
 describe('planejamento do áudio', () => {
   test('separa falante e fala', () => {
@@ -42,7 +51,20 @@ describe('planejamento do áudio', () => {
       { tipo: 'palavras', itens: ['cat', '  ', 'dog'] },
       { numerar: true, pausaMs: 900 }
     );
-    expect(plano.map((s) => s.texto)).toEqual(['Number 1.', 'cat', 'Number 2.', 'dog']);
+    // O número vai no mesmo trecho da 1ª leitura (uma chamada à voz a menos por item).
+    expect(plano.map((s) => s.texto)).toEqual(['Number 1. cat', 'Number 2. dog']);
+  });
+
+  test('tradução falada depois do item (e das repetições)', () => {
+    const plano = planejarAudio(
+      { tipo: 'palavras', itens: ['window'] },
+      { repeticoes: 2, pausaMs: 1500, traducoes: new Map([['window', 'janela']]) }
+    );
+    expect(plano.map((s) => [s.texto, s.pausaDepoisMs])).toEqual([
+      ['window', 500],
+      ['window', 600],
+      ['janela', 1500],
+    ]);
   });
 
   test('diálogo: uma voz por pessoa e sem ler o nome', () => {
@@ -57,15 +79,14 @@ describe('planejamento do áudio', () => {
     ]);
   });
 
-  test('texto: frase a frase, pausa maior entre parágrafos e depois de títulos', () => {
+  test('texto: agrupa frases do mesmo parágrafo; pausa maior entre parágrafos e após títulos', () => {
     const plano = planejarAudio({
       tipo: 'texto',
       texto: 'History\n\nFirst sentence. Second one.\n\nNew paragraph.',
     });
     expect(plano.map((s) => [s.texto, s.pausaDepoisMs])).toEqual([
       ['History', 900],
-      ['First sentence.', 300],
-      ['Second one.', 750],
+      ['First sentence. Second one.', 750],
       ['New paragraph.', 300],
     ]);
     expect(estimarDuracao(plano)).toBeGreaterThan(2);
@@ -121,6 +142,44 @@ describe('MP3', () => {
     expect(r.duracao).toBeGreaterThan(5);
     expect(progresso).toContain('gerando');
     expect(progresso.at(-1)).toBe('finalizando');
+  });
+
+  test('nivelar aproxima o volume das partes fortes e fracas, sem amplificar silêncio', () => {
+    const taxa = 24000;
+    const tom = (amp) =>
+      Float32Array.from({ length: taxa }, (_, i) => Math.sin((2 * Math.PI * 220 * i) / taxa) * amp);
+    const rmsDb = (a) => 10 * Math.log10(a.reduce((s, v) => s + v * v, 0) / a.length);
+    // Começo forte, fim fraco e silêncio: como uma frase longa do Kokoro.
+    const entrada = new Float32Array(taxa * 3);
+    entrada.set(tom(0.5), 0);
+    entrada.set(tom(0.03), taxa);
+    const meio = (a, s) => a.subarray(taxa * (s + 0.3), taxa * (s + 0.7));
+    const antes = rmsDb(meio(entrada, 0)) - rmsDb(meio(entrada, 1));
+    const saida = nivelar(entrada, { taxa });
+    const depois = rmsDb(meio(saida, 0)) - rmsDb(meio(saida, 1));
+    expect(depois).toBeLessThan(antes - 12);
+    expect(Math.max(...saida.map(Math.abs))).toBeLessThanOrEqual(0.89);
+    expect(Math.max(...saida.subarray(taxa * 2.3).map(Math.abs))).toBe(0);
+  });
+
+  test('bordas suaves começam e terminam em zero', () => {
+    const a = suavizarBordas(new Float32Array(2400).fill(0.5));
+    expect(a[0]).toBe(0);
+    expect(Math.abs(a.at(-1))).toBeLessThan(0.01);
+    expect(a[1200]).toBe(0.5);
+  });
+
+  test('gerar de novo na mesma sessão reaproveita o áudio já sintetizado', async () => {
+    const motor = {
+      carregar: async () => {},
+      sintetizar: vi.fn(async () => ({ pcm: new Float32Array(2400).fill(0.1), taxa: 24000 })),
+    };
+    const conteudo = { tipo: 'palavras', itens: ['cat', 'dog'] };
+    await gerarMp3(conteudo, { motor, vozes: ['af_heart'], Mp3Encoder, pausaMs: 900 });
+    await gerarMp3(conteudo, { motor, vozes: ['af_heart'], Mp3Encoder, pausaMs: 2500 });
+    expect(motor.sintetizar).toHaveBeenCalledTimes(2);
+    await gerarMp3(conteudo, { motor, vozes: ['af_heart'], Mp3Encoder, velocidade: 0.8 });
+    expect(motor.sintetizar).toHaveBeenCalledTimes(4); // outra velocidade, outro áudio
   });
 
   test('diálogo usa a segunda voz para a segunda pessoa', async () => {

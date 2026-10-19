@@ -79,6 +79,88 @@ export class Mp3Builder {
   }
 }
 
+const dbParaGanho = (db) => 10 ** (db / 20);
+
+/**
+ * Nivela o volume ao longo do trecho. O Kokoro começa as frases forte e termina
+ * bem mais baixo (de −16 dB para −35 dB numa frase longa); ouvido em sequência,
+ * isso soa como "trechos baixos e rompantes". Aqui o volume de cada janela de 50 ms
+ * é puxado para um alvo comum, com ganho suavizado (sem efeito de "bombeamento"),
+ * silêncio não é amplificado e os picos passam por um limitador suave.
+ */
+export function nivelar(
+  amostras,
+  {
+    taxa = TAXA_PADRAO,
+    alvoDb = -19,
+    maxGanhoDb = 9,
+    minGanhoDb = -6,
+    portaDb = -45,
+    janelaMs = 50,
+    suavizarMs = 200,
+    teto = 0.89,
+  } = {}
+) {
+  const total = amostras.length;
+  if (!total) return amostras;
+  const jan = Math.max(1, Math.round((taxa * janelaMs) / 1000));
+  const nJanelas = Math.ceil(total / jan);
+
+  // Ganho desejado (dB) por janela.
+  const ganhos = new Float32Array(nJanelas);
+  for (let j = 0; j < nJanelas; j++) {
+    let soma = 0;
+    const fim = Math.min(total, (j + 1) * jan);
+    for (let i = j * jan; i < fim; i++) soma += amostras[i] * amostras[i];
+    const db = 10 * Math.log10(soma / (fim - j * jan) + 1e-12);
+    ganhos[j] = db < portaDb ? 0 : Math.max(minGanhoDb, Math.min(maxGanhoDb, alvoDb - db));
+  }
+
+  // Suaviza o ganho entre janelas vizinhas (média móvel).
+  const raio = Math.max(0, Math.round(suavizarMs / janelaMs / 2));
+  const suaves = new Float32Array(nJanelas);
+  for (let j = 0; j < nJanelas; j++) {
+    let soma = 0;
+    let n = 0;
+    for (let k = Math.max(0, j - raio); k <= Math.min(nJanelas - 1, j + raio); k++) {
+      soma += ganhos[k];
+      n++;
+    }
+    suaves[j] = dbParaGanho(soma / n);
+  }
+
+  // Aplica o ganho interpolado amostra a amostra e limita os picos suavemente.
+  const saida = new Float32Array(total);
+  const joelho = teto * 0.8;
+  for (let i = 0; i < total; i++) {
+    const pos = i / jan - 0.5;
+    const a = Math.max(0, Math.min(nJanelas - 1, Math.floor(pos)));
+    const b = Math.min(nJanelas - 1, a + 1);
+    const t = Math.max(0, Math.min(1, pos - a));
+    let v = amostras[i] * (suaves[a] + (suaves[b] - suaves[a]) * t);
+    const abs = Math.abs(v);
+    if (abs > joelho) {
+      v = Math.sign(v) * (joelho + (teto - joelho) * Math.tanh((abs - joelho) / (teto - joelho)));
+    }
+    saida[i] = v;
+  }
+  return saida;
+}
+
+/** Entrada e saída suaves (evita estalos nas emendas entre trechos). */
+export function suavizarBordas(amostras, { taxa = TAXA_PADRAO, entradaMs = 6, saidaMs = 25 } = {}) {
+  const entrada = Math.min(amostras.length, Math.round((taxa * entradaMs) / 1000));
+  const saida = Math.min(amostras.length, Math.round((taxa * saidaMs) / 1000));
+  for (let i = 0; i < entrada; i++) amostras[i] *= i / entrada;
+  for (let i = 0; i < saida; i++) amostras[amostras.length - 1 - i] *= i / saida;
+  return amostras;
+}
+
+/** Prepara um trecho sintetizado para o MP3: apara, nivela e suaviza as bordas. */
+export function prepararTrecho(pcm, taxaOrigem, taxa = TAXA_PADRAO) {
+  return suavizarBordas(nivelar(aparar(reamostrar(pcm, taxaOrigem, taxa)), { taxa }), { taxa });
+}
+
 /** Remove silêncio no início e no fim de um trecho, para as pausas ficarem regulares. */
 export function aparar(amostras, limiar = 0.01) {
   let inicio = 0;
