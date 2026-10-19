@@ -26,6 +26,17 @@ describe('PWA', () => {
     expect(faltando).toEqual([]);
   });
 
+  test('o service worker instala a versão nova direto do servidor (sem misturar arquivos antigos)', () => {
+    // Sem `cache: 'reload'`, o cache HTTP (10 min no GitHub Pages) podia misturar
+    // arquivos de versões diferentes e deixar o app com a tela vazia.
+    expect(sw).toMatch(/new Request\(url, \{ cache: 'reload' \}\)/);
+  });
+
+  test('se o app não abrir, o index.html oferece "Atualizar o app" (e o app avisa quando abriu)', () => {
+    expect(ler('index.html')).toContain('btnAtualizarApp');
+    expect(ler('js/main.js')).toContain('dataset.appPronto');
+  });
+
   test('todo arquivo listado no service worker existe', () => {
     const listados = [...sw.matchAll(/'\.\/([^']+)'/g)].map((m) => m[1]).filter(Boolean);
     const inexistentes = listados.filter((f) => {
@@ -71,6 +82,12 @@ describe('PWA', () => {
     expect(politica).toMatch(/worker-src[^;]*https:\/\/cdn\.jsdelivr\.net/);
     expect(politica).toMatch(/connect-src[^;]*https:\/\/huggingface\.co/);
     expect(politica).toMatch(/connect-src[^;]*https:\/\/\*\.hf\.co/);
+  });
+
+  test('a versão é a mesma no package.json, no config.js e no service worker', () => {
+    const versao = JSON.parse(ler('package.json')).version;
+    expect(ler('js/config.js')).toContain(`versao: '${versao}'`);
+    expect(ler('sw.js')).toContain(`const VERSAO = 'v${versao}'`);
   });
 
   test('o Web Worker do Kokoro importa exatamente a mesma versão do config', () => {

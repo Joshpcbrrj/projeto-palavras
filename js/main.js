@@ -2,7 +2,7 @@
  * Ponto de entrada do aplicativo.
  */
 
-import { TIPOS } from './config.js';
+import { APP, TIPOS } from './config.js';
 import { definirNavegador, ROTAS } from './core/nav.js';
 import { criarRouter } from './core/router.js';
 import { speaker, vozes } from './audio/index.js';
@@ -18,6 +18,8 @@ import { toast } from './ui/toast.js';
 
 function iniciar() {
   iniciarTema();
+  const versao = document.getElementById('versaoApp');
+  if (versao) versao.textContent = `v${APP.versao}`;
 
   const raiz = document.getElementById('app');
   const botaoInicio = document.getElementById('btnInicio');
@@ -49,6 +51,8 @@ function iniciar() {
   vozes.carregar();
 
   router.iniciar();
+  // Avisa o script do index.html que o app abriu (senão ele oferece "Atualizar o app").
+  document.documentElement.dataset.appPronto = '1';
   registrarServiceWorker();
 }
 

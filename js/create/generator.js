@@ -85,12 +85,13 @@ async function buscarReferencia({ tema, idioma, nivel, fetchFn, aoEtapa, palavra
 }
 
 /** Aviso para textos da Wikipédia entregues sem IA (mais difíceis ou mais curtos que o pedido). */
-function avisoSemIA(referencia, palavras) {
+function avisoSemIA(referencia, palavras, nivel) {
   const total = contarPalavras(referencia.texto);
   if (total < palavras * FRACAO_MINIMA) {
     return `A Wikipédia só tem ${total} palavras sobre “${referencia.titulo}” (o nível pede ${palavras}). Para um texto maior, configure a IA (Gemini) ou escolha um tema mais amplo.`;
   }
-  if (referencia.complemento) {
+  // Só para iniciantes a Wikipédia normal é "mais difícil" que o esperado.
+  if (referencia.complemento && nivel === 'iniciante') {
     return 'O artigo em inglês simples era curto: a parte final veio da Wikipédia em inglês normal, que é mais difícil. Com a IA (Gemini) configurada, o texto todo sai no nível escolhido.';
   }
   return '';
@@ -182,11 +183,11 @@ export async function criarTexto({
         aoEtapa?.('Não foi possível adaptar; mostrando o artigo original.');
         texto = prepararArtigo(artigo.texto, { maxPalavras: alvo });
         aoTexto?.(texto);
-        aviso = avisoSemIA({ ...artigo, texto }, alvo);
+        aviso = avisoSemIA({ ...artigo, texto }, alvo, nivel);
       }
     } else {
       aoTexto?.(texto);
-      aviso = avisoSemIA(artigo, alvo);
+      aviso = avisoSemIA(artigo, alvo, nivel);
     }
     return resultado({
       modo,
@@ -236,7 +237,7 @@ export async function criarTexto({
         nivel,
         fonte: fonteWikipedia(referencia),
         geradoPorIA: false,
-        aviso: avisoSemIA(referencia, alvo),
+        aviso: avisoSemIA(referencia, alvo, nivel),
       });
     }
     throw new Error(

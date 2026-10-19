@@ -36,7 +36,8 @@ Requisitos: Node.js 22 ou superior.
 - **Arquivos novos em `js/` ou `css/`** precisam entrar na lista `ARQUIVOS_APP` do `sw.js` (um teste verifica isso).
 - **Bibliotecas externas** têm a versão fixa na URL em `js/config.js` (`CDN`). Ao atualizar o Kokoro, atualize também a URL no Web Worker (`kokoro-worker.js`) — um teste compara as duas.
 - **Nova CDN, API ou mudança no script de tema do `index.html`** exige atualizar a Content-Security-Policy do `index.html` (um teste confere o hash do script e as origens do `config.js`). Veja [docs/ARQUITETURA.md](docs/ARQUITETURA.md#segurança-content-security-policy).
-- **Recursos que dependem de rede ou IA** (Wikipédia, Gemini, Kokoro) recebem `fetch`/motores por parâmetro, para serem testados com versões simuladas.
+- **Recursos que dependem de rede ou IA** (Wikipédia, Gemini, Kokoro, tradutor do navegador) recebem `fetch`/motores/APIs por parâmetro, para serem testados com versões simuladas.
+- **Nova versão:** atualize o número em `package.json`, `js/config.js` (`APP.versao`, mostrado no rodapé) e `sw.js` (`VERSAO`) — um teste confere se os três estão iguais.
 - **Formato do PDF:** mudanças incompatíveis no pacote exigem nova versão do marcador e leitura da versão anterior. Veja [docs/FORMATO-PDF.md](docs/FORMATO-PDF.md).
 
 ## Testes

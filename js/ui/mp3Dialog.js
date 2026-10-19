@@ -8,6 +8,7 @@ import { formatarDuracao } from '../core/utils.js';
 import { criarMotor, gerarMp3 } from '../audio/export/index.js';
 import { ehDialogo, estimarDuracao, planejarAudio } from '../audio/export/plan.js';
 import { OuvirEnquantoGera } from '../audio/export/preview.js';
+import { progresso } from '../services/progress.js';
 import { settings } from '../services/settings.js';
 import { alternador } from './components.js';
 import { toast } from './toast.js';
@@ -250,6 +251,8 @@ export function abrirExportacaoMp3(conteudo, { kit } = {}) {
       // Ao tocar o arquivo pronto, a prévia (se ainda estiver tocando) para.
       $('audio', area).addEventListener('play', pararPrevia);
       $('#mp3Progresso', el).hidden = true;
+      progresso().contarCriado('mp3');
+      if (kit) progresso().contarCriado('kits');
       toast.sucesso(kit ? 'Kit de estudo pronto: PDF e MP3 baixados.' : 'Áudio MP3 gerado.');
     } catch (erro) {
       pararPrevia();

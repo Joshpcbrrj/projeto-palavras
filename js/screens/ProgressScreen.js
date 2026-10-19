@@ -4,10 +4,10 @@
 
 import { IDIOMAS, TIPOS, nomeTipo } from '../config.js';
 import { $, baixarArquivo, html, lerTextoDoArquivo, render } from '../core/dom.js';
-import { carimboArquivo, formatarDataBR, formatarDuracao } from '../core/utils.js';
+import { formatarDataBR, formatarDuracao } from '../core/utils.js';
 import { progresso } from '../services/progress.js';
 import { cabecalhoTela, estadoVazio, seloRevisao } from '../ui/components.js';
-import { confirmar } from '../ui/dialog.js';
+import { confirmar, escolher } from '../ui/dialog.js';
 import { toast } from '../ui/toast.js';
 
 const ROTULO_TIPO = {
@@ -80,6 +80,29 @@ export class ProgressScreen {
                 ><span class="estatistica__rotulo">PDFs exportados / revisados</span>
               </div>
             </div>
+            <div class="estatisticas estatisticas--4 estatisticas--suaves">
+              <div class="estatistica">
+                <span class="estatistica__valor">${s.criados.textos}</span
+                ><span class="estatistica__rotulo">textos criados</span>
+              </div>
+              <div class="estatistica">
+                <span class="estatistica__valor">${s.criados.pdfs}</span
+                ><span class="estatistica__rotulo">PDFs gerados</span>
+              </div>
+              <div class="estatistica">
+                <span class="estatistica__valor">${s.criados.mp3}</span
+                ><span class="estatistica__rotulo">MP3 gerados</span>
+              </div>
+              <div class="estatistica">
+                <span class="estatistica__valor">${s.criados.kits}</span
+                ><span class="estatistica__rotulo">kits de estudo</span>
+              </div>
+            </div>
+            ${
+              s.aparelhos > 1
+                ? html`<p class="campo__ajuda">Inclui o progresso de ${s.aparelhos} aparelhos/navegadores, juntado por backup.</p>`
+                : ''
+            }
           </div>
 
           <div class="cartao">
@@ -199,8 +222,20 @@ export class ProgressScreen {
             }
           </div>
 
-          <div class="cartao">
+          <div class="cartao" id="cartaoBackup">
             <h3 class="secao__titulo">💾 Backup</h3>
+            <p class="texto-suave">
+              Baixe um arquivo com todo o seu progresso (estatísticas, materiais criados e agenda de
+              revisões) e importe-o em outro aparelho ou navegador. Ao importar, você pode
+              <strong>juntar</strong> com o progresso que já existe ou substituí-lo.
+            </p>
+            <p class="campo__ajuda ${servico.precisaBackup() ? 'campo__ajuda--aviso' : ''}">
+              ${
+                s.ultimoBackup
+                  ? `Último backup: ${formatarDataBR(s.ultimoBackup)}.`
+                  : 'Você ainda não fez nenhum backup.'
+              }
+            </p>
             <div class="acoes">
               <button type="button" class="btn btn--primario" id="btnBackup">
                 📤 Exportar backup (JSON)
@@ -233,25 +268,35 @@ export class ProgressScreen {
 
     $('#btnBackup', r).addEventListener('click', () => {
       const json = JSON.stringify(servico.exportarJSON(), null, 2);
-      baixarArquivo(
-        new Blob([json], { type: 'application/json' }),
-        `progresso_${carimboArquivo()}.json`
-      );
+      baixarArquivo(new Blob([json], { type: 'application/json' }), servico.nomeArquivoBackup());
       toast.sucesso('Backup exportado.');
+      this.desenhar(); // atualiza a data do último backup
     });
 
     $('#entradaBackup', r).addEventListener('change', async (e) => {
       const arquivo = e.target.files?.[0];
+      e.target.value = '';
       if (!arquivo) return;
-      const ok = await confirmar({
-        titulo: 'Importar backup?',
-        mensagem: 'O progresso atual deste navegador será substituído pelo do arquivo.',
-        confirmar: 'Importar',
-      });
-      if (!ok) return;
+      const texto = await lerTextoDoArquivo(arquivo);
+      // Sem progresso neste navegador, não há o que juntar: importa direto.
+      const modo = servico.temProgresso
+        ? await escolher({
+            titulo: 'Importar backup',
+            mensagem:
+              'Juntar soma o progresso do arquivo ao deste navegador (sem contar nada em dobro). Substituir troca o progresso deste navegador pelo do arquivo.',
+            botoes: [
+              { valor: '', rotulo: 'Cancelar', estilo: 'fantasma' },
+              { valor: 'substituir', rotulo: 'Substituir', estilo: 'secundario' },
+              { valor: 'juntar', rotulo: 'Juntar (recomendado)', estilo: 'primario' },
+            ],
+          })
+        : 'juntar';
+      if (!modo) return;
       try {
-        const sessoes = servico.importarJSON(await lerTextoDoArquivo(arquivo));
-        toast.sucesso(`Backup importado: ${sessoes} sessões.`);
+        const sessoes = servico.importarJSON(texto, { modo });
+        toast.sucesso(
+          `${modo === 'juntar' ? 'Progresso juntado' : 'Backup importado'}: ${sessoes} sessões no total.`
+        );
         this.desenhar();
       } catch (erro) {
         toast.erro(erro.message);

@@ -91,6 +91,129 @@ describe('ProgressService', () => {
   });
 });
 
+describe('materiais criados e lembrete de backup', () => {
+  test('conta textos criados, PDFs (pelo histórico de exportação), MP3 e kits', () => {
+    const p = new ProgressService();
+    p.contarCriado('textos');
+    p.contarCriado('mp3');
+    p.contarCriado('kits');
+    p.contarCriado('inexistente');
+    p.registrarArquivo('exportados', { nome: 'a.pdf', tipo: 'texto', quantidade: 700 });
+    expect(p.estatisticas().criados).toEqual({ textos: 1, pdfs: 1, mp3: 1, kits: 1 });
+  });
+
+  test('lembra do backup quando há progresso e nenhum backup nos últimos 14 dias', () => {
+    const p = new ProgressService();
+    expect(p.precisaBackup()).toBe(false); // nada para guardar
+    p.contarCriado('textos');
+    expect(p.precisaBackup()).toBe(true);
+    p.exportarJSON();
+    expect(p.precisaBackup()).toBe(false);
+    const daqui15dias = new Date(Date.now() + 15 * 86400000);
+    expect(p.precisaBackup(daqui15dias)).toBe(true);
+    expect(p.nomeArquivoBackup(new Date(2026, 9, 19))).toBe(
+      'progresso-aprendendo-palavras_2026-10-19.json'
+    );
+  });
+});
+
+describe('juntar backups de vários aparelhos', () => {
+  // Cada aparelho é simulado com uma chave diferente no localStorage.
+  const aparelho = (nome) => new ProgressService({ chave: `progresso_${nome}` });
+  const backup = (p) => JSON.stringify(p.exportarJSON());
+
+  function computadorECelular() {
+    const pc = aparelho('pc');
+    pc.registrarSessao({ tipo: 'palavras', itens: ['casa', 'sol'], segundos: 10 });
+    pc.contarCriado('textos');
+    const cel = aparelho('cel');
+    cel.registrarSessao({ tipo: 'frases', itens: ['Bom dia'], segundos: 5 });
+    cel.registrarSessao({ tipo: 'palavras', itens: ['casa'], segundos: 3 });
+    return { pc, cel };
+  }
+
+  test('juntar soma o progresso dos dois aparelhos', () => {
+    const { pc, cel } = computadorECelular();
+    expect(pc.importarJSON(backup(cel))).toBe(3);
+    const s = pc.estatisticas();
+    expect(s).toMatchObject({
+      sessoes: 3,
+      palavras: 3,
+      frases: 1,
+      palavrasUnicas: 2,
+      aparelhos: 2,
+    });
+    expect(s.maisEstudadas[0]).toEqual({ palavra: 'casa', vezes: 2 });
+    expect(s.criados.textos).toBe(1);
+    expect(s.segundos.total).toBe(18);
+  });
+
+  test('importar o mesmo backup de novo não conta nada em dobro', () => {
+    const { pc, cel } = computadorECelular();
+    const arquivo = backup(cel);
+    pc.importarJSON(arquivo);
+    pc.importarJSON(arquivo);
+    expect(pc.estatisticas()).toMatchObject({ sessoes: 3, palavras: 3 });
+    expect(pc.dados.sessoes).toHaveLength(3);
+  });
+
+  test('juntar nos dois sentidos deixa os dois aparelhos iguais, sem duplicar', () => {
+    const { pc, cel } = computadorECelular();
+    pc.importarJSON(backup(cel));
+    cel.importarJSON(backup(pc)); // o backup do PC já contém o progresso do celular
+    expect(cel.estatisticas()).toMatchObject({ sessoes: 3, palavras: 3, frases: 1 });
+    // Depois de juntar, cada aparelho continua contando o próprio estudo.
+    cel.registrarSessao({ tipo: 'frases', itens: ['Oi'], segundos: 1 });
+    pc.importarJSON(backup(cel));
+    expect(pc.estatisticas()).toMatchObject({ sessoes: 4, frases: 2 });
+  });
+
+  test('importar um backup deste mesmo navegador não duplica', () => {
+    const { pc } = computadorECelular();
+    pc.importarJSON(backup(pc));
+    expect(pc.estatisticas()).toMatchObject({ sessoes: 1, palavras: 2, aparelhos: 1 });
+  });
+
+  test('backup de versão anterior (sem identificação) do mesmo navegador não duplica', () => {
+    const antigo = {
+      versao: 3,
+      sessoes: [{ data: '2026-10-01T10:00:00.000Z', tipo: 'palavras', quantidade: 2 }],
+      repeticoes: { casa: 1, sol: 1 },
+      totais: { sessoes: 1, palavras: 2, frases: 0, textos: 0, segundos: { palavras: 10 } },
+      primeiroEstudo: '2026-10-01T10:00:00.000Z',
+    };
+    localStorage.setItem('progresso_estudo', JSON.stringify(antigo));
+    const p = new ProgressService();
+    p.importarJSON(JSON.stringify({ app: 'aprendendo-palavras', progresso: antigo }));
+    expect(p.estatisticas()).toMatchObject({ sessoes: 1, palavras: 2, aparelhos: 1 });
+  });
+
+  test('substituir troca o progresso pelo do arquivo; o estudo seguinte soma normalmente', () => {
+    const { pc, cel } = computadorECelular();
+    pc.importarJSON(backup(cel), { modo: 'substituir' });
+    expect(pc.estatisticas()).toMatchObject({ sessoes: 2, palavras: 1, frases: 1 });
+    expect(pc.estatisticas().criados.textos).toBe(0);
+    pc.registrarSessao({ tipo: 'palavras', itens: ['lua'], segundos: 2 });
+    expect(pc.estatisticas()).toMatchObject({ sessoes: 3, palavras: 2 });
+  });
+
+  test('a agenda junta os materiais e fica com a revisão mais adiantada', () => {
+    const { pc, cel } = computadorECelular();
+    const material = criarPacote({
+      tipo: 'palavras',
+      itens: ['x'],
+      revisao: criarRevisao({ revisarEm: '2026-10-20' }),
+    });
+    pc.salvarMaterial(material);
+    cel.salvarMaterial({
+      ...material,
+      revisao: criarRevisao({ revisarEm: '2026-11-05', etapa: 2 }),
+    });
+    pc.importarJSON(backup(cel));
+    expect(pc.dados.materiais[material.id].revisao.revisarEm).toBe('2026-11-05');
+  });
+});
+
 describe('migração dos dados da versão 2.x', () => {
   const v2 = {
     versao: '2.4',

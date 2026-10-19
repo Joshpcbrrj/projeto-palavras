@@ -10,6 +10,7 @@ import { gerarId } from '../core/utils.js';
 import { MODOS, criarTexto } from '../create/generator.js';
 import { PALAVRAS_POR_NIVEL, nomeNivel, paginasAproximadas } from '../create/levels.js';
 import { iaDisponivel, obterMotorIA } from '../create/engine.js';
+import { progresso } from '../services/progress.js';
 import { settings } from '../services/settings.js';
 import { extrairFrases, extrairPalavras } from '../text/extract.js';
 import { montarPainelIA } from '../ui/aiPanel.js';
@@ -64,6 +65,14 @@ const SUGESTOES = [
   'Futebol',
   'Meio ambiente',
 ];
+
+/** Dica quando o nível estimado não bate com o pedido (gerar de novo só ajuda com a IA). */
+function dicaNivel(resultado, analise) {
+  if (analise.nivelEstimado === resultado.nivel) return '';
+  return resultado.geradoPorIA
+    ? ' — gere de novo se quiser mais próximo do pedido'
+    : ' — o texto vem da Wikipédia como está; com a IA (Gemini), ele é adaptado ao nível';
+}
 
 export class CreateScreen {
   constructor() {
@@ -280,6 +289,7 @@ export class CreateScreen {
         signal: this.controle.signal,
       });
       this.resultado = { ...resultado, id: gerarId() };
+      progresso().contarCriado('textos');
       render(area, this.htmlResultado());
       this.ligarResultado();
       area.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
@@ -316,7 +326,7 @@ export class CreateScreen {
           a
             ? html`<p class="texto-pequeno texto-suave">
               ${a.palavras} palavras · ${a.palavrasPorFrase} palavras por frase · legibilidade ${a.facilidade}/100
-              (parece nível <strong>${estimado.nome}</strong>${a.nivelEstimado !== r.nivel ? ' — gere de novo se quiser mais próximo do pedido' : ''})
+              (parece nível <strong>${estimado.nome}</strong>${dicaNivel(r, a)})
             </p>`
             : ''
         }

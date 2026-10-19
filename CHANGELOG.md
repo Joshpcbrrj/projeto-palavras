@@ -5,6 +5,48 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e 
 
 ## [Não lançado]
 
+## [3.9.1] - 2026-10-19
+
+### Corrigido
+
+- **Tela vazia depois de uma atualização.** O service worker montava a versão nova com arquivos vindos do cache HTTP do navegador (o GitHub Pages permite guardar cada arquivo por 10 minutos), então podia misturar arquivos de versões diferentes — por exemplo, um `main.js` novo importando algo de um arquivo antigo —, e o app não abria. Agora a instalação busca os arquivos direto do servidor (`cache: 'reload'`).
+
+### Adicionado
+
+- Se o app não abrir em 6 segundos, aparece o aviso “O app não carregou” com o botão **Atualizar o app**, que limpa o cache do modo offline e recarrega (o progresso e o modelo de voz do MP3 são mantidos).
+
+## [3.9.0] - 2026-10-19
+
+Revisão geral do app e da documentação.
+
+### Adicionado
+
+- **Número da versão no rodapé**, bem pequeno, à direita (vem de `js/config.js`; um teste garante que é igual ao `package.json` e ao service worker). O modelo de relato de problema pede essa versão.
+
+### Alterado
+
+- Capturas de tela da documentação refeitas com o app atual (inclui a página de tradução do PDF).
+- Documentação revisada: README (tamanho por nível, tradução, compatibilidade da tradução, testes, publicação), ARQUITETURA (arquivos da exportação de áudio), FORMATO-PDF (ordem do layout), ROADMAP, CONTRIBUTING e descrição do PWA.
+
+### Corrigido
+
+- O aviso “a parte final veio da Wikipédia normal, que é mais difícil” aparecia também no nível intermediário; agora só no iniciante.
+- Em textos da Wikipédia sem IA, a dica “gere de novo” (que traria o mesmo artigo) foi trocada por uma explicação sobre adaptar o nível com a IA.
+- Estilo CSS sem uso removido.
+
+## [3.8.0] - 2026-10-19
+
+### Adicionado
+
+- **Contadores de materiais criados** em “Meu progresso”: textos criados, PDFs gerados, MP3 gerados e kits de estudo (também no backup).
+- **Importar backup juntando**: ao importar, escolha **Juntar** (soma o progresso do arquivo ao deste navegador) ou **Substituir**. Cada navegador tem uma identificação e guarda os próprios contadores; ao juntar, os contadores de cada origem são combinados pelo maior valor, então importar o mesmo arquivo de novo, ou juntar computador e celular nos dois sentidos, não conta nada em dobro. Sessões, histórico e agenda são unidos sem repetição (a revisão mais adiantada prevalece).
+- **Lembrete de backup** discreto na tela inicial quando há progresso e o último backup tem mais de 14 dias; a data do último backup aparece em “Meu progresso”.
+
+### Alterado
+
+- Nome do arquivo de backup: `progresso-aprendendo-palavras_AAAA-MM-DD.json`.
+- O total de PDFs exportados não fica mais limitado aos 100 últimos do histórico.
+
 ## [3.7.0] - 2026-10-19
 
 ### Adicionado

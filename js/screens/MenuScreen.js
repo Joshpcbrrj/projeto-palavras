@@ -5,7 +5,7 @@
 import { IDIOMAS, nomeTipo } from '../config.js';
 import { html, render } from '../core/dom.js';
 import { ROTAS, navegar } from '../core/nav.js';
-import { formatarDuracao } from '../core/utils.js';
+import { formatarDataBR, formatarDuracao } from '../core/utils.js';
 import { progresso } from '../services/progress.js';
 import { seloRevisao } from '../ui/components.js';
 
@@ -94,11 +94,22 @@ export class MenuScreen {
             </div>
             <span class="resumo__link">Ver meu progresso →</span>
           </a>
+          ${servico.precisaBackup() ? this.lembreteBackup(stats.ultimoBackup) : ''}
         </section>
       `
     );
 
     raiz.querySelector('#btnAbrirRevisar')?.addEventListener('click', () => navegar(ROTAS.REVISAR));
+  }
+
+  /** Lembrete discreto: há progresso e nenhum backup recente. */
+  lembreteBackup(ultimoBackup) {
+    const quando = ultimoBackup
+      ? `o último foi em ${formatarDataBR(ultimoBackup)}`
+      : 'você ainda não fez nenhum';
+    return html`<a class="lembrete-backup" href="#/${ROTAS.PROGRESSO}">
+      💾 Guarde seu progresso num arquivo de backup (${quando}) →
+    </a>`;
   }
 
   painelRevisoes(pendentes) {
