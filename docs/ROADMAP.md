@@ -69,6 +69,7 @@ Medições feitas com o Kokoro real no Edge (Windows):
 | K7  | **Ouvir enquanto gera** o MP3                                                                                                                                                 | ✅ v3.4          |
 | K8  | Tradução nos flashcards e falada no MP3                                                                                                                                       | Removida na v3.6 |
 | K10 | **Tamanho pelo nível**: 700 / 1.200 / 2.000 palavras no mínimo, com continuação pela IA e complemento da Wikipédia                                                            | ✅ v3.6          |
+| K11 | **Backup que junta aparelhos**: contadores de textos/PDFs/MP3/kits criados, importação com "Juntar" (sem contar em dobro) ou "Substituir", lembrete de backup na tela inicial | ✅ v3.8          |
 
 **Biblioteca dentro do app:** descartada — o estudo acontece com os arquivos, e o fluxo “gerar o PDF → estudar → reabrir em Revisar arquivo” já atende.
 

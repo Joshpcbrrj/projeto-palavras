@@ -73,6 +73,12 @@ describe('PWA', () => {
     expect(politica).toMatch(/connect-src[^;]*https:\/\/\*\.hf\.co/);
   });
 
+  test('a versão é a mesma no package.json, no config.js e no service worker', () => {
+    const versao = JSON.parse(ler('package.json')).version;
+    expect(ler('js/config.js')).toContain(`versao: '${versao}'`);
+    expect(ler('sw.js')).toContain(`const VERSAO = 'v${versao}'`);
+  });
+
   test('o Web Worker do Kokoro importa exatamente a mesma versão do config', () => {
     const config = ler('js/config.js');
     const url = (nome) => config.match(new RegExp(`${nome}: '([^']+)'`))[1];

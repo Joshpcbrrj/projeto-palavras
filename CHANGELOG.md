@@ -5,6 +5,19 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e 
 
 ## [Não lançado]
 
+## [3.8.0] - 2026-10-19
+
+### Adicionado
+
+- **Contadores de materiais criados** em “Meu progresso”: textos criados, PDFs gerados, MP3 gerados e kits de estudo (também no backup).
+- **Importar backup juntando**: ao importar, escolha **Juntar** (soma o progresso do arquivo ao deste navegador) ou **Substituir**. Cada navegador tem uma identificação e guarda os próprios contadores; ao juntar, os contadores de cada origem são combinados pelo maior valor, então importar o mesmo arquivo de novo, ou juntar computador e celular nos dois sentidos, não conta nada em dobro. Sessões, histórico e agenda são unidos sem repetição (a revisão mais adiantada prevalece).
+- **Lembrete de backup** discreto na tela inicial quando há progresso e o último backup tem mais de 14 dias; a data do último backup aparece em “Meu progresso”.
+
+### Alterado
+
+- Nome do arquivo de backup: `progresso-aprendendo-palavras_AAAA-MM-DD.json`.
+- O total de PDFs exportados não fica mais limitado aos 100 últimos do histórico.
+
 ## [3.7.0] - 2026-10-19
 
 ### Adicionado

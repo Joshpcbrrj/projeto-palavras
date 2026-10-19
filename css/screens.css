@@ -178,6 +178,22 @@
   color: var(--texto-3);
 }
 
+.lembrete-backup {
+  display: block;
+  margin-top: 0.75rem;
+  padding: 0.7rem 1rem;
+  border: 1px dashed var(--borda-forte);
+  border-radius: var(--raio);
+  background: var(--superficie);
+  color: var(--primaria-texto);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.lembrete-backup:hover {
+  background: var(--primaria-suave);
+}
+
 .resumo__link {
   font-weight: 700;
   color: var(--primaria-texto);

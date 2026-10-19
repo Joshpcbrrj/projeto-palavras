@@ -46,7 +46,7 @@
 | 📦 **Kit de estudo**                   | PDF + MP3 com um clique, com o mesmo nome de arquivo. No fim do PDF, uma página com **tudo traduzido para o português** (mesma numeração ou mesmos parágrafos), para revisar rápido.                                                                              |
 | 📄 **PDFs revisáveis**                 | Os PDFs exportados guardam os dados exatos do estudo e a data da próxima revisão. Abra-os depois em “Revisar arquivo” para continuar.                                                                                                                             |
 | 🗓️ **Revisão espaçada**                | Cada revisão concluída agenda a próxima (1 → 3 → 7 → 14 → 30 → 60 dias). Revisões pendentes aparecem na tela inicial.                                                                                                                                             |
-| 📈 **Progresso**                       | Sessões, tempo de estudo, palavras mais estudadas, dias seguidos e backup em JSON.                                                                                                                                                                                |
+| 📈 **Progresso**                       | Sessões, tempo de estudo, palavras estudadas, textos/PDFs/MP3 criados, dias seguidos e backup em JSON que pode ser **juntado** entre aparelhos.                                                                                                                   |
 | 🌙 **Tema claro e escuro**             | Segue o sistema automaticamente ou pela sua escolha.                                                                                                                                                                                                              |
 | 📱 **PWA**                             | Instale no celular ou no computador e use offline.                                                                                                                                                                                                                |
 
@@ -222,7 +222,7 @@ Visão geral das decisões técnicas em [docs/ARQUITETURA.md](docs/ARQUITETURA.m
 | Safari (macOS e iOS 15.4+)           | ✅                                     | ✅                                   |
 | Firefox                              | ✅                                     | ✅ (depende das vozes do sistema)    |
 
-Os dados (progresso, preferências e a chave do Gemini, se você cadastrar) ficam só no `localStorage` deste navegador, protegidos por uma Content-Security-Policy que só permite falar com a Wikipédia, o Gemini e as CDNs das bibliotecas. Use **Meu progresso → Exportar backup** para levar o progresso para outro dispositivo.
+Os dados (progresso, preferências e a chave do Gemini, se você cadastrar) ficam só no `localStorage` deste navegador, protegidos por uma Content-Security-Policy que só permite falar com a Wikipédia, o Gemini e as CDNs das bibliotecas. Use **Meu progresso → Exportar backup** para levar o progresso para outro aparelho: ao importar, escolha **Juntar** (soma os dois progressos sem contar nada em dobro, mesmo importando o mesmo arquivo de novo) ou **Substituir**. A tela inicial lembra de fazer backup quando o último tem mais de 2 semanas.
 
 ## Contribuindo
 

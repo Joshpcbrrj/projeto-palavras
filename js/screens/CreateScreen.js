@@ -10,6 +10,7 @@ import { gerarId } from '../core/utils.js';
 import { MODOS, criarTexto } from '../create/generator.js';
 import { PALAVRAS_POR_NIVEL, nomeNivel, paginasAproximadas } from '../create/levels.js';
 import { iaDisponivel, obterMotorIA } from '../create/engine.js';
+import { progresso } from '../services/progress.js';
 import { settings } from '../services/settings.js';
 import { extrairFrases, extrairPalavras } from '../text/extract.js';
 import { montarPainelIA } from '../ui/aiPanel.js';
@@ -280,6 +281,7 @@ export class CreateScreen {
         signal: this.controle.signal,
       });
       this.resultado = { ...resultado, id: gerarId() };
+      progresso().contarCriado('textos');
       render(area, this.htmlResultado());
       this.ligarResultado();
       area.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
