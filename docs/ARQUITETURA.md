@@ -105,6 +105,8 @@ StudySession ──item──▶      │
 
 `sw.js` guarda todos os arquivos do app (lista explícita, verificada por teste) e, à parte, as bibliotecas externas com versão fixa na URL (jsPDF e PDF.js do cdnjs são pré-carregadas; Kokoro e lamejs do jsDelivr ficam em cache após o primeiro uso). O modelo de voz é guardado pelas próprias bibliotecas no Cache Storage do navegador. Ao publicar, troque a versão (em `sw.js`, `js/config.js` e `package.json` — um teste confere) para invalidar o cache; a versão aparece no rodapé do app.
 
+Na instalação, o service worker baixa os arquivos com `cache: 'reload'` (direto do servidor): o GitHub Pages permite guardar cada arquivo por 10 minutos no cache HTTP, e sem isso a versão nova podia misturar arquivos antigos e deixar a tela vazia. Como proteção extra, o script inline do `index.html` espera o `main.js` marcar `data-app-pronto` no `<html>`; se isso não acontecer em 6 s, mostra o botão “Atualizar o app”, que remove o service worker e os caches `aprendendo-palavras-*` (o progresso e o modelo de voz ficam) e recarrega.
+
 O Web Worker `audio/export/kokoro-worker.js` importa a biblioteca por URL fixa; um teste garante que ela é igual à de `config.js`.
 
 ## Segurança (Content-Security-Policy)

@@ -9,7 +9,7 @@
     -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'sha256-126c9SpsMLxJKrjLpXxhMvJK4y8NjqXDYLuSd6/mw6k=' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net 'wasm-unsafe-eval'; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' https://*.wikipedia.org https://generativelanguage.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'"
+      content="default-src 'self'; script-src 'self' 'sha256-apVhL5tdoXsVhciYorMcrLGyHyDoB+RT+HE0CLGmDj8=' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net 'wasm-unsafe-eval'; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' https://*.wikipedia.org https://generativelanguage.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'"
     />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Aprendendo Palavras</title>
@@ -43,6 +43,45 @@
         if (/Windows/.test(navigator.userAgent)) {
           document.documentElement.classList.add('bandeiras-polyfill');
         }
+        // Se o app não abrir em alguns segundos (ex.: arquivos antigos no cache do modo
+        // offline), mostra um aviso com um botão que limpa esse cache e recarrega.
+        setTimeout(function () {
+          var app = document.getElementById('app');
+          if (!app || document.documentElement.dataset.appPronto) return;
+          app.innerHTML =
+            '<div class="cartao" style="text-align:center">' +
+            '<h2 class="secao__titulo">O app não carregou</h2>' +
+            '<p class="texto-suave">Isso pode acontecer logo depois de uma atualização. ' +
+            'Clique abaixo para baixar a versão mais nova (seu progresso não é apagado).</p>' +
+            '<p><button type="button" class="btn btn--primario" id="btnAtualizarApp">' +
+            'Atualizar o app</button></p></div>';
+          document.getElementById('btnAtualizarApp').addEventListener('click', function () {
+            var limpar = [];
+            if (navigator.serviceWorker) {
+              limpar.push(
+                navigator.serviceWorker.getRegistrations().then(function (registros) {
+                  return Promise.all(registros.map(function (r) { return r.unregister(); }));
+                })
+              );
+            }
+            if (window.caches) {
+              limpar.push(
+                caches.keys().then(function (nomes) {
+                  // Só o cache do app: o modelo da voz do MP3 (centenas de MB) fica guardado.
+                  return Promise.all(
+                    nomes
+                      .filter(function (n) { return n.indexOf('aprendendo-palavras') === 0; })
+                      .map(function (n) { return caches.delete(n); })
+                  );
+                })
+              );
+            }
+            Promise.all(limpar).then(
+              function () { location.reload(); },
+              function () { location.reload(); }
+            );
+          });
+        }, 6000);
       })();
     </script>
 

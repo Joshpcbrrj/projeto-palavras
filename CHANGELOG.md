@@ -5,6 +5,16 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e 
 
 ## [Não lançado]
 
+## [3.9.1] - 2026-10-19
+
+### Corrigido
+
+- **Tela vazia depois de uma atualização.** O service worker montava a versão nova com arquivos vindos do cache HTTP do navegador (o GitHub Pages permite guardar cada arquivo por 10 minutos), então podia misturar arquivos de versões diferentes — por exemplo, um `main.js` novo importando algo de um arquivo antigo —, e o app não abria. Agora a instalação busca os arquivos direto do servidor (`cache: 'reload'`).
+
+### Adicionado
+
+- Se o app não abrir em 6 segundos, aparece o aviso “O app não carregou” com o botão **Atualizar o app**, que limpa o cache do modo offline e recarrega (o progresso e o modelo de voz do MP3 são mantidos).
+
 ## [3.9.0] - 2026-10-19
 
 Revisão geral do app e da documentação.

@@ -51,6 +51,8 @@ function iniciar() {
   vozes.carregar();
 
   router.iniciar();
+  // Avisa o script do index.html que o app abriu (senão ele oferece "Atualizar o app").
+  document.documentElement.dataset.appPronto = '1';
   registrarServiceWorker();
 }
 

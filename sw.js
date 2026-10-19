@@ -6,7 +6,7 @@
  * subdiretórios (ex.: GitHub Pages em /projeto-palavras/).
  */
 
-const VERSAO = 'v3.9.0';
+const VERSAO = 'v3.9.1';
 const CACHE_APP = `aprendendo-palavras-${VERSAO}`;
 const CACHE_CDN = 'aprendendo-palavras-cdn';
 
@@ -87,7 +87,10 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     (async () => {
       const cache = await caches.open(CACHE_APP);
-      await cache.addAll(ARQUIVOS_APP);
+      // `cache: 'reload'` busca direto no servidor, ignorando o cache HTTP do navegador
+      // (o GitHub Pages permite guardar cada arquivo por 10 min). Sem isso, a versão nova
+      // podia ser montada com alguns arquivos antigos, e o app ficava com a tela vazia.
+      await cache.addAll(ARQUIVOS_APP.map((url) => new Request(url, { cache: 'reload' })));
       // As bibliotecas são opcionais: uma falha de rede não deve impedir a instalação.
       const cdn = await caches.open(CACHE_CDN);
       await Promise.all(ARQUIVOS_CDN.map((url) => cdn.add(url).catch(() => undefined)));
