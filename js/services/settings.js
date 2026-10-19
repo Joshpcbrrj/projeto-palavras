@@ -25,7 +25,7 @@ const MP3_PADRAO = Object.freeze({
 });
 
 /** Campos de versões anteriores que não existem mais (removidos ao carregar). */
-const CAMPOS_REMOVIDOS = ['motorIA', 'modeloIA', 'incluirTraducao', 'mostrarTraducao'];
+const CAMPOS_REMOVIDOS = ['motorIA', 'modeloIA', 'mostrarTraducao'];
 const CAMPOS_MP3_REMOVIDOS = ['motor', 'vozOpenai', 'vozOpenai2', 'chaveOpenai', 'falarTraducao'];
 
 const PADRAO = Object.freeze({
@@ -38,6 +38,7 @@ const PADRAO = Object.freeze({
   tempo: { ...TEMPO_PADRAO },
   embaralhar: true,
   ignorarComuns: true, // tira "the", "a", "to"... das listas de palavras
+  incluirTraducao: true, // tradução para o português no fim do PDF
   chaveGemini: '', // chave gratuita do Google Gemini (IA para criar textos)
   nivelTexto: 'iniciante',
   mp3: { ...MP3_PADRAO },

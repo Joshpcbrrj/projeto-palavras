@@ -87,6 +87,39 @@ describe('PDF: geração e revisão (ida e volta)', () => {
     expect(visivel).toContain('Markets today');
   });
 
+  test('lista com tradução no fim: página própria, mesma numeração, e volta no pacote', async () => {
+    const pacote = criarPacote({
+      tipo: 'frases',
+      idioma: 'en-US',
+      itens: ['Where is the station?', 'I am hungry.'],
+      traducao: ['Onde fica a estação?', 'Estou com fome.'],
+    });
+    const bytes = gerarBytes(pacote);
+    const material = await interpretarPdf(bytes, 'frases.pdf', pdfjsLib);
+    expect(material.traducao).toEqual(['Onde fica a estação?', 'Estou com fome.']);
+
+    const pdf = await pdfjsLib.getDocument({ data: bytes, verbosity: 0 }).promise;
+    expect(pdf.numPages).toBe(2); // a tradução começa numa página nova
+    const ultima = await pdf.getPage(2);
+    const texto = (await ultima.getTextContent()).items.map((i) => i.str).join(' ');
+    expect(texto).toContain('Tradução (português)');
+    expect(texto).toMatch(/1\s+Onde fica a estação\?/);
+    expect(texto).toMatch(/2\s+Estou com fome\./);
+  });
+
+  test('texto com tradução no fim, nos mesmos parágrafos', async () => {
+    const pacote = criarPacote({
+      tipo: 'texto',
+      idioma: 'en-US',
+      texto: 'The harvest was good.\n\nFarmers were happy.',
+      traducao: 'A colheita foi boa.\n\nOs agricultores ficaram felizes.',
+    });
+    const pdf = await pdfjsLib.getDocument({ data: gerarBytes(pacote), verbosity: 0 }).promise;
+    const texto = await extrairTextoPdf(pdf);
+    expect(texto.indexOf('Farmers were happy.')).toBeLessThan(texto.indexOf('A colheita foi boa.'));
+    expect(texto).toContain('Os agricultores ficaram felizes.');
+  });
+
   test('PDFs da v3.3–3.5 com tradução continuam abrindo (a tradução é ignorada)', async () => {
     const antigo = criarPacote({ tipo: 'palavras', idioma: 'en-US', itens: ['kitchen'] });
     const doc = gerarDocumentoPdf(

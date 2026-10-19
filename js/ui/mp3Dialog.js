@@ -23,7 +23,7 @@ function opcoesVoz(selecionada) {
  * Abre o diálogo de exportação.
  * @param {{tipo: string, titulo: string, idioma: string, itens?: string[], texto?: string}} conteudo
  * @param {object} [opcoes]
- * @param {{nomeBase: string, gerarPdf: () => Promise<object>}} [opcoes.kit] modo "kit de estudo":
+ * @param {{nomeBase: string, gerarPdf: (aoEtapa: (etapa: string) => void) => Promise<object>}} [opcoes.kit] modo "kit de estudo":
  *   baixa o PDF primeiro e depois o MP3, os dois com o mesmo nome
  */
 export function abrirExportacaoMp3(conteudo, { kit } = {}) {
@@ -216,7 +216,12 @@ export function abrirExportacaoMp3(conteudo, { kit } = {}) {
         criarMotor()
           .carregar()
           .catch(() => {}); // o erro, se houver, aparece de novo em gerarMp3
-        await kit.gerarPdf();
+        await kit.gerarPdf((etapa) => {
+          $('#mp3Status', el).textContent =
+            etapa === 'Traduzindo…'
+              ? 'Traduzindo para o PDF e preparando a voz…'
+              : 'Gerando o PDF e preparando a voz…';
+        });
         pdfPronto = true; // se o MP3 for cancelado, tentar de novo não repete o PDF
       }
       const motor = criarMotor();

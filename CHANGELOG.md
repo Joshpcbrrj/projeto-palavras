@@ -5,6 +5,14 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e 
 
 ## [Não lançado]
 
+## [3.7.0] - 2026-10-19
+
+### Adicionado
+
+- **Tradução no fim do PDF**, numa página própria, para revisar rápido: nas listas de palavras e frases, cada item traduzido com o mesmo número da lista; nos textos, o texto inteiro com os mesmos parágrafos e títulos. Opção “Incluir a tradução no final do PDF” (ligada por padrão) no fim do estudo, na tela de texto e em Criar textos.
+- Tradução pelo Gemini (se houver chave) ou pelo tradutor embutido do Chrome/Edge; sem tradutor, o PDF sai sem ela e o app avisa. Campo opcional `traducao` no pacote do PDF.
+- A tradução fica guardada no PDF e é reaproveitada ao exportar de novo e ao combinar listas (só o que falta é traduzido).
+
 ## [3.6.0] - 2026-10-19
 
 Textos maiores, arquivos mais simples.

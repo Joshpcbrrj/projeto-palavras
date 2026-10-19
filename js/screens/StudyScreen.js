@@ -38,7 +38,13 @@ import {
   valorSegmentado,
 } from '../ui/components.js';
 import { escolher } from '../ui/dialog.js';
-import { abrirKit, exportarPdfComBotao } from '../ui/exportActions.js';
+import { traducoesConhecidas } from '../services/export.js';
+import {
+  abrirKit,
+  alternadorTraducao,
+  exportarPdfComBotao,
+  ligarAlternadorTraducao,
+} from '../ui/exportActions.js';
 import { abrirExportacaoMp3 } from '../ui/mp3Dialog.js';
 
 const ETAPAS = ['Texto', 'Configurar', 'Estudar', 'Resultado'];
@@ -57,10 +63,12 @@ export class StudyScreen {
    * @param {string[]} [parametros.itens] itens prontos para estudar
    * @param {object} [parametros.material] pacote de origem (para manter id e revisão)
    * @param {string} [parametros.texto] texto para preencher a primeira etapa
+   * @param {Map<string, string>} [parametros.conhecidas] traduções já existentes (PDFs combinados)
    */
   constructor(tipo, parametros = {}) {
     this.tipo = tipo;
     this.material = parametros.material || null;
+    this.conhecidas = parametros.conhecidas || new Map();
     this.texto = parametros.texto || '';
     this.itensDisponiveis = parametros.itens?.length ? [...parametros.itens] : [];
     this.etapa = this.itensDisponiveis.length ? 1 : 0;
@@ -766,6 +774,7 @@ ${this.texto}</textarea
             >
           </div>
         </div>
+        ${alternadorTraducao(this.config.idioma)}
         <div class="acoes">
           <button type="button" class="btn btn--primario" id="btnKit">📦 Kit de estudo (PDF + MP3)</button>
           <button type="button" class="btn btn--secundario" id="btnExportar">📄 Só o PDF</button>
@@ -820,6 +829,7 @@ ${this.texto}</textarea
     });
     $('#btnNovo', r).addEventListener('click', () => {
       this.material = null;
+      this.conhecidas = new Map();
       this.titulo = '';
       this.itensDisponiveis = [];
       this.irPara(0);
@@ -836,6 +846,10 @@ ${this.texto}</textarea
       const botao = e.target.closest('[data-ouvir]');
       if (botao) this.pronunciar(vistos[Number(botao.dataset.ouvir)]);
     });
+
+    ligarAlternadorTraducao(r);
+    // Traduções que já existem (do PDF reaberto ou de um PDF gerado agora): não traduz de novo.
+    const conhecidas = () => new Map([...this.conhecidas, ...traducoesConhecidas(this.material)]);
 
     // Dados do material conforme as opções do cartão de exportação.
     const dadosExportacao = () => {
@@ -863,9 +877,13 @@ ${this.texto}</textarea
     };
 
     $('#btnExportarMp3', r).addEventListener('click', () => abrirExportacaoMp3(dadosExportacao()));
-    $('#btnKit', r).addEventListener('click', () => abrirKit(dadosExportacao(), { aoGerarPdf }));
+    $('#btnKit', r).addEventListener('click', () =>
+      abrirKit(dadosExportacao(), { aoGerarPdf, conhecidas: conhecidas() })
+    );
     $('#btnExportar', r).addEventListener('click', async (e) => {
-      aoGerarPdf(await exportarPdfComBotao(e.currentTarget, dadosExportacao()));
+      aoGerarPdf(
+        await exportarPdfComBotao(e.currentTarget, dadosExportacao(), { conhecidas: conhecidas() })
+      );
     });
   }
 }

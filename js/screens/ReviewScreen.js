@@ -14,6 +14,7 @@ import { settings } from '../services/settings.js';
 import { contarPalavras, extrairFrases, extrairPalavras } from '../text/extract.js';
 import { cabecalhoTela, estadoVazio, seloRevisao } from '../ui/components.js';
 import { confirmar } from '../ui/dialog.js';
+import { traducoesConhecidas } from '../services/export.js';
 import { exportarPdfComBotao } from '../ui/exportActions.js';
 import { toast } from '../ui/toast.js';
 
@@ -407,6 +408,8 @@ export class ReviewScreen {
     navegar(tipo === TIPOS.FRASES ? ROTAS.FRASES : ROTAS.PALAVRAS, {
       itens: this.itensCombinados(tipo, idioma),
       idioma,
+      // As traduções dos PDFs originais são reaproveitadas no PDF combinado.
+      conhecidas: traducoesConhecidas(...this.arquivosDoGrupo(tipo, idioma)),
     });
   }
 
@@ -419,12 +422,16 @@ export class ReviewScreen {
       confirmar: 'Gerar PDF',
     });
     if (!ok) return;
-    await exportarPdfComBotao(botao, {
-      tipo,
-      titulo: `${nomeTipo(tipo, { maiuscula: true })} combinadas (${formatarDataBR(new Date())})`,
-      idioma,
-      itens,
-    });
+    await exportarPdfComBotao(
+      botao,
+      {
+        tipo,
+        titulo: `${nomeTipo(tipo, { maiuscula: true })} combinadas (${formatarDataBR(new Date())})`,
+        idioma,
+        itens,
+      },
+      { conhecidas: traducoesConhecidas(...lista) }
+    );
   }
 }
 

@@ -28,7 +28,13 @@ import {
   seloRevisao,
   valorSegmentado,
 } from '../ui/components.js';
-import { abrirKit, exportarPdfComBotao } from '../ui/exportActions.js';
+import {
+  abrirKit,
+  alternadorTraducao,
+  atualizarAlternadorTraducao,
+  exportarPdfComBotao,
+  ligarAlternadorTraducao,
+} from '../ui/exportActions.js';
 import { abrirExportacaoMp3 } from '../ui/mp3Dialog.js';
 import { toast } from '../ui/toast.js';
 
@@ -46,6 +52,10 @@ export class TextScreen {
     this.modo = material ? 'ouvir' : 'editar';
     this.fonte = material?.fonte || null;
     this.nivel = material?.nivel;
+    // Tradução que veio no PDF reaberto (reaproveitada enquanto o texto não mudar).
+    this.traducaoSalva = material?.traducao
+      ? { texto: material.texto, traducao: material.traducao }
+      : null;
     this.dialogo = false;
     this.vozesDialogo = new Map();
     this.velocidade = settings.get('velocidadeFala');
@@ -230,6 +240,7 @@ ${this.texto}</textarea
     $('#textoIdioma', r).addEventListener('change', (e) => {
       this.idioma = e.target.value;
       settings.set('idioma', this.idioma);
+      atualizarAlternadorTraducao(r, this.idioma);
       this.salvarRascunho();
     });
     $('#textoArquivo', r).addEventListener('change', async (e) => {
@@ -381,6 +392,7 @@ ${this.texto}</textarea
       settings.set('idioma', this.idioma);
       leitor.setIdioma(this.idioma);
       this.seletorVoz.atualizar();
+      atualizarAlternadorTraducao(r, this.idioma);
       this.salvarRascunho();
     });
     this.seletorVoz = conectarSeletorVoz(
@@ -527,6 +539,7 @@ ${this.texto}</textarea
             etapaSugerida: this.material?.revisao?.etapa ?? 0,
           })}
         </div>
+        ${alternadorTraducao(this.idioma)}
         <div class="acoes">
           <button type="button" class="btn btn--primario" id="btnKit">📦 Kit de estudo (PDF + MP3)</button>
           <button type="button" class="btn btn--secundario" id="btnExportarTexto">📄 Só o PDF</button>
@@ -554,6 +567,14 @@ ${this.texto}</textarea
       return false;
     };
 
+    ligarAlternadorTraducao(r);
+    // Tradução já feita para este mesmo texto (PDF reaberto ou exportado agora): reaproveita.
+    const lembrarTraducao = (resultado) => {
+      if (resultado?.pacote.traducao) {
+        this.traducaoSalva = { texto: resultado.pacote.texto, traducao: resultado.pacote.traducao };
+      }
+    };
+
     const dadosExportacao = () => {
       const dias = Number($('#textoRevisao', r).value);
       const anterior = this.material?.revisao;
@@ -565,6 +586,8 @@ ${this.texto}</textarea
         id: this.material?.id,
         fonte: this.fonte,
         nivel: this.nivel,
+        traducao:
+          this.traducaoSalva?.texto === this.texto ? this.traducaoSalva.traducao : undefined,
         revisao: dias
           ? criarRevisao({
               etapa: anterior?.etapa ?? 0,
@@ -579,10 +602,11 @@ ${this.texto}</textarea
       if (exigirTexto()) abrirExportacaoMp3(dadosExportacao());
     });
     $('#btnKit', r).addEventListener('click', () => {
-      if (exigirTexto()) abrirKit(dadosExportacao());
+      if (exigirTexto()) abrirKit(dadosExportacao(), { aoGerarPdf: lembrarTraducao });
     });
-    $('#btnExportarTexto', r).addEventListener('click', (e) => {
-      if (exigirTexto()) exportarPdfComBotao(e.currentTarget, dadosExportacao());
+    $('#btnExportarTexto', r).addEventListener('click', async (e) => {
+      if (exigirTexto())
+        lembrarTraducao(await exportarPdfComBotao(e.currentTarget, dadosExportacao()));
     });
 
     const estudar = (tipo) => {

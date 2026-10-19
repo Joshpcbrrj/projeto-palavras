@@ -20,7 +20,12 @@ import {
   seletorIdioma,
   valorSegmentado,
 } from '../ui/components.js';
-import { abrirKit, exportarPdfComBotao } from '../ui/exportActions.js';
+import {
+  abrirKit,
+  alternadorTraducao,
+  exportarPdfComBotao,
+  ligarAlternadorTraducao,
+} from '../ui/exportActions.js';
 import { abrirExportacaoMp3 } from '../ui/mp3Dialog.js';
 import { toast } from '../ui/toast.js';
 
@@ -320,6 +325,7 @@ export class CreateScreen {
             ? html`<p class="texto-pequeno texto-suave">Fonte: <a href="${r.fonte.url}" target="_blank" rel="noopener">${r.fonte.nome} — ${r.fonte.titulo}</a> (${r.fonte.licenca})${r.geradoPorIA ? ', adaptado pela IA' : ''}.</p>`
             : ''
         }
+        ${alternadorTraducao(r.idioma)}
         <div class="acoes">
           <button type="button" class="btn btn--primario" data-acao="kit">📦 Kit de estudo (PDF + MP3)</button>
           <button type="button" class="btn btn--secundario" data-acao="ouvir">🎧 Ouvir e estudar</button>
@@ -343,11 +349,18 @@ export class CreateScreen {
       texto: r.texto,
       fonte: r.fonte,
       nivel: r.nivel,
+      traducao: r.traducao, // feita no primeiro PDF; reaproveitada nos seguintes
     };
   }
 
   ligarResultado() {
     const area = $('#areaResultado', this.raiz);
+    ligarAlternadorTraducao(area);
+    const lembrarTraducao = (resultado) => {
+      if (resultado?.pacote.traducao && this.resultado) {
+        this.resultado.traducao = resultado.pacote.traducao;
+      }
+    };
     area.onclick = async (e) => {
       const botao = e.target.closest('[data-acao]');
       if (!botao) return;
@@ -358,13 +371,13 @@ export class CreateScreen {
           navegar(ROTAS.TEXTO, { material: this.materialTexto() });
           break;
         case 'kit':
-          abrirKit(this.materialTexto());
+          abrirKit(this.materialTexto(), { aoGerarPdf: lembrarTraducao });
           break;
         case 'mp3':
           abrirExportacaoMp3(this.materialTexto());
           break;
         case 'pdf':
-          await exportarPdfComBotao(botao, this.materialTexto());
+          lembrarTraducao(await exportarPdfComBotao(botao, this.materialTexto()));
           break;
         case 'palavras':
         case 'frases': {

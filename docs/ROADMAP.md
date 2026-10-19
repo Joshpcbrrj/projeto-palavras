@@ -58,17 +58,17 @@ Medições feitas com o Kokoro real no Edge (Windows):
 
 ## 3. Funcionalidades
 
-| #   | Proposta                                                                                                           | Situação                                        |
-| --- | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------- |
-| K1  | Tradução no PDF (por item ou glossário)                                                                            | Removida na v3.6 (o PDF fica só com o conteúdo) |
-| K2  | Exercícios no PDF com gabarito                                                                                     | Descartado                                      |
-| K3  | **Filtrar palavras muito comuns** nas listas                                                                       | ✅ v3.3                                         |
-| K4  | **Kit de estudo**: PDF + MP3 com um clique e o mesmo nome                                                          | ✅ v3.3                                         |
-| K5  | **MP3 numerado** (“Number 3… window”), alinhado ao PDF                                                             | ✅ v3.3                                         |
-| K6  | **Começar em 1 clique**: “Mais opções” recolhido no flashcard e no Criar textos                                    | ✅ v3.4                                         |
-| K7  | **Ouvir enquanto gera** o MP3                                                                                      | ✅ v3.4                                         |
-| K8  | Tradução nos flashcards e falada no MP3                                                                            | Removida na v3.6                                |
-| K10 | **Tamanho pelo nível**: 700 / 1.200 / 2.000 palavras no mínimo, com continuação pela IA e complemento da Wikipédia | ✅ v3.6                                         |
+| #   | Proposta                                                                                                                                                                      | Situação         |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| K1  | **Tradução no fim do PDF**: página separada com tudo traduzido (mesma numeração nas listas, mesmos parágrafos nos textos); substitui o glossário misturado ao conteúdo (v3.3) | ✅ v3.7          |
+| K2  | Exercícios no PDF com gabarito                                                                                                                                                | Descartado       |
+| K3  | **Filtrar palavras muito comuns** nas listas                                                                                                                                  | ✅ v3.3          |
+| K4  | **Kit de estudo**: PDF + MP3 com um clique e o mesmo nome                                                                                                                     | ✅ v3.3          |
+| K5  | **MP3 numerado** (“Number 3… window”), alinhado ao PDF                                                                                                                        | ✅ v3.3          |
+| K6  | **Começar em 1 clique**: “Mais opções” recolhido no flashcard e no Criar textos                                                                                               | ✅ v3.4          |
+| K7  | **Ouvir enquanto gera** o MP3                                                                                                                                                 | ✅ v3.4          |
+| K8  | Tradução nos flashcards e falada no MP3                                                                                                                                       | Removida na v3.6 |
+| K10 | **Tamanho pelo nível**: 700 / 1.200 / 2.000 palavras no mínimo, com continuação pela IA e complemento da Wikipédia                                                            | ✅ v3.6          |
 
 **Biblioteca dentro do app:** descartada — o estudo acontece com os arquivos, e o fluxo “gerar o PDF → estudar → reabrir em Revisar arquivo” já atende.
 
@@ -101,4 +101,5 @@ O formato atual — arquivos estáticos, ES modules nativos, **sem etapa de buil
 - **Textos longos sem IA (iniciante):** a Simple English costuma ter 200–1.300 palavras por artigo; o restante vem da Wikipédia em inglês normal, que é mais difícil (o app avisa). Com o Gemini, o texto todo sai no nível.
 - **MP3 de textos longos:** um texto fluente (2.000 palavras ≈ 13 min de áudio) leva vários minutos para gerar; o “Ouvir enquanto gera” evita a espera.
 - O filtro de palavras muito comuns existe só para inglês.
+- **Tradutor do Chrome/Edge** (sem chave do Gemini) traduz frase por frase, com menos contexto que o Gemini; não existe no Firefox nem no Safari. Na primeira vez o navegador baixa o pacote do idioma — se demorar mais de 45 s, o PDF sai sem a tradução e o app avisa.
 - PDFs “impressos como PDF” ou salvos por outros programas podem perder o pacote de dados; nesse caso o app reconstrói o conteúdo pelo texto, sem a data de revisão.

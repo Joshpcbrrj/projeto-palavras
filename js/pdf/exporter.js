@@ -268,6 +268,36 @@ function desenharTexto(esc, texto) {
   }
 }
 
+/**
+ * Tradução para o português no fim do arquivo, numa página própria, para revisar
+ * rápido. Listas usam a mesma numeração do original; textos, os mesmos parágrafos.
+ */
+function desenharTraducao(esc, pacote) {
+  const { doc } = esc;
+  esc.novaPagina();
+  esc.fonte({ tamanho: 16, negrito: true, cor: COR.primaria });
+  doc.text('Tradução (português)', MARGEM, esc.y, { baseline: 'top' });
+  esc.y += 8;
+  esc.fonte({ tamanho: 9.5, cor: COR.suave });
+  doc.text(
+    paraLatin1(
+      pacote.tipo === TIPOS.TEXTO
+        ? 'Os parágrafos e títulos estão na mesma ordem do texto original.'
+        : `Os números correspondem aos da lista de ${nomeTipo(pacote.tipo)}.`
+    ),
+    MARGEM,
+    esc.y,
+    { baseline: 'top' }
+  );
+  esc.y += 6;
+  doc.setDrawColor(...COR.linha);
+  doc.line(MARGEM, esc.y, MARGEM + LARGURA_UTIL, esc.y);
+  esc.y += 6;
+  if (pacote.tipo === TIPOS.PALAVRAS) desenharPalavras(esc, pacote.traducao);
+  else if (pacote.tipo === TIPOS.FRASES) desenharFrases(esc, pacote.traducao);
+  else desenharTexto(esc, pacote.traducao);
+}
+
 /** Atribuição da fonte (exigida, por exemplo, pela licença CC BY-SA da Wikipédia). */
 function desenharFonte(esc, fonte) {
   const partes = [`Fonte: ${fonte.nome || ''}`.trim()];
@@ -345,6 +375,7 @@ export function gerarDocumentoPdf(
   else desenharTexto(esc, pacote.texto);
   if (pacote.fonte) desenharFonte(esc, pacote.fonte);
   desenharDicaRevisao(esc);
+  if (pacote.traducao?.length) desenharTraducao(esc, pacote);
   desenharRodapes(doc, hoje);
 
   doc.setProperties({
