@@ -28,7 +28,7 @@ export function montarPainelIA(container, { aoMudar } = {}) {
     }
     return html`
       <p class="texto-suave texto-pequeno">
-        Para criar diálogos, adaptar textos ao seu nível e traduzir no contexto, o app usa o Google
+        Para criar diálogos e textos completos no seu nível, o app usa o Google
         Gemini. Ele é <strong>grátis</strong>: só precisa de uma chave, criada uma vez com a sua conta Google.
       </p>
       ${guiaChaveGemini({ aberto: !chave })}

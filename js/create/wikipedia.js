@@ -7,6 +7,8 @@
  * é usada a Simple English Wikipedia, escrita para quem está aprendendo a língua.
  */
 
+import { contarPalavras } from '../text/extract.js';
+
 const SECOES_IGNORADAS =
   /^(see also|references|notes|external links|further reading|bibliography|sources|citations|footnotes|gallery|related pages|other websites|ver também|referências|notas|ligações externas|bibliografia|véase también|referencias|enlaces externos|voir aussi|références|liens externes|siehe auch|einzelnachweise|literatur|weblinks|voci correlate|note|collegamenti esterni)$/i;
 
@@ -172,11 +174,15 @@ const NOTA_NAVEGACAO =
   /^(for (the|other|a|an) [^.]{0,80}, see\b|this article is about\b|not to be confused with\b|"[^"]{1,60}" redirects here\b|para outros significados|não confundir com\b)/i;
 
 /**
- * Limpa o texto do artigo e o corta em um tamanho de leitura (1–2 páginas),
- * mantendo a introdução e as seções na ordem original.
+ * Limpa o texto do artigo e o corta no tamanho pedido, mantendo a introdução e
+ * as seções na ordem original.
+ * @param {string} extrato
+ * @param {object} [opcoes]
+ * @param {number} [opcoes.maxPalavras]
+ * @param {boolean} [opcoes.pularIntroducao] começa na primeira seção (para complementar outro texto)
  * @returns {string} texto com os títulos de seção em linhas próprias
  */
-export function prepararArtigo(extrato, { maxPalavras = 900 } = {}) {
+export function prepararArtigo(extrato, { maxPalavras = 900, pularIntroducao = false } = {}) {
   const linhas = String(extrato || '')
     .replace(/\r/g, '')
     .replace(/\{\\displaystyle[^}]*\}/g, '')
@@ -195,7 +201,7 @@ export function prepararArtigo(extrato, { maxPalavras = 900 } = {}) {
   const partes = [];
   let palavras = 0;
   let ignorandoNivel = null;
-  for (const secao of secoes) {
+  for (const secao of pularIntroducao ? secoes.slice(1) : secoes) {
     if (ignorandoNivel !== null && secao.nivel > ignorandoNivel) continue;
     ignorandoNivel = null;
     if (secao.titulo && SECOES_IGNORADAS.test(secao.titulo)) {
@@ -206,12 +212,13 @@ export function prepararArtigo(extrato, { maxPalavras = 900 } = {}) {
       if (secao.titulo) partes.push({ titulo: secao.titulo, paragrafos: [] });
       continue;
     }
+    // Segue parágrafo a parágrafo, sem pular nenhum, até atingir o tamanho pedido
+    // (o tamanho é um mínimo: o último parágrafo entra inteiro).
     const bloco = { titulo: secao.titulo, paragrafos: [] };
     for (const paragrafo of secao.paragrafos) {
-      const tamanho = paragrafo.split(/\s+/).length;
-      if (palavras + tamanho > maxPalavras && palavras > maxPalavras * 0.6) break;
       bloco.paragrafos.push(paragrafo);
-      palavras += tamanho;
+      palavras += contarPalavras(paragrafo);
+      if (palavras >= maxPalavras) break;
     }
     if (bloco.paragrafos.length) partes.push(bloco);
     if (palavras >= maxPalavras) break;
@@ -226,11 +233,4 @@ export function prepararArtigo(extrato, { maxPalavras = 900 } = {}) {
     texto.push(...parte.paragrafos);
   });
   return texto.join('\n\n').trim();
-}
-
-/** Conta palavras de um texto. */
-export function contarPalavrasTexto(texto) {
-  return String(texto || '')
-    .split(/\s+/)
-    .filter(Boolean).length;
 }

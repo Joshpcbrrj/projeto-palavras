@@ -4,7 +4,7 @@
  */
 
 import { TIPOS } from '../../config.js';
-import { dividirParaLeitura } from '../../text/extract.js';
+import { dividirParaLeitura, pareceTitulo } from '../../text/extract.js';
 
 const FALANTE = /^([\p{L}][\p{L} .'-]{0,23})\s*:\s+(.+)$/u;
 
@@ -43,12 +43,11 @@ export function ehDialogo(texto) {
  * @param {number} [opcoes.repeticoes=1] quantas vezes falar cada palavra/frase
  * @param {number} [opcoes.pausaMs=900] pausa entre palavras/frases
  * @param {boolean} [opcoes.numerar=false] falar o número do item ("Number 3") para acompanhar no PDF
- * @param {Map<string, string>} [opcoes.traducoes] item (minúsculo) → tradução, falada depois do item
  * @returns {Segmento[]}
  */
 export function planejarAudio(
   { tipo, itens = [], texto = '' },
-  { repeticoes = 1, pausaMs = 900, numerar = false, traducoes } = {}
+  { repeticoes = 1, pausaMs = 900, numerar = false } = {}
 ) {
   const segmentos = [];
 
@@ -57,18 +56,15 @@ export function planejarAudio(
     // A numeração segue a do PDF, que conta os itens não vazios.
     const validos = itens.map((item) => String(item).trim()).filter(Boolean);
     for (const [indice, conteudo] of validos.entries()) {
-      const traducao = traducoes?.get(conteudo.toLowerCase());
       for (let i = 0; i < vezes; i++) {
-        const ultima = i === vezes - 1;
         segmentos.push({
           // O número vai junto com a 1ª leitura: cada chamada à voz tem um custo fixo
           // (≈ 1,5 s), então um trecho só sai quase duas vezes mais rápido que dois.
           texto: numerar && i === 0 ? `Number ${indice + 1}. ${conteudo}` : conteudo,
           voz: 0,
-          pausaDepoisMs: !ultima ? 500 : traducao ? 600 : pausaMs,
+          pausaDepoisMs: i < vezes - 1 ? 500 : pausaMs,
         });
       }
-      if (traducao) segmentos.push({ texto: traducao, voz: 0, pausaDepoisMs: pausaMs });
     }
     return segmentos;
   }
@@ -92,7 +88,7 @@ export function planejarAudio(
   trechos.forEach((trecho, i) => {
     const proximo = trechos[i + 1];
     const entre = proximo ? texto.slice(trecho.fim, proximo.inicio) : '';
-    const titulo = !/[.!?…:;"'”)\]]$/u.test(trecho.texto) && trecho.texto.length < 80;
+    const titulo = pareceTitulo(trecho.texto);
     let pausa = PAUSA_FRASE;
     if (titulo) pausa = 900;
     else if (/\n/.test(entre)) pausa = 750;

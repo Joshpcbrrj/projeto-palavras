@@ -1,5 +1,11 @@
 import { describe, expect, test, vi } from 'vitest';
-import { analisarTexto, contarSilabas } from '../js/create/levels.js';
+import {
+  PALAVRAS_POR_NIVEL,
+  analisarTexto,
+  contarSilabas,
+  paginasAproximadas,
+  tamanhoDoNivel,
+} from '../js/create/levels.js';
 import {
   buscarArtigo,
   codigoWiki,
@@ -87,6 +93,15 @@ describe('níveis e legibilidade', () => {
 
   test('ignora os nomes dos falantes em diálogos', () => {
     expect(analisarTexto('Anna: Hi there.\nBen: Hello.').palavras).toBe(3);
+  });
+
+  test('o nível define o tamanho: 700, 1200 e 2000 palavras (mínimo de 700)', () => {
+    expect(PALAVRAS_POR_NIVEL).toEqual({ iniciante: 700, intermediario: 1200, fluente: 2000 });
+    expect(Math.min(...Object.values(PALAVRAS_POR_NIVEL))).toBeGreaterThanOrEqual(700);
+    expect(tamanhoDoNivel('iniciante')).toEqual({ palavras: 700, falas: 70 });
+    expect(tamanhoDoNivel('fluente').falas).toBe(125);
+    expect(paginasAproximadas(700)).toBe('2 páginas');
+    expect(paginasAproximadas(2000)).toBe('6 páginas');
   });
 });
 
@@ -178,6 +193,12 @@ describe('Wikipédia', () => {
     );
   });
 
+  test('pode pular a introdução (para completar outro texto)', () => {
+    const texto = prepararArtigo(ARTIGO, { pularIntroducao: true });
+    expect(texto).not.toContain('Economics is the study');
+    expect(texto).toMatch(/^History/);
+  });
+
   test('corta o artigo perto do tamanho pedido', () => {
     const paragrafo = 'word '.repeat(100).trim();
     const longo = Array.from({ length: 20 }, (_, i) => `== Part ${i} ==\n${paragrafo}`).join('\n');
@@ -198,23 +219,22 @@ describe('pedidos para a IA', () => {
       tema: 'ordering food',
       idioma: 'en-GB',
       nivel: 'iniciante',
-      tamanho: 'curto',
       referencia,
     });
     const pedido = mensagens.at(-1).content;
     expect(mensagens[0].content).toContain('British English');
     expect(pedido).toContain('A1-A2');
-    expect(pedido).toContain('exactly 8 lines');
+    expect(pedido).toContain('at least 700 words');
+    expect(pedido).toContain('about 70 lines');
     expect(pedido).toContain('Anna: ...');
     expect(pedido).toContain('A restaurant is a place');
-    expect(maxTokens).toBeGreaterThan(400);
+    expect(maxTokens).toBeGreaterThan(1200);
   });
 
   test('texto por nível e adaptação de artigo', () => {
     expect(
-      promptTextoNivel({ tema: 'climate', idioma: 'en-US', nivel: 'fluente', tamanho: 'longo' })
-        .mensagens[1].content
-    ).toMatch(/C1-C2[\s\S]*about 500 words/);
+      promptTextoNivel({ tema: 'climate', idioma: 'en-US', nivel: 'fluente' }).mensagens[1].content
+    ).toMatch(/C1-C2[\s\S]*at least 2000 words/);
     expect(
       promptAdaptarArtigo({
         titulo: 'Economy',
@@ -321,14 +341,15 @@ describe('criarTexto (orquestração)', () => {
       aoEtapa: (e) => etapas.push(e),
     });
     expect(r.texto.split('\n')).toHaveLength(5);
+    // O artigo simples do teste é curto: foi completado com a Wikipédia em inglês.
     expect(r.fonte).toMatchObject({
       nome: 'Wikipédia',
-      titulo: 'Restaurant',
+      titulo: 'Restaurant (Simple English) e Restaurant (English)',
       licenca: 'CC BY-SA 4.0',
     });
     expect(r.titulo).toBe('Diálogo: restaurant');
     expect(r.analise.nivelEstimado).toBe('iniciante');
-    expect(ia.gerar.mock.calls.at(-1)[0].mensagens[1].content).toContain('Economics is the study');
+    expect(ia.gerar.mock.calls[0][0].mensagens[1].content).toContain('Economics is the study');
     expect(etapas[0]).toContain('Wikipédia');
   });
 
@@ -347,7 +368,8 @@ describe('criarTexto (orquestração)', () => {
       fetchFn,
       aoEtapa: (e) => etapas.push(e),
     });
-    expect(ia.gerar).toHaveBeenCalledTimes(2);
+    // 2 tentativas + 1 pedido para continuar (o texto é curto; a resposta vazia encerra).
+    expect(ia.gerar).toHaveBeenCalledTimes(3);
     expect(ia.gerar.mock.calls[1][0].mensagens[1].content).toContain(
       'previous answer was in the wrong language'
     );
@@ -438,7 +460,8 @@ describe('criarTexto (orquestração)', () => {
       usarIA: false,
       fetchFn,
     });
-    expect(r.fonte.titulo).toBe('Economy');
+    expect(r.fonte.titulo).toBe('Economy (Simple English) e Economy (English)');
+    expect(r.aviso).toMatch(/só tem \d+ palavras/); // a Wikipédia (falsa) é curta demais
     await expect(
       criarTexto({ modo: MODOS.DIALOGO, tema: 'economy', usarIA: false, fetchFn })
     ).rejects.toThrow('precisa de IA');
@@ -452,6 +475,57 @@ describe('criarTexto (orquestração)', () => {
     const r = await criarTexto({ modo: MODOS.NIVEL, tema: 'travel', ia, fetchFn: offline });
     expect(r.fonte).toBeNull();
     expect(r.texto).toBe('Paragraph one.\n\nParagraph two.');
+  });
+
+  test('texto curto: a IA continua até chegar perto do tamanho do nível', async () => {
+    const paragrafo = (n) => `Part ${n}. ${'We learn new words every day. '.repeat(33).trim()}`;
+    let n = 0;
+    const ia = { gerar: vi.fn(async () => paragrafo(++n)) }; // ≈ 200 palavras por resposta
+    const etapas = [];
+    const r = await criarTexto({
+      modo: MODOS.NIVEL,
+      tema: 'travel',
+      nivel: 'iniciante',
+      ia,
+      usarWikipedia: false,
+      aoEtapa: (e) => etapas.push(e),
+    });
+    expect(ia.gerar).toHaveBeenCalledTimes(4); // texto + 3 continuações
+    expect(ia.gerar.mock.calls[1][0].mensagens[1].content).toContain('Continue the text');
+    expect(r.texto.split(/\s+/).length).toBeGreaterThan(700);
+    expect(etapas.some((e) => /Continuando/.test(e))).toBe(true);
+  });
+
+  test('não continua se o texto já tem o tamanho, e para se a IA repetir', async () => {
+    const longo = 'people learn new words every day. '.repeat(130);
+    const ia = { gerar: vi.fn(async () => longo) };
+    await criarTexto({ modo: MODOS.NIVEL, tema: 'travel', ia, usarWikipedia: false });
+    expect(ia.gerar).toHaveBeenCalledTimes(1); // 910 palavras ≥ 90% de 700
+
+    const curto = { gerar: vi.fn(async () => 'I like to go by train. It is fun.') };
+    await criarTexto({ modo: MODOS.NIVEL, tema: 'travel', ia: curto, usarWikipedia: false });
+    expect(curto.gerar).toHaveBeenCalledTimes(2); // a continuação repetiu o texto: encerra
+  });
+
+  test('Simple English curta é completada com as seções da Wikipédia em inglês', async () => {
+    const { fetchFn, chamadas } = wikipediaFalsa({
+      buscas: { 'simple:coffee': ['Coffee'] },
+      artigos: {
+        'simple:Coffee': 'Coffee is a drink.',
+        'en:Coffee': `Coffee is a beverage brewed from roasted beans.\n== History ==\n${'Coffee spread around the world. '.repeat(30)}`,
+      },
+    });
+    const r = await criarTexto({
+      modo: MODOS.MERGULHO,
+      tema: 'coffee',
+      nivel: 'iniciante',
+      usarIA: false,
+      fetchFn,
+    });
+    expect(r.texto).toMatch(/^Coffee is a drink\.\n\nHistory\n\nCoffee spread/);
+    expect(r.texto).not.toContain('brewed from roasted beans'); // a introdução não se repete
+    expect(chamadas.some((c) => c.wiki === 'en' && c.titles === 'Coffee')).toBe(true);
+    expect(r.aviso).toBeTruthy();
   });
 
   test('valida tema, nível e modo', async () => {

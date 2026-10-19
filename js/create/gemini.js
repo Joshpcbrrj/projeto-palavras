@@ -72,8 +72,9 @@ export class GeminiMotor {
           ...paraFormatoGemini(mensagens),
           generationConfig: {
             temperature: temperatura,
-            // Folga para modelos que "pensam" antes de responder.
-            maxOutputTokens: Math.max(maxTokens * 2, 2048),
+            // Folga para modelos que "pensam" antes de responder: o raciocínio também
+            // conta no limite, e textos de 2000 palavras precisam de ≈ 3400 tokens.
+            maxOutputTokens: Math.max(maxTokens * 2, 8192),
             ...(json ? { responseMimeType: 'application/json' } : {}),
           },
         }),

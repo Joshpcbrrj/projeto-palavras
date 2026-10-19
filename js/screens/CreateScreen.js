@@ -8,7 +8,7 @@ import { $, criarEscopoEventos, html, render } from '../core/dom.js';
 import { ROTAS, navegar } from '../core/nav.js';
 import { gerarId } from '../core/utils.js';
 import { MODOS, criarTexto } from '../create/generator.js';
-import { nomeNivel } from '../create/levels.js';
+import { PALAVRAS_POR_NIVEL, nomeNivel, paginasAproximadas } from '../create/levels.js';
 import { iaDisponivel, obterMotorIA } from '../create/engine.js';
 import { settings } from '../services/settings.js';
 import { extrairFrases, extrairPalavras } from '../text/extract.js';
@@ -40,14 +40,14 @@ const INFO_MODOS = {
   [MODOS.MERGULHO]: {
     aba: '🌍 Mergulhar no tema',
     descricao:
-      'Um texto explicativo de meia a duas páginas, com origem e principais ideias do tema, baseado na Wikipédia. Iniciantes recebem a Simple English Wikipedia, escrita para quem está aprendendo inglês.',
+      'Um texto explicativo com origem e principais ideias do tema, baseado na Wikipédia. Iniciantes recebem a Simple English Wikipedia, escrita para quem está aprendendo inglês (completada com a Wikipédia normal quando é curta).',
     exemplo: 'Ex.: economia, história do futebol, inteligência artificial',
     precisaIA: false,
   },
   [MODOS.NIVEL]: {
     aba: '📶 Por nível',
     descricao:
-      'Um texto sobre o tema escrito no seu nível: palavras, tamanho das frases e tempos verbais se ajustam ao que você escolher. Sem IA configurada, usa a Wikipédia do nível mais próximo (Simple English para iniciante e intermediário).',
+      'Um texto completo sobre o tema escrito no seu nível: palavras, tamanho das frases e tempos verbais se ajustam ao que você escolher. Sem IA configurada, usa a Wikipédia do nível mais próximo (Simple English para iniciante e intermediário).',
     exemplo: 'Ex.: meio ambiente, viagens, tecnologia no trabalho',
     precisaIA: false,
     usaIA: true,
@@ -65,19 +65,6 @@ const SUGESTOES = [
   'Meio ambiente',
 ];
 
-const TAMANHOS_POR_MODO = {
-  [MODOS.MERGULHO]: [
-    { valor: 'curto', rotulo: '½ página' },
-    { valor: 'medio', rotulo: '1 página' },
-    { valor: 'longo', rotulo: '2 páginas' },
-  ],
-  padrao: [
-    { valor: 'curto', rotulo: 'Curto' },
-    { valor: 'medio', rotulo: 'Médio' },
-    { valor: 'longo', rotulo: 'Longo' },
-  ],
-};
-
 export class CreateScreen {
   constructor() {
     const prefs = settings.carregar();
@@ -86,7 +73,6 @@ export class CreateScreen {
       tema: '',
       idioma: prefs.idioma,
       nivel: prefs.nivelTexto,
-      tamanho: 'medio',
       // No diálogo, artigos genéricos desviam a conversa da situação pedida (ex.: "fast food"
       // para "pedir comida num restaurante"); nos outros modos a Wikipédia ajuda com fatos.
       usarWikipedia: { [MODOS.DIALOGO]: false, [MODOS.NIVEL]: true },
@@ -145,24 +131,21 @@ export class CreateScreen {
               ${seletorIdioma({ id: 'criarIdioma', valor: f.idioma, rotulo: 'Idioma do texto' })}
               ${segmentado({
                 nome: 'criarNivel',
-                rotulo: 'Nível de compreensão',
+                rotulo: 'Nível e tamanho do texto',
                 valor: f.nivel,
-                opcoes: Object.entries(NIVEIS).map(([valor, n]) => ({ valor, rotulo: n.nome })),
+                opcoes: Object.entries(NIVEIS).map(([valor, n]) => ({
+                  valor,
+                  rotulo: `${n.nome} · ${PALAVRAS_POR_NIVEL[valor].toLocaleString('pt-BR')}`,
+                })),
               })}
             </div>
 
             <details class="mais-opcoes" id="criarMaisOpcoes" ${this.maisOpcoesAbertas ? html`open` : ''}>
               <summary class="mais-opcoes__titulo">
                 ⚙️ Mais opções
-                <span class="texto-suave texto-pequeno">tamanho e ${f.modo === MODOS.MERGULHO ? 'adaptação pela IA' : 'uso da Wikipédia'}</span>
+                <span class="texto-suave texto-pequeno">${f.modo === MODOS.MERGULHO ? 'adaptação pela IA' : 'uso da Wikipédia'}</span>
               </summary>
-            <div class="grade-2 grade-2--compacta">
-              ${segmentado({
-                nome: 'criarTamanho',
-                rotulo: 'Tamanho',
-                valor: f.tamanho,
-                opcoes: TAMANHOS_POR_MODO[f.modo] || TAMANHOS_POR_MODO.padrao,
-              })}
+            <div>
               <div>
                 ${
                   f.modo === MODOS.MERGULHO
@@ -186,7 +169,7 @@ export class CreateScreen {
             <div id="painelIA" ${info.precisaIA || info.usaIA || f.adaptarComIA ? '' : html`hidden`}></div>
 
             <div class="acoes acoes--entre criar__acoes">
-              <span class="texto-suave texto-pequeno">${nomeNivel(f.nivel)} · ${IDIOMAS[f.idioma]?.nome}</span>
+              <span class="texto-suave texto-pequeno">${nomeNivel(f.nivel)} · ≈ ${PALAVRAS_POR_NIVEL[f.nivel].toLocaleString('pt-BR')} palavras (${paginasAproximadas(PALAVRAS_POR_NIVEL[f.nivel])}) · ${IDIOMAS[f.idioma]?.nome}</span>
               <button type="button" class="btn btn--primario btn--grande" id="btnCriar">✨ Criar texto</button>
             </div>
           </div>
@@ -233,9 +216,6 @@ export class CreateScreen {
         settings.set('nivelTexto', f.nivel);
         this.desenhar();
       })
-    );
-    r.querySelectorAll('input[name="criarTamanho"]').forEach((i) =>
-      i.addEventListener('change', () => (f.tamanho = valorSegmentado(r, 'criarTamanho')))
     );
     $('#criarWikipedia', r)?.addEventListener(
       'change',
@@ -331,6 +311,7 @@ export class CreateScreen {
           <span class="selo selo--neutro">${NIVEIS[r.nivel].nome}${r.geradoPorIA ? ' · IA (Gemini)' : ' · Wikipédia'}</span>
         </div>
         <div class="leitor__texto">${r.texto}</div>
+        ${r.aviso ? html`<p class="campo__ajuda campo__ajuda--aviso">${r.aviso}</p>` : ''}
         ${
           a
             ? html`<p class="texto-pequeno texto-suave">
@@ -368,12 +349,18 @@ export class CreateScreen {
       texto: r.texto,
       fonte: r.fonte,
       nivel: r.nivel,
+      traducao: r.traducao, // feita no primeiro PDF; reaproveitada nos seguintes
     };
   }
 
   ligarResultado() {
     const area = $('#areaResultado', this.raiz);
     ligarAlternadorTraducao(area);
+    const lembrarTraducao = (resultado) => {
+      if (resultado?.pacote.traducao && this.resultado) {
+        this.resultado.traducao = resultado.pacote.traducao;
+      }
+    };
     area.onclick = async (e) => {
       const botao = e.target.closest('[data-acao]');
       if (!botao) return;
@@ -384,13 +371,13 @@ export class CreateScreen {
           navegar(ROTAS.TEXTO, { material: this.materialTexto() });
           break;
         case 'kit':
-          abrirKit(this.materialTexto());
+          abrirKit(this.materialTexto(), { aoGerarPdf: lembrarTraducao });
           break;
         case 'mp3':
           abrirExportacaoMp3(this.materialTexto());
           break;
         case 'pdf':
-          await exportarPdfComBotao(botao, this.materialTexto());
+          lembrarTraducao(await exportarPdfComBotao(botao, this.materialTexto()));
           break;
         case 'palavras':
         case 'frases': {

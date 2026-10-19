@@ -52,6 +52,10 @@ export class TextScreen {
     this.modo = material ? 'ouvir' : 'editar';
     this.fonte = material?.fonte || null;
     this.nivel = material?.nivel;
+    // Tradução que veio no PDF reaberto (reaproveitada enquanto o texto não mudar).
+    this.traducaoSalva = material?.traducao
+      ? { texto: material.texto, traducao: material.traducao }
+      : null;
     this.dialogo = false;
     this.vozesDialogo = new Map();
     this.velocidade = settings.get('velocidadeFala');
@@ -564,6 +568,12 @@ ${this.texto}</textarea
     };
 
     ligarAlternadorTraducao(r);
+    // Tradução já feita para este mesmo texto (PDF reaberto ou exportado agora): reaproveita.
+    const lembrarTraducao = (resultado) => {
+      if (resultado?.pacote.traducao) {
+        this.traducaoSalva = { texto: resultado.pacote.texto, traducao: resultado.pacote.traducao };
+      }
+    };
 
     const dadosExportacao = () => {
       const dias = Number($('#textoRevisao', r).value);
@@ -576,8 +586,8 @@ ${this.texto}</textarea
         id: this.material?.id,
         fonte: this.fonte,
         nivel: this.nivel,
-        // Texto reaberto e não alterado: reaproveita o glossário (não traduz de novo).
-        glossario: this.texto === this.material?.texto ? this.material?.glossario : undefined,
+        traducao:
+          this.traducaoSalva?.texto === this.texto ? this.traducaoSalva.traducao : undefined,
         revisao: dias
           ? criarRevisao({
               etapa: anterior?.etapa ?? 0,
@@ -592,10 +602,11 @@ ${this.texto}</textarea
       if (exigirTexto()) abrirExportacaoMp3(dadosExportacao());
     });
     $('#btnKit', r).addEventListener('click', () => {
-      if (exigirTexto()) abrirKit(dadosExportacao());
+      if (exigirTexto()) abrirKit(dadosExportacao(), { aoGerarPdf: lembrarTraducao });
     });
-    $('#btnExportarTexto', r).addEventListener('click', (e) => {
-      if (exigirTexto()) exportarPdfComBotao(e.currentTarget, dadosExportacao());
+    $('#btnExportarTexto', r).addEventListener('click', async (e) => {
+      if (exigirTexto())
+        lembrarTraducao(await exportarPdfComBotao(e.currentTarget, dadosExportacao()));
     });
 
     const estudar = (tipo) => {
@@ -616,7 +627,6 @@ ${this.texto}</textarea
         itens,
         idioma: this.idioma,
         texto: this.texto,
-        glossario: this.material?.glossario,
       });
     };
     $('#btnEstudarPalavras', r).addEventListener('click', () => estudar(TIPOS.PALAVRAS));

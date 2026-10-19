@@ -7,6 +7,7 @@
 
 import { APP, IDIOMAS, TIPOS, nomeTipo } from '../config.js';
 import { carimboArquivo, formatarDataBR, slug } from '../core/utils.js';
+import { contarPalavras, pareceTitulo } from '../text/extract.js';
 import { codificarPacote } from './format.js';
 import { obterJsPDF } from './libs.js';
 import { criarRasterizador } from './raster.js';
@@ -164,7 +165,7 @@ function desenharCabecalho(esc, pacote, hoje) {
   esc.y = 42;
   const quantidade =
     pacote.tipo === TIPOS.TEXTO
-      ? `${pacote.texto.split(/\s+/).filter(Boolean).length} palavras`
+      ? `${contarPalavras(pacote.texto)} palavras`
       : `${pacote.itens.length} ${nomeTipo(pacote.tipo)}`;
   const info = [
     ['Gerado em', formatarDataBR(hoje)],
@@ -185,46 +186,16 @@ function desenharCabecalho(esc, pacote, hoje) {
   esc.y += 23;
 }
 
-/** Mapa termo → tradução do glossário (para mostrar a tradução junto de cada item). */
-function mapaGlossario(glossario) {
-  return new Map((glossario || []).map((g) => [g.termo.toLowerCase(), g.traducao]));
-}
-
-/** Bloco com o item e, se houver, a tradução logo abaixo (em cinza). */
-function blocoComTraducao(esc, item, traducao, { tamanho, largura, alturaLinha }) {
-  const principal = esc.bloco(item, { tamanho, largura, alturaLinha });
-  if (!traducao) return principal;
-  const secundario = esc.bloco(traducao, {
-    tamanho: tamanho - 2,
-    cor: COR.suave,
-    largura,
-    alturaLinha: 1.25,
-  });
-  return {
-    altura: principal.altura + 0.6 + secundario.altura,
-    desenhar: (x, y) => {
-      principal.desenhar(x, y);
-      secundario.desenhar(x, y + principal.altura + 0.6);
-    },
-  };
-}
-
-function desenharPalavras(esc, itens, glossario) {
+function desenharPalavras(esc, itens) {
   const { doc } = esc;
-  const traducoes = mapaGlossario(glossario);
-  // Com tradução, 2 colunas dão espaço para a linha em português.
-  const colunas = traducoes.size ? 2 : 3;
+  const colunas = 3;
   const larguraColuna = LARGURA_UTIL / colunas;
   const larguraTexto = larguraColuna - 12;
   let i = 0;
   while (i < itens.length) {
     const linha = itens.slice(i, i + colunas).map((item, k) => ({
       numero: i + k + 1,
-      bloco: blocoComTraducao(esc, item, traducoes.get(item.toLowerCase()), {
-        tamanho: 11.5,
-        largura: larguraTexto,
-        alturaLinha: 1.25,
-      }),
+      bloco: esc.bloco(item, { tamanho: 11.5, largura: larguraTexto, alturaLinha: 1.25 }),
     }));
     const altura = Math.max(...linha.map((c) => c.bloco.altura)) + 3.2;
     esc.garantirEspaco(altura);
@@ -243,15 +214,10 @@ function desenharPalavras(esc, itens, glossario) {
   }
 }
 
-function desenharFrases(esc, itens, glossario) {
+function desenharFrases(esc, itens) {
   const { doc } = esc;
-  const traducoes = mapaGlossario(glossario);
   itens.forEach((item, i) => {
-    const bloco = blocoComTraducao(esc, item, traducoes.get(item.toLowerCase()), {
-      tamanho: 12,
-      largura: LARGURA_UTIL - 12,
-      alturaLinha: 1.4,
-    });
+    const bloco = esc.bloco(item, { tamanho: 12, largura: LARGURA_UTIL - 12, alturaLinha: 1.4 });
     const altura = bloco.altura + 5;
     esc.garantirEspaco(altura);
     doc.setFillColor(...COR.primariaClara);
@@ -269,9 +235,18 @@ function desenharFrases(esc, itens, glossario) {
 
 function desenharTexto(esc, texto) {
   const paragrafos = String(texto).replace(/\r/g, '').split(/\n/);
-  for (const paragrafo of paragrafos) {
+  for (const [i, paragrafo] of paragrafos.entries()) {
     if (!paragrafo.trim()) {
       esc.y += 3;
+      continue;
+    }
+    // Títulos de seção (textos longos são divididos em seções) em destaque.
+    if (i > 0 && pareceTitulo(paragrafo)) {
+      const titulo = esc.bloco(paragrafo, { tamanho: 13, negrito: true, cor: COR.primaria });
+      esc.y += 2;
+      esc.garantirEspaco(titulo.altura + 12); // não deixa o título sozinho no fim da página
+      titulo.desenhar(MARGEM, esc.y);
+      esc.y += titulo.altura + 2;
       continue;
     }
     // Parágrafos longos são divididos linha a linha para quebrar páginas corretamente.
@@ -293,32 +268,34 @@ function desenharTexto(esc, texto) {
   }
 }
 
-/** Seção "Glossário" ao fim dos textos: termo em negrito e tradução ao lado. */
-function desenharGlossario(esc, glossario) {
+/**
+ * Tradução para o português no fim do arquivo, numa página própria, para revisar
+ * rápido. Listas usam a mesma numeração do original; textos, os mesmos parágrafos.
+ */
+function desenharTraducao(esc, pacote) {
   const { doc } = esc;
-  esc.y += 4;
-  esc.garantirEspaco(20);
-  esc.fonte({ tamanho: 13, negrito: true, cor: COR.primaria });
-  doc.text('Glossário', MARGEM, esc.y, { baseline: 'top' });
+  esc.novaPagina();
+  esc.fonte({ tamanho: 16, negrito: true, cor: COR.primaria });
+  doc.text('Tradução (português)', MARGEM, esc.y, { baseline: 'top' });
   esc.y += 8;
-  const larguraTermo = 55;
-  glossario.forEach((g, i) => {
-    const termo = esc.bloco(g.termo, { tamanho: 10.5, negrito: true, largura: larguraTermo - 3 });
-    const traducao = esc.bloco(g.traducao, {
-      tamanho: 10.5,
-      cor: COR.suave,
-      largura: LARGURA_UTIL - larguraTermo - 4,
-    });
-    const altura = Math.max(termo.altura, traducao.altura) + 2.4;
-    esc.garantirEspaco(altura);
-    if (i % 2 === 0) {
-      doc.setFillColor(...COR.fundo);
-      doc.rect(MARGEM, esc.y - 1.2, LARGURA_UTIL, altura, 'F');
-    }
-    termo.desenhar(MARGEM + 2, esc.y);
-    traducao.desenhar(MARGEM + larguraTermo + 2, esc.y);
-    esc.y += altura;
-  });
+  esc.fonte({ tamanho: 9.5, cor: COR.suave });
+  doc.text(
+    paraLatin1(
+      pacote.tipo === TIPOS.TEXTO
+        ? 'Os parágrafos e títulos estão na mesma ordem do texto original.'
+        : `Os números correspondem aos da lista de ${nomeTipo(pacote.tipo)}.`
+    ),
+    MARGEM,
+    esc.y,
+    { baseline: 'top' }
+  );
+  esc.y += 6;
+  doc.setDrawColor(...COR.linha);
+  doc.line(MARGEM, esc.y, MARGEM + LARGURA_UTIL, esc.y);
+  esc.y += 6;
+  if (pacote.tipo === TIPOS.PALAVRAS) desenharPalavras(esc, pacote.traducao);
+  else if (pacote.tipo === TIPOS.FRASES) desenharFrases(esc, pacote.traducao);
+  else desenharTexto(esc, pacote.traducao);
 }
 
 /** Atribuição da fonte (exigida, por exemplo, pela licença CC BY-SA da Wikipédia). */
@@ -393,14 +370,12 @@ export function gerarDocumentoPdf(
   const esc = new Escritor(doc, rasterizar);
 
   desenharCabecalho(esc, pacote, hoje);
-  if (pacote.tipo === TIPOS.PALAVRAS) desenharPalavras(esc, pacote.itens, pacote.glossario);
-  else if (pacote.tipo === TIPOS.FRASES) desenharFrases(esc, pacote.itens, pacote.glossario);
-  else {
-    desenharTexto(esc, pacote.texto);
-    if (pacote.glossario?.length) desenharGlossario(esc, pacote.glossario);
-  }
+  if (pacote.tipo === TIPOS.PALAVRAS) desenharPalavras(esc, pacote.itens);
+  else if (pacote.tipo === TIPOS.FRASES) desenharFrases(esc, pacote.itens);
+  else desenharTexto(esc, pacote.texto);
   if (pacote.fonte) desenharFonte(esc, pacote.fonte);
   desenharDicaRevisao(esc);
+  if (pacote.traducao?.length) desenharTraducao(esc, pacote);
   desenharRodapes(doc, hoje);
 
   doc.setProperties({

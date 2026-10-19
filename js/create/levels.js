@@ -29,12 +29,35 @@ export const ORIENTACOES_NIVEL = Object.freeze({
   ].join(' '),
 });
 
-/** Tamanho alvo (em palavras) por formato. */
-export const TAMANHOS = Object.freeze({
-  curto: { nome: 'Curto', palavras: 150, falas: 8 },
-  medio: { nome: 'Médio', palavras: 300, falas: 14 },
-  longo: { nome: 'Longo', palavras: 500, falas: 20 },
+/**
+ * Tamanho do texto por nível (em palavras): o nível define a dificuldade e o
+ * tamanho. 700 palavras é o mínimo para um texto que dê para estudar bem
+ * (no PDF, ≈ 2 páginas; 2000 palavras ≈ 5 páginas).
+ */
+export const PALAVRAS_POR_NIVEL = Object.freeze({
+  iniciante: 700,
+  intermediario: 1200,
+  fluente: 2000,
 });
+
+/** Palavras por fala num diálogo, por nível (para calcular quantas falas pedir). */
+const PALAVRAS_POR_FALA = { iniciante: 10, intermediario: 13, fluente: 16 };
+
+/** Tamanho alvo de um texto (ou diálogo) do nível. */
+export function tamanhoDoNivel(nivel) {
+  const palavras = PALAVRAS_POR_NIVEL[nivel] ?? PALAVRAS_POR_NIVEL.iniciante;
+  const falas = Math.round(palavras / (PALAVRAS_POR_FALA[nivel] ?? 10));
+  return { palavras, falas };
+}
+
+/**
+ * Páginas aproximadas no PDF do app (medido: a 1ª página comporta ≈ 300 palavras,
+ * por causa do cabeçalho, e as seguintes ≈ 420).
+ */
+export function paginasAproximadas(palavras) {
+  const paginas = palavras <= 300 ? 1 : 1 + Math.ceil((palavras - 300) / 420);
+  return paginas === 1 ? '1 página' : `${paginas} páginas`;
+}
 
 export function nomeNivel(nivel) {
   return NIVEIS[nivel] ? `${NIVEIS[nivel].nome} (${NIVEIS[nivel].cefr})` : nivel;

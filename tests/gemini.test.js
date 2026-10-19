@@ -63,7 +63,7 @@ describe('GeminiMotor', () => {
     expect(url).toContain(':streamGenerateContent?alt=sse');
     expect(opcoes.headers['x-goog-api-key']).toBe('AIza-teste');
     const corpo = JSON.parse(opcoes.body);
-    expect(corpo.generationConfig).toMatchObject({ temperature: 0.8, maxOutputTokens: 2048 });
+    expect(corpo.generationConfig).toMatchObject({ temperature: 0.8, maxOutputTokens: 8192 });
     expect(corpo.systemInstruction.parts[0].text).toBe('s');
   });
 

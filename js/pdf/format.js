@@ -10,6 +10,7 @@
  * {
  *   app: 'aprendendo-palavras', versao: 3, id, tipo: 'palavras'|'frases'|'texto',
  *   titulo, idioma, criadoEm, itens?: string[], texto?: string,
+ *   traducao?: string (textos) | string[] (palavras/frases, na ordem dos itens),
  *   revisao: { etapa, intervaloDias, revisarEm: 'AAAA-MM-DD', historico: string[] }
  * }
  */
@@ -100,35 +101,32 @@ export function validarPacote(dados) {
   const fonte = validarFonte(dados.fonte);
   if (fonte) pacote.fonte = fonte;
   if (NIVEIS[dados.nivel]) pacote.nivel = dados.nivel;
-  const glossario = validarGlossario(dados.glossario);
-  if (glossario.length) pacote.glossario = glossario;
 
   if (pacote.tipo === TIPOS.TEXTO) {
     pacote.texto = String(dados.texto || '');
     if (!pacote.texto.trim()) return null;
+    if (typeof dados.traducao === 'string' && dados.traducao.trim()) {
+      pacote.traducao = dados.traducao.slice(0, 100000);
+    }
   } else {
-    pacote.itens = Array.isArray(dados.itens)
-      ? dados.itens.map((i) => String(i).trim()).filter(Boolean)
-      : [];
+    const brutos = Array.isArray(dados.itens) ? dados.itens.map((i) => String(i).trim()) : [];
+    pacote.itens = brutos.filter(Boolean);
     if (!pacote.itens.length) return null;
+    // A tradução de cada item, na mesma ordem (só vale se corresponder item a item).
+    if (Array.isArray(dados.traducao) && dados.traducao.length === brutos.length) {
+      const traducao = brutos.flatMap((item, k) =>
+        item
+          ? [
+              String(dados.traducao[k] ?? '')
+                .trim()
+                .slice(0, 500),
+            ]
+          : []
+      );
+      if (traducao.some(Boolean)) pacote.traducao = traducao;
+    }
   }
   return pacote;
-}
-
-/** Glossário com tradução: lista de { termo, traducao }. */
-function validarGlossario(glossario) {
-  if (!Array.isArray(glossario)) return [];
-  return glossario
-    .map((g) => ({
-      termo: String(g?.termo ?? '')
-        .trim()
-        .slice(0, 200),
-      traducao: String(g?.traducao ?? '')
-        .trim()
-        .slice(0, 200),
-    }))
-    .filter((g) => g.termo && g.traducao)
-    .slice(0, 500);
 }
 
 /** Fonte do conteúdo (ex.: artigo da Wikipédia), necessária para a atribuição exigida pela licença. */
@@ -163,7 +161,7 @@ export function criarPacote({
   criadoEm,
   fonte,
   nivel,
-  glossario,
+  traducao,
 }) {
   return validarPacote({
     app: APP.id,
@@ -177,7 +175,7 @@ export function criarPacote({
     texto,
     fonte,
     nivel,
-    glossario,
+    traducao,
     // `null` significa "não agendar"; sem o campo, agenda a primeira revisão.
     revisao: revisao === undefined ? criarRevisao() : revisao,
   });

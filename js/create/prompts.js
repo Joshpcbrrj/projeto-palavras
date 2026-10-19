@@ -6,7 +6,7 @@
  */
 
 import { IDIOMAS } from '../config.js';
-import { ORIENTACOES_NIVEL, TAMANHOS } from './levels.js';
+import { ORIENTACOES_NIVEL, tamanhoDoNivel } from './levels.js';
 
 /** Nome do idioma em inglês (os modelos entendem melhor instruções em inglês). */
 const IDIOMA_EM_INGLES = {
@@ -28,7 +28,13 @@ export function nomeIdiomaIngles(idioma) {
   return IDIOMA_EM_INGLES[idioma] || IDIOMAS[idioma]?.nome || 'English';
 }
 
-const MAX_PALAVRAS_REFERENCIA = 300;
+/** Referência usada em diálogos e textos por nível (fatos de apoio, não o texto todo). */
+const MAX_PALAVRAS_REFERENCIA = 600;
+/** Artigo enviado para adaptação: precisa ter material para textos de até 2000 palavras. */
+const MAX_PALAVRAS_ARTIGO = 2500;
+
+/** Tokens de saída necessários para ≈ N palavras (com folga). */
+const tokensPara = (palavras) => Math.round(palavras * 1.7) + 200;
 
 /** Encurta o texto de referência para caber no contexto de modelos pequenos. */
 export function resumirReferencia(texto, maxPalavras = MAX_PALAVRAS_REFERENCIA) {
@@ -90,59 +96,48 @@ function montar(idioma, partes, maxTokens) {
 }
 
 /**
- * Pedido para criar um diálogo sobre o tema.
- * @param {{tema: string, idioma: string, nivel: string, tamanho?: string,
+ * Pedido para criar um diálogo sobre o tema. O tamanho vem do nível
+ * (ou de `palavras`, se informado).
+ * @param {{tema: string, idioma: string, nivel: string, palavras?: number,
  *   referencia?: {titulo: string, texto: string}, reforcado?: boolean}} opcoes
  */
-export function promptDialogo({
-  tema,
-  idioma,
-  nivel,
-  tamanho = 'medio',
-  referencia,
-  reforcado = false,
-}) {
-  const falas = TAMANHOS[tamanho]?.falas ?? TAMANHOS.medio.falas;
+export function promptDialogo({ tema, idioma, nivel, palavras, referencia, reforcado = false }) {
+  const alvo = tamanhoDoNivel(nivel);
+  const total = palavras ?? alvo.palavras;
+  const falas = Math.max(4, Math.round((total / alvo.palavras) * alvo.falas));
   return montar(
     idioma,
     [
       blocoReferencia(referencia),
-      `Write a natural, realistic conversation between two people, Anna and Ben, about the topic ${descreverTema(tema, referencia)}.`,
+      `Write a long, natural, realistic conversation between two people, Anna and Ben, about the topic ${descreverTema(tema, referencia)}.`,
       `Language level: ${ORIENTACOES_NIVEL[nivel]}`,
-      `Write exactly ${falas} lines, alternating speakers, starting with Anna.`,
-      'Make it useful for a learner: an everyday situation, questions and answers, and useful expressions. Do not repeat the same idea.',
+      `Length: at least ${total} words in total, in about ${falas} lines, alternating speakers, starting with Anna. Do not stop early.`,
+      'Make it useful for a learner: an everyday situation that develops step by step, questions and answers, opinions, small problems and how they are solved, and many useful expressions. Do not repeat the same idea.',
       referencia
-        ? 'Keep the conversation focused on the topic above; use the reference only for one or two interesting facts.'
+        ? 'Keep the conversation focused on the topic above; use the reference only for a few interesting facts.'
         : '',
       'Format: every line must start with the speaker name followed by a colon, like this:\nAnna: ...\nBen: ...',
       lembreteIdioma(idioma, reforcado),
     ],
-    falas * 60 + 100
+    tokensPara(total)
   );
 }
 
 /** Pedido para criar um texto explicativo no nível escolhido. */
-export function promptTextoNivel({
-  tema,
-  idioma,
-  nivel,
-  tamanho = 'medio',
-  referencia,
-  reforcado = false,
-}) {
-  const palavras = TAMANHOS[tamanho]?.palavras ?? TAMANHOS.medio.palavras;
+export function promptTextoNivel({ tema, idioma, nivel, palavras, referencia, reforcado = false }) {
+  const total = palavras ?? tamanhoDoNivel(nivel).palavras;
   return montar(
     idioma,
     [
       blocoReferencia(referencia),
-      `Write an interesting, informative text about the topic ${descreverTema(tema, referencia)}.`,
+      `Write an interesting, informative study text about the topic ${descreverTema(tema, referencia)}.`,
       `Language level: ${ORIENTACOES_NIVEL[nivel]}`,
-      `Length: about ${palavras} words, in short paragraphs separated by a blank line. Do not repeat sentences or ideas.`,
-      'Do not use headings, bullet points or numbered lists. Do not quote words from other languages.',
-      'Write only the paragraphs.',
+      `Length: at least ${total} words. Do not stop early. Cover the topic in depth: what it is, its history or origin, how it works, examples from everyday life, advantages and problems, and the future.`,
+      'Organize the text in short paragraphs separated by a blank line. Every few paragraphs, add a short section title on its own line (plain text, no markdown, no numbers). Do not repeat sentences or ideas.',
+      'Do not use bullet points or numbered lists. Do not quote words from other languages.',
       lembreteIdioma(idioma, reforcado),
     ],
-    Math.round(palavras * 1.8) + 100
+    tokensPara(total)
   );
 }
 
@@ -152,24 +147,51 @@ export function promptAdaptarArtigo({
   texto,
   idioma,
   nivel,
-  maxPalavras = 700,
+  palavras,
   reforcado = false,
   retorno = '',
 }) {
+  const total = palavras ?? tamanhoDoNivel(nivel).palavras;
   return montar(
     idioma,
     [
       retorno,
-      `Rewrite the following article about "${titulo}" for a language learner.`,
+      `Rewrite the following article about "${titulo}" as a study text for a language learner.`,
       `Language level: ${ORIENTACOES_NIVEL[nivel]}`,
-      `Keep the important facts, the origin/history and the main ideas. Keep the section titles on their own lines. Length: about ${maxPalavras} words.`,
+      `Keep the important facts, the origin/history and the main ideas. Keep the section titles on their own lines (plain text). Length: at least ${total} words — if the article is short, explain the ideas in more detail with examples from everyday life, using what you know about the topic.`,
       '"""',
-      resumirReferencia(texto, 900),
+      resumirReferencia(texto, MAX_PALAVRAS_ARTIGO),
       '"""',
       'Write only the rewritten article.',
       lembreteIdioma(idioma, reforcado),
     ],
-    Math.round(maxPalavras * 1.8) + 150
+    tokensPara(total)
+  );
+}
+
+/**
+ * Pedido para continuar um texto que ficou mais curto que o pedido
+ * (os modelos costumam parar antes do tamanho pedido em textos longos).
+ */
+export function promptContinuar({ texto, formato, idioma, nivel, faltam }) {
+  const dialogo = formato === 'dialogo';
+  return montar(
+    idioma,
+    [
+      dialogo
+        ? 'Here is the beginning of a conversation between Anna and Ben, written as study material:'
+        : 'Here is the beginning of a study text:',
+      '"""',
+      texto,
+      '"""',
+      dialogo
+        ? `Continue the conversation with about ${faltam} more words, in the same format (every line starts with "Anna:" or "Ben:"). Develop the situation with new questions, details and useful expressions, and end the conversation naturally.`
+        : `Continue the text with about ${faltam} more words. Add new information and examples, with short section titles on their own lines (plain text), and finish with a short conclusion.`,
+      `Language level: ${ORIENTACOES_NIVEL[nivel]}`,
+      'Do not repeat anything that is already written. Write only the continuation, starting right after the last sentence.',
+      lembreteIdioma(idioma, false),
+    ],
+    tokensPara(faltam)
   );
 }
 

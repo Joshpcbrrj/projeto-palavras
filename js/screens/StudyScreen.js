@@ -38,6 +38,7 @@ import {
   valorSegmentado,
 } from '../ui/components.js';
 import { escolher } from '../ui/dialog.js';
+import { traducoesConhecidas } from '../services/export.js';
 import {
   abrirKit,
   alternadorTraducao,
@@ -62,12 +63,12 @@ export class StudyScreen {
    * @param {string[]} [parametros.itens] itens prontos para estudar
    * @param {object} [parametros.material] pacote de origem (para manter id e revisão)
    * @param {string} [parametros.texto] texto para preencher a primeira etapa
-   * @param {{termo: string, traducao: string}[]} [parametros.glossario] traduções (de PDFs revisados)
+   * @param {Map<string, string>} [parametros.conhecidas] traduções já existentes (PDFs combinados)
    */
   constructor(tipo, parametros = {}) {
     this.tipo = tipo;
     this.material = parametros.material || null;
-    this.definirGlossario(parametros.glossario || this.material?.glossario || []);
+    this.conhecidas = parametros.conhecidas || new Map();
     this.texto = parametros.texto || '';
     this.itensDisponiveis = parametros.itens?.length ? [...parametros.itens] : [];
     this.etapa = this.itensDisponiveis.length ? 1 : 0;
@@ -87,11 +88,6 @@ export class StudyScreen {
     this.sessaoRegistrada = false;
     this.eventos = criarEscopoEventos();
     this.seletorVoz = null;
-  }
-
-  definirGlossario(glossario) {
-    this.glossario = glossario;
-    this.traducoes = new Map(glossario.map((g) => [g.termo.toLowerCase(), g.traducao]));
   }
 
   get nome() {
@@ -547,7 +543,6 @@ ${this.texto}</textarea
 
         <div class="flashcard ${this.tipo === TIPOS.FRASES ? 'flashcard--frase' : ''}">
           <p class="flashcard__texto" id="flashcardTexto" aria-live="polite"></p>
-          <p class="flashcard__traducao" id="flashcardTraducao" hidden></p>
           <button type="button" class="btn btn--claro" id="btnOuvir" title="Ouvir (Enter)">
             🔊 Ouvir ${IDIOMAS[this.config.idioma]?.bandeira || ''}
           </button>
@@ -599,15 +594,6 @@ ${this.texto}</textarea
             rotulo: 'Áudio automático',
             marcado: this.config.audioAutomatico,
           })}
-          ${
-            this.traducoes.size
-              ? alternador({
-                  id: 'estTraducao',
-                  rotulo: 'Mostrar tradução',
-                  marcado: settings.get('mostrarTraducao'),
-                })
-              : ''
-          }
         </div>
         <p class="atalhos" aria-hidden="true">
           <kbd>Espaço</kbd> pausar · <kbd>←</kbd> <kbd>→</kbd> navegar · <kbd>Enter</kbd> ouvir ·
@@ -637,10 +623,6 @@ ${this.texto}</textarea
       settings.set('audioAutomatico', e.target.checked);
       if (!e.target.checked) speaker.cancelar();
     });
-    $('#estTraducao', r)?.addEventListener('change', (e) => {
-      settings.set('mostrarTraducao', e.target.checked);
-      if (s.vistos.size) this.mostrarTraducao(s.itemAtual);
-    });
 
     this.eventos.on(document, 'keydown', (e) => {
       if (e.target.closest?.('input, textarea, select') || e.altKey || e.ctrlKey || e.metaKey)
@@ -663,15 +645,6 @@ ${this.texto}</textarea
     this.atualizarEstado(s.estado);
   }
 
-  /** Tradução abaixo do item (vem do glossário do PDF revisado). */
-  mostrarTraducao(item) {
-    const el = $('#flashcardTraducao', this.raiz);
-    if (!el) return;
-    const traducao = settings.get('mostrarTraducao') ? this.traducoes.get(item.toLowerCase()) : '';
-    el.textContent = traducao || '';
-    el.hidden = !traducao;
-  }
-
   mostrarItem(item, indice, total) {
     const texto = $('#flashcardTexto', this.raiz);
     if (!texto) return;
@@ -682,7 +655,6 @@ ${this.texto}</textarea
     texto.classList.remove('flashcard__texto--entrada');
     void texto.offsetWidth; // reinicia a animação
     texto.classList.add('flashcard__texto--entrada');
-    this.mostrarTraducao(item);
 
     $('#estudoContador', this.raiz).textContent =
       `${this.nomeSingular.replace(/^./, (l) => l.toUpperCase())} ${indice + 1} de ${total}`;
@@ -857,7 +829,7 @@ ${this.texto}</textarea
     });
     $('#btnNovo', r).addEventListener('click', () => {
       this.material = null;
-      this.definirGlossario([]);
+      this.conhecidas = new Map();
       this.titulo = '';
       this.itensDisponiveis = [];
       this.irPara(0);
@@ -876,6 +848,8 @@ ${this.texto}</textarea
     });
 
     ligarAlternadorTraducao(r);
+    // Traduções que já existem (do PDF reaberto ou de um PDF gerado agora): não traduz de novo.
+    const conhecidas = () => new Map([...this.conhecidas, ...traducoesConhecidas(this.material)]);
 
     // Dados do material conforme as opções do cartão de exportação.
     const dadosExportacao = () => {
@@ -894,21 +868,22 @@ ${this.texto}</textarea
             })
           : null,
         id: this.material?.id,
-        // Reaproveita as traduções já conhecidas (só o que faltar é traduzido).
-        glossario: this.glossario,
       };
     };
     const aoGerarPdf = (resultado) => {
       if (!resultado) return;
       this.material = resultado.pacote;
       this.titulo = resultado.pacote.titulo;
-      this.definirGlossario(resultado.pacote.glossario || this.glossario);
     };
 
     $('#btnExportarMp3', r).addEventListener('click', () => abrirExportacaoMp3(dadosExportacao()));
-    $('#btnKit', r).addEventListener('click', () => abrirKit(dadosExportacao(), { aoGerarPdf }));
+    $('#btnKit', r).addEventListener('click', () =>
+      abrirKit(dadosExportacao(), { aoGerarPdf, conhecidas: conhecidas() })
+    );
     $('#btnExportar', r).addEventListener('click', async (e) => {
-      aoGerarPdf(await exportarPdfComBotao(e.currentTarget, dadosExportacao()));
+      aoGerarPdf(
+        await exportarPdfComBotao(e.currentTarget, dadosExportacao(), { conhecidas: conhecidas() })
+      );
     });
   }
 }

@@ -5,6 +5,35 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e 
 
 ## [Não lançado]
 
+## [3.7.0] - 2026-10-19
+
+### Adicionado
+
+- **Tradução no fim do PDF**, numa página própria, para revisar rápido: nas listas de palavras e frases, cada item traduzido com o mesmo número da lista; nos textos, o texto inteiro com os mesmos parágrafos e títulos. Opção “Incluir a tradução no final do PDF” (ligada por padrão) no fim do estudo, na tela de texto e em Criar textos.
+- Tradução pelo Gemini (se houver chave) ou pelo tradutor embutido do Chrome/Edge; sem tradutor, o PDF sai sem ela e o app avisa. Campo opcional `traducao` no pacote do PDF.
+- A tradução fica guardada no PDF e é reaproveitada ao exportar de novo e ao combinar listas (só o que falta é traduzido).
+
+## [3.6.0] - 2026-10-19
+
+Textos maiores, arquivos mais simples.
+
+### Alterado
+
+- **O nível define o tamanho do texto**: iniciante 700, intermediário 1.200 e fluente 2.000 palavras, no mínimo (antes: 150 a 1.000, conforme “Tamanho”). O campo “Tamanho” saiu de Criar textos.
+- Com o Gemini, se o texto sair curto, a IA continua (até 3 vezes) sem repetir o que já escreveu; textos longos vêm divididos em seções.
+- Sem IA, artigos curtos da Simple English Wikipedia são completados com as seções do mesmo artigo na Wikipédia em inglês (o app avisa que essa parte é mais difícil).
+- No PDF, os títulos de seção dos textos aparecem em destaque.
+- Limite de resposta do Gemini maior (textos de 2.000 palavras não são cortados).
+- Contagem de palavras e detecção de títulos unificadas (`text/extract.js`).
+
+### Removido
+
+- **Tradução e glossário**: o PDF, o MP3 e os flashcards ficam só com o conteúdo (texto, frases ou palavras). PDFs antigos com tradução continuam abrindo normalmente.
+
+### Corrigido
+
+- O corte do artigo da Wikipédia podia pular um parágrafo longo e pegar parágrafos das seções seguintes, deixando buracos no texto.
+
 ## [3.5.0] - 2026-10-18
 
 ### Adicionado

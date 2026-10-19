@@ -8,13 +8,13 @@
 
 ### 1.1 O app cumpre a visão?
 
-| Etapa                                     | Situação atual                                                                                                         | Nota      |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | --------- |
-| **Conseguir material no nível certo**     | ✅ Criar textos (diálogo, mergulho no tema, por nível) com métrica de legibilidade                                     | Bom       |
-| **Levar o material para estudar sozinho** | ✅ Kit de estudo (PDF + MP3 com o mesmo nome); MP3 com voz natural, numeração alinhada ao PDF, repetições e pausas     | Muito bom |
-| **Entender o que está lendo/ouvindo**     | ✅ Tradução para o português no PDF (por item ou glossário), nos flashcards da revisão e, opcionalmente, falada no MP3 | Bom       |
-| **Revisar no tempo certo**                | ✅ Cada PDF guarda a data da próxima revisão; ao reabri-lo no app, a revisão avança (1 → 3 → 7 → 14 → 30 → 60 dias)    | Bom       |
-| **Facilidade de uso**                     | ✅ Telas começam só com o essencial; voz, tempo, repetições, tamanho etc. ficam em “Mais opções”                       | Bom       |
+| Etapa                                     | Situação atual                                                                                                      | Nota      |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | --------- |
+| **Conseguir material no nível certo**     | ✅ Criar textos (diálogo, mergulho no tema, por nível) com métrica de legibilidade                                  | Bom       |
+| **Levar o material para estudar sozinho** | ✅ Kit de estudo (PDF + MP3 com o mesmo nome); MP3 com voz natural, numeração alinhada ao PDF, repetições e pausas  | Muito bom |
+| **Textos que valem a pena estudar**       | ✅ Tamanho mínimo de 700 palavras (iniciante), 1.200 (intermediário) e 2.000 (fluente), com seções e títulos no PDF | Bom       |
+| **Revisar no tempo certo**                | ✅ Cada PDF guarda a data da próxima revisão; ao reabri-lo no app, a revisão avança (1 → 3 → 7 → 14 → 30 → 60 dias) | Bom       |
+| **Facilidade de uso**                     | ✅ Telas começam só com o essencial; voz, tempo, repetições, tamanho etc. ficam em “Mais opções”                    | Bom       |
 
 Exercícios no PDF (lacunas, perguntas com gabarito) foram avaliados e **descartados**: não são necessários para o objetivo do app.
 
@@ -49,7 +49,7 @@ Medições feitas com o Kokoro real no Edge (Windows):
 
 | #   | Atrito observado                                                | Situação                                    |
 | --- | --------------------------------------------------------------- | ------------------------------------------- |
-| U1  | Os arquivos não explicavam as palavras                          | ✅ Resolvido (K1, K8)                       |
+| U2  | Textos gerados eram curtos (½ a 1 página)                       | ✅ Resolvido (K10)                          |
 | U3  | Muitas opções antes de começar                                  | ✅ Resolvido (K6)                           |
 | U4  | Listas de palavras incluíam palavras inúteis (“a”, “to”, “her”) | ✅ Resolvido (K3)                           |
 | U5  | PDF e MP3 eram gerados separadamente                            | ✅ Resolvido (K4)                           |
@@ -58,17 +58,17 @@ Medições feitas com o Kokoro real no Edge (Windows):
 
 ## 3. Funcionalidades
 
-| #   | Proposta                                                                                                               | Situação   |
-| --- | ---------------------------------------------------------------------------------------------------------------------- | ---------- |
-| K1  | **Tradução no PDF**: abaixo de cada palavra/frase ou glossário nos textos (Gemini ou tradutor embutido do Chrome/Edge) | ✅ v3.3    |
-| K2  | Exercícios no PDF com gabarito                                                                                         | Descartado |
-| K3  | **Filtrar palavras muito comuns** nas listas                                                                           | ✅ v3.3    |
-| K4  | **Kit de estudo**: PDF + MP3 com um clique e o mesmo nome                                                              | ✅ v3.3    |
-| K5  | **MP3 numerado** (“Number 3… window”), alinhado ao PDF                                                                 | ✅ v3.3    |
-| K6  | **Começar em 1 clique**: “Mais opções” recolhido no flashcard e no Criar textos                                        | ✅ v3.4    |
-| K7  | **Ouvir enquanto gera** o MP3                                                                                          | ✅ v3.4    |
-| K8  | **Tradução nos flashcards** da revisão (vinda do PDF)                                                                  | ✅ v3.4    |
-| K9  | **Tradução falada no MP3** (opcional; a voz é inglesa, então o português sai com sotaque)                              | ✅ v3.4    |
+| #   | Proposta                                                                                                                                                                      | Situação         |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| K1  | **Tradução no fim do PDF**: página separada com tudo traduzido (mesma numeração nas listas, mesmos parágrafos nos textos); substitui o glossário misturado ao conteúdo (v3.3) | ✅ v3.7          |
+| K2  | Exercícios no PDF com gabarito                                                                                                                                                | Descartado       |
+| K3  | **Filtrar palavras muito comuns** nas listas                                                                                                                                  | ✅ v3.3          |
+| K4  | **Kit de estudo**: PDF + MP3 com um clique e o mesmo nome                                                                                                                     | ✅ v3.3          |
+| K5  | **MP3 numerado** (“Number 3… window”), alinhado ao PDF                                                                                                                        | ✅ v3.3          |
+| K6  | **Começar em 1 clique**: “Mais opções” recolhido no flashcard e no Criar textos                                                                                               | ✅ v3.4          |
+| K7  | **Ouvir enquanto gera** o MP3                                                                                                                                                 | ✅ v3.4          |
+| K8  | Tradução nos flashcards e falada no MP3                                                                                                                                       | Removida na v3.6 |
+| K10 | **Tamanho pelo nível**: 700 / 1.200 / 2.000 palavras no mínimo, com continuação pela IA e complemento da Wikipédia                                                            | ✅ v3.6          |
 
 **Biblioteca dentro do app:** descartada — o estudo acontece com os arquivos, e o fluxo “gerar o PDF → estudar → reabrir em Revisar arquivo” já atende.
 
@@ -98,6 +98,8 @@ O formato atual — arquivos estáticos, ES modules nativos, **sem etapa de buil
 - A IA às vezes escreve acima do nível pedido; o app tenta simplificar uma vez e a métrica de legibilidade avisa quando ainda ficou difícil.
 - **Wikipédia** como fonte de nível: a Simple English nem sempre é simples em temas técnicos (a métrica mostra isso). Em temas de situação (“pedir comida”), artigos genéricos desviam o diálogo — por isso a Wikipédia vem desligada por padrão no modo Diálogo.
 - **Kokoro** (MP3) fala apenas inglês e é lento para textos longos (seção 1.4).
-- **Tradutor do Chrome/Edge** traduz palavra por palavra, sem contexto (ex.: “square” → “quadrado”, não “praça”); o Gemini traduz no contexto. Na primeira vez o navegador baixa o pacote do idioma — se demorar mais de 45 s, o PDF sai sem tradução e o app pede para tentar de novo.
+- **Textos longos sem IA (iniciante):** a Simple English costuma ter 200–1.300 palavras por artigo; o restante vem da Wikipédia em inglês normal, que é mais difícil (o app avisa). Com o Gemini, o texto todo sai no nível.
+- **MP3 de textos longos:** um texto fluente (2.000 palavras ≈ 13 min de áudio) leva vários minutos para gerar; o “Ouvir enquanto gera” evita a espera.
 - O filtro de palavras muito comuns existe só para inglês.
+- **Tradutor do Chrome/Edge** (sem chave do Gemini) traduz frase por frase, com menos contexto que o Gemini; não existe no Firefox nem no Safari. Na primeira vez o navegador baixa o pacote do idioma — se demorar mais de 45 s, o PDF sai sem a tradução e o app avisa.
 - PDFs “impressos como PDF” ou salvos por outros programas podem perder o pacote de dados; nesse caso o app reconstrói o conteúdo pelo texto, sem a data de revisão.

@@ -11,9 +11,10 @@ import { statusRevisao } from '../pdf/format.js';
 import { ORIGENS, ehArquivoDeAudio, lerArquivo } from '../pdf/importer.js';
 import { progresso, revisaoEfetiva } from '../services/progress.js';
 import { settings } from '../services/settings.js';
-import { extrairFrases, extrairPalavras } from '../text/extract.js';
+import { contarPalavras, extrairFrases, extrairPalavras } from '../text/extract.js';
 import { cabecalhoTela, estadoVazio, seloRevisao } from '../ui/components.js';
 import { confirmar } from '../ui/dialog.js';
+import { traducoesConhecidas } from '../services/export.js';
 import { exportarPdfComBotao } from '../ui/exportActions.js';
 import { toast } from '../ui/toast.js';
 
@@ -144,10 +145,9 @@ export class ReviewScreen {
   htmlMaterial(m, i) {
     const revisao = revisaoEfetiva(m);
     const idioma = IDIOMAS[m.idioma];
-    const traducoes = new Map((m.glossario || []).map((g) => [g.termo.toLowerCase(), g.traducao]));
     const quantidade =
       m.tipo === TIPOS.TEXTO
-        ? `${m.texto.split(/\s+/).filter(Boolean).length} palavras`
+        ? `${contarPalavras(m.texto)} palavras`
         : `${m.itens.length} ${nomeTipo(m.tipo)}`;
     const origem = {
       [ORIGENS.LEGADO]: html`<span
@@ -168,7 +168,6 @@ export class ReviewScreen {
           </p>
           <p class="material__selos">
             ${revisao ? seloRevisao(statusRevisao(revisao)) : ''} ${origem || ''}
-            ${m.glossario?.length ? html`<span class="selo selo--neutro">🇧🇷 com tradução</span>` : ''}
           </p>
         </div>
         <div class="material__acoes">
@@ -231,20 +230,9 @@ export class ReviewScreen {
         <div class="material__previa" id="previa${i}" hidden>
           ${
             m.tipo === TIPOS.TEXTO
-              ? html`<p class="material__texto">${m.texto}</p>
-                  ${
-                    m.glossario?.length
-                      ? html`<p class="material__glossario">
-                          <strong>Glossário:</strong>
-                          ${m.glossario.map((g, k) => html`${k ? ' · ' : ''}${g.termo} — <span class="texto-suave">${g.traducao}</span>`)}
-                        </p>`
-                      : ''
-                  }`
+              ? html`<p class="material__texto">${m.texto}</p>`
               : html`<ol class="material__itens">
-                ${m.itens.map((item) => {
-                  const traducao = traducoes.get(item.toLowerCase());
-                  return html`<li>${item}${traducao ? html` <span class="texto-suave">— ${traducao}</span>` : ''}</li>`;
-                })}
+                ${m.itens.map((item) => html`<li>${item}</li>`)}
               </ol>`
           }
         </div>
@@ -340,8 +328,6 @@ export class ReviewScreen {
           navegar(botao.dataset.acao === 'frases' ? ROTAS.FRASES : ROTAS.PALAVRAS, {
             itens,
             idioma: material.idioma,
-            // O glossário do texto traz a tradução das palavras-chave para os flashcards.
-            glossario: material.glossario,
           });
           break;
         }
@@ -419,11 +405,11 @@ export class ReviewScreen {
   }
 
   estudarCombinado(tipo, idioma) {
-    const lista = this.arquivosDoGrupo(tipo, idioma);
     navegar(tipo === TIPOS.FRASES ? ROTAS.FRASES : ROTAS.PALAVRAS, {
       itens: this.itensCombinados(tipo, idioma),
       idioma,
-      glossario: lista.flatMap((m) => m.glossario || []),
+      // As traduções dos PDFs originais são reaproveitadas no PDF combinado.
+      conhecidas: traducoesConhecidas(...this.arquivosDoGrupo(tipo, idioma)),
     });
   }
 
@@ -436,14 +422,16 @@ export class ReviewScreen {
       confirmar: 'Gerar PDF',
     });
     if (!ok) return;
-    await exportarPdfComBotao(botao, {
-      tipo,
-      titulo: `${nomeTipo(tipo, { maiuscula: true })} combinadas (${formatarDataBR(new Date())})`,
-      idioma,
-      itens,
-      // Mantém as traduções que os arquivos originais já tinham.
-      glossario: lista.flatMap((m) => m.glossario || []),
-    });
+    await exportarPdfComBotao(
+      botao,
+      {
+        tipo,
+        titulo: `${nomeTipo(tipo, { maiuscula: true })} combinadas (${formatarDataBR(new Date())})`,
+        idioma,
+        itens,
+      },
+      { conhecidas: traducoesConhecidas(...lista) }
+    );
   }
 }
 

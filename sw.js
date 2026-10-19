@@ -6,7 +6,7 @@
  * subdiretórios (ex.: GitHub Pages em /projeto-palavras/).
  */
 
-const VERSAO = 'v3.5.0';
+const VERSAO = 'v3.7.0';
 const CACHE_APP = `aprendendo-palavras-${VERSAO}`;
 const CACHE_CDN = 'aprendendo-palavras-cdn';
 
@@ -42,9 +42,9 @@ const ARQUIVOS_APP = [
   './js/create/engine.js',
   './js/create/gemini.js',
   './js/create/generator.js',
-  './js/create/glossary.js',
   './js/create/levels.js',
   './js/create/prompts.js',
+  './js/create/translate.js',
   './js/create/wikipedia.js',
   './js/pdf/exporter.js',
   './js/pdf/format.js',

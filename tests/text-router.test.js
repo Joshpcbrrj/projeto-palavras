@@ -62,20 +62,6 @@ describe('Ler e ouvir um texto', () => {
     tela.desmontar();
   });
 
-  test('a opção de tradução aparece ou some conforme o idioma do texto', () => {
-    const tela = new TextScreen();
-    tela.montar(raiz);
-    const area = () => raiz.querySelector('.area-traducao');
-    const idioma = raiz.querySelector('#textoIdioma');
-    idioma.value = 'pt-BR';
-    idioma.dispatchEvent(new Event('change'));
-    expect(area().hidden).toBe(true);
-    idioma.value = 'en-US';
-    idioma.dispatchEvent(new Event('change'));
-    expect(area().hidden).toBe(false);
-    tela.desmontar();
-  });
-
   test('"Estudar as palavras" leva os itens do texto (sem as muito comuns) para os flashcards', () => {
     const navegar = vi.fn();
     definirNavegador(navegar);
