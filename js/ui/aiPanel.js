@@ -4,8 +4,9 @@
 
 import { $, html, render } from '../core/dom.js';
 import { iaDisponivel } from '../create/engine.js';
-import { GeminiMotor, URL_CRIAR_CHAVE } from '../create/gemini.js';
+import { GeminiMotor } from '../create/gemini.js';
 import { settings } from '../services/settings.js';
+import { extrairChave, guiaChaveGemini } from './guiaChave.js';
 import { toast } from './toast.js';
 
 /**
@@ -27,14 +28,20 @@ export function montarPainelIA(container, { aoMudar } = {}) {
     }
     return html`
       <p class="texto-suave texto-pequeno">
-        Para criar diálogos e adaptar textos ao seu nível, o app usa o Google Gemini. Crie uma
-        <strong>chave gratuita</strong> no Google AI Studio (leva 1 minuto, só precisa de uma conta Google) e cole aqui.
-        <a href="${URL_CRIAR_CHAVE}" target="_blank" rel="noopener">Criar chave grátis ↗</a>
+        Para criar diálogos, adaptar textos ao seu nível e traduzir no contexto, o app usa o Google
+        Gemini. Ele é <strong>grátis</strong>: só precisa de uma chave, criada uma vez com a sua conta Google.
       </p>
+      ${guiaChaveGemini({ aberto: !chave })}
       <div class="campo__linha">
-        <input id="chaveGeminiPainel" class="input" type="password" autocomplete="off" spellcheck="false" placeholder="Cole aqui a chave (começa com AIza…)" />
+        <input id="chaveGeminiPainel" class="input" type="password" autocomplete="off" spellcheck="false" placeholder="Cole aqui a chave (começa com AIza…)" aria-label="Chave do Gemini" />
+        ${
+          navigator.clipboard?.readText
+            ? html`<button type="button" class="btn btn--secundario" data-colar-chave title="Colar a chave copiada">📋 Colar</button>`
+            : ''
+        }
         <button type="button" class="btn btn--primario" data-salvar-chave>Salvar</button>
       </div>
+      <p class="campo__ajuda campo__ajuda--aviso" id="erroChaveGemini" hidden></p>
       <p class="campo__ajuda">A chave fica só neste navegador e é enviada apenas ao Google.</p>
     `;
   };
@@ -52,15 +59,35 @@ export function montarPainelIA(container, { aoMudar } = {}) {
       atualizar();
     });
     container.querySelector('[data-salvar-chave]')?.addEventListener('click', salvarChave);
+    container.querySelector('[data-colar-chave]')?.addEventListener('click', async () => {
+      try {
+        const texto = await navigator.clipboard.readText();
+        $('#chaveGeminiPainel', container).value = extrairChave(texto).chave || texto.trim();
+        salvarChave();
+      } catch {
+        toast.info('Não foi possível ler a área de transferência. Cole no campo com Ctrl+V.');
+      }
+    });
     $('#chaveGeminiPainel', container)?.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') salvarChave();
     });
     aoMudar?.(iaDisponivel());
   };
 
+  const mostrarErro = (mensagem) => {
+    const el = $('#erroChaveGemini', container);
+    if (!el) return;
+    el.textContent = mensagem;
+    el.hidden = !mensagem;
+  };
+
   const salvarChave = async () => {
-    const chave = $('#chaveGeminiPainel', container)?.value.trim();
-    if (!chave) return;
+    const { chave, erro } = extrairChave($('#chaveGeminiPainel', container)?.value);
+    if (erro) {
+      mostrarErro(erro);
+      return;
+    }
+    mostrarErro('');
     const botao = container.querySelector('[data-salvar-chave]');
     botao.disabled = true;
     botao.textContent = 'Testando…';
@@ -69,10 +96,12 @@ export function montarPainelIA(container, { aoMudar } = {}) {
       settings.set('chaveGemini', chave);
       editandoChave = false;
       toast.sucesso('Chave do Gemini salva. A IA está pronta!');
-    } catch (erro) {
-      toast.erro(erro.message);
-    } finally {
       atualizar();
+    } catch (erro) {
+      // Mantém o que foi digitado e mostra o motivo junto do campo.
+      botao.disabled = false;
+      botao.textContent = 'Salvar';
+      mostrarErro(erro.message);
     }
   };
 

@@ -105,7 +105,7 @@ PDFs gerados pelas **versões anteriores** do app continuam funcionando: o conte
 | 🌍 Mergulhar no tema | Não (opcional para adaptar) | Busca o artigo na Wikipédia (Simple English para iniciantes) e entrega de ½ a 2 páginas, com atribuição da fonte.     |
 | 📶 Por nível         | Não (melhor com IA)         | Com IA, escreve o texto no nível pedido e simplifica se ficar difícil; sem IA, usa a Wikipédia do nível mais próximo. |
 
-A IA é o **Google Gemini**: crie uma chave gratuita no [Google AI Studio](https://aistudio.google.com/app/apikey) (leva 1 minuto, só precisa de uma conta Google) e cole no painel da tela de criação. Responde em segundos e funciona no celular. Sem chave, os modos “Mergulhar no tema” e “Por nível” funcionam só com a Wikipédia. Limitações em [docs/ROADMAP.md](docs/ROADMAP.md).
+A IA é o **Google Gemini**: crie uma chave gratuita no [Google AI Studio](https://aistudio.google.com/app/apikey) (leva 1 minuto, só precisa de uma conta Google, sem cartão de crédito) e cole no painel da tela de criação — o painel traz um **passo a passo ilustrado**, um botão **Colar** e testa a chave na hora, explicando o problema se ela não funcionar. Responde em segundos e funciona no celular. Sem chave, os modos “Mergulhar no tema” e “Por nível” funcionam só com a Wikipédia. Limitações em [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ### Tradução no PDF
 

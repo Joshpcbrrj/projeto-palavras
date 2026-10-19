@@ -38,7 +38,7 @@ flowchart LR
 | `pdf/`      | `format.js` (pacote de dados e revisão espaçada), `exporter.js` (layout com jsPDF), `raster.js` (texto não latino como imagem), `importer.js` (PDF/TXT/JSON), `legacy.js` (formatos v1/v2), `libs.js` (carregamento sob demanda).                                                                  |
 | `services/` | `storage.js` (localStorage tolerante a falhas), `settings.js` (preferências + migração das chaves antigas), `progress.js` (sessões, estatísticas, agenda de revisões, backup, migração da v2), `export.js` (exportação única de PDF para todas as telas: pacote + glossário + histórico + agenda). |
 | `screens/`  | Uma classe por tela com `montar(raiz)`, `desmontar()` e, opcionalmente, `podeSair()` (pergunta antes de sair de um estudo não salvo).                                                                                                                                                              |
-| `ui/`       | Componentes compartilhados, diálogo modal, notificações, tema, diálogo do MP3/kit (`mp3Dialog.js`: opções, tradução falada, ouvir enquanto gera) e botões de exportação (`exportActions.js`).                                                                                                      |
+| `ui/`       | Componentes compartilhados, diálogo modal, notificações, tema, diálogo do MP3/kit (`mp3Dialog.js`: opções, tradução falada, ouvir enquanto gera), botões de exportação (`exportActions.js`) e painel da IA com o passo a passo da chave (`aiPanel.js`, `guiaChave.js`).                            |
 
 ### Criação de textos (`js/create/`)
 

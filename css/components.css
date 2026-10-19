@@ -890,3 +890,171 @@ kbd {
 .mais-opcoes[open] > .mais-opcoes__titulo {
   margin-bottom: 0.75rem;
 }
+
+/* ---------------------------------------------- Passo a passo da chave do Gemini */
+.guia-chave {
+  width: 100%;
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  padding: 0.5rem 0.9rem;
+  background: var(--superficie-2);
+}
+
+.guia-chave__titulo {
+  cursor: pointer;
+  font-weight: 700;
+  padding: 0.35rem 0;
+}
+
+.guia-chave__passos {
+  list-style: none;
+  margin: 0.75rem 0 0.5rem;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.guia-passo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.guia-passo__titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+
+.guia-passo__numero {
+  display: inline-grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--primaria);
+  color: #fff;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+/* Mini "tela" ilustrativa */
+.guia-tela {
+  border: 1px solid var(--borda-forte);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--superficie);
+  font-size: 0.72rem;
+  min-height: 86px;
+}
+
+.guia-tela__barra {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--borda);
+  background: var(--primaria-suave);
+}
+
+.guia-tela__barra span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--borda-forte);
+}
+
+.guia-tela__barra em {
+  margin-left: 6px;
+  font-style: normal;
+  opacity: 0.75;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.guia-tela__conteudo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 10px;
+}
+
+.guia-tela__conteudo--linha {
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.guia-tela__linha {
+  height: 7px;
+  flex: 1;
+  width: 100%;
+  border-radius: 4px;
+  background: var(--borda);
+}
+
+.guia-tela__linha--curta {
+  width: 55%;
+  flex: none;
+}
+
+.guia-tela__botao {
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--borda-forte);
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.guia-tela__botao--destaque {
+  background: var(--primaria);
+  border-color: var(--primaria);
+  color: #fff;
+  box-shadow: 0 0 0 3px var(--primaria-suave);
+  animation: guia-pulso 1.8s ease-in-out infinite;
+}
+
+.guia-tela__chave,
+.guia-tela__campo {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 4px 7px;
+  border-radius: 6px;
+  border: 1px dashed var(--borda-forte);
+}
+
+@keyframes guia-pulso {
+  50% {
+    box-shadow: 0 0 0 6px var(--primaria-suave);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guia-tela__botao--destaque {
+    animation: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .guia-chave__passos {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Campo da chave: no celular, o campo ocupa a linha e os botões vão para baixo. */
+.painel-ia__corpo .campo__linha {
+  flex-wrap: wrap;
+}
+
+.painel-ia__corpo .campo__linha .input {
+  flex: 1 1 240px;
+  min-width: 0;
+}

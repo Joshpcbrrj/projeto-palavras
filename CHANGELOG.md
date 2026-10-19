@@ -5,6 +5,16 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e 
 
 ## [Não lançado]
 
+## [3.5.0] - 2026-10-18
+
+### Adicionado
+
+- **Passo a passo ilustrado para criar a chave do Gemini** no painel da IA (Criar textos e Configurações): 4 passos com ilustrações que seguem o tema claro/escuro, dicas para os erros mais comuns e botão **📋 Colar**.
+
+### Alterado
+
+- O painel aceita a chave colada com sobras (aspas, espaços, `GEMINI_API_KEY=…`), avisa na hora quando o texto não parece uma chave (sem gastar um pedido ao Google) e, se o Google recusar, mostra o motivo junto do campo e mantém o que foi colado.
+
 ## [3.4.0] - 2026-10-18
 
 Áudio melhor e mais rápido, tradução também no estudo e revisão mais robusta.

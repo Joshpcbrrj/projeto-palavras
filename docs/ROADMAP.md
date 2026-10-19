@@ -77,7 +77,7 @@ Medições feitas com o Kokoro real no Edge (Windows):
 - Para usar a API do Gemini com login, o projeto precisaria de um projeto no Google Cloud com tela de consentimento OAuth **verificada pelo Google** (o escopo da API de IA é sensível), domínio próprio verificado e política de privacidade.
 - A cota gratuita passaria a ser **do projeto do app, dividida entre todos os usuários** — com poucos usuários ativos, o limite gratuito acabaria rápido e o custo ficaria com o dono do projeto. Com a chave própria, cada pessoa tem a sua cota grátis.
 - Sem servidor, o login no navegador também não guarda sessão por muito tempo (o token expira em 1 hora).
-- Alternativa mais simples, se a etapa da chave incomodar: um passo a passo ilustrado no painel da IA e um link direto para criar a chave (já existe o link e o botão “Testar”).
+- ✅ Alternativa adotada (v3.5): **passo a passo ilustrado** no painel da IA, botão **Colar**, limpeza da chave colada e mensagens de erro junto do campo.
 
 ## 4. Código (sem perder a simplicidade)
 
