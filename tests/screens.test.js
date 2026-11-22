@@ -36,7 +36,7 @@ describe('Menu', () => {
     expect(raiz.querySelector('a[href="#/texto"]')).not.toBeNull();
     expect(raiz.querySelector('a[href="#/frases"]')).not.toBeNull();
     expect(raiz.querySelector('a[href="#/palavras"]')).not.toBeNull();
-    expect(raiz.textContent).toContain('Revisar um PDF exportado');
+    expect(raiz.textContent).toContain('Abrir PDF ou arquivo para estudar/revisar');
     expect(raiz.textContent).not.toMatch(/sessões|progresso|Gemini|criar textos/i);
   });
 });
@@ -147,6 +147,11 @@ describe('Revisar arquivo', () => {
   test('a tela de revisão começa vazia', () => {
     tela = new ReviewScreen();
     tela.montar(raiz);
+    expect(raiz.textContent).toContain('PDFs com texto selecionável');
+    expect(raiz.textContent).toContain(
+      'PDFs digitalizados sem texto selecionável não são suportados'
+    );
+    expect(raiz.textContent).toContain('para estudar o conteúdo');
     expect(raiz.textContent).toContain('Nenhum arquivo aberto');
   });
 });

@@ -125,6 +125,8 @@ describe('inicialização do aplicativo', () => {
     mocks.routerOptions.aoNavegar('texto');
     expect(document.title).toBe('Ler e ouvir · Aprendendo Palavras');
     expect(document.querySelector('[data-rota="texto"]').getAttribute('aria-current')).toBe('page');
+    mocks.routerOptions.aoNavegar('revisar');
+    expect(document.title).toBe('Abrir arquivos · Aprendendo Palavras');
     mocks.routerOptions.aoNavegar('');
     expect(document.title).toBe('Aprendendo Palavras');
     expect(document.querySelector('[aria-current="page"]')).toBeNull();

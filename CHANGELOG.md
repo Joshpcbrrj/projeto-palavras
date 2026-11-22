@@ -7,7 +7,9 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e 
 
 ### Alterado
 
-- A tela inicial agora apresenta **Textos**, **Frases** e **Palavras** como opções independentes, além do acesso separado para revisar PDFs.
+- A tela inicial agora apresenta **Textos**, **Frases** e **Palavras** como opções independentes, além do acesso separado para abrir arquivos de estudo ou revisão.
+- A abertura de arquivos agora destaca PDFs externos com texto selecionável e explica que PDFs digitalizados sem texto selecionável não são suportados.
+- README, roadmap e capturas de tela acompanham o fluxo atualizado de abertura e estudo de arquivos.
 - O modo Palavras recebe termos soltos e não remove palavras comuns informadas explicitamente.
 - Os PDFs de cada modo têm nomes com o tipo, o título e a data; README, roadmap e documentação do formato foram atualizados.
 - Kit, PDF e MP3 voltaram a estar disponíveis como três ações explícitas nas telas de exportação; os MP3s agora também incluem tipo, título e data no nome.

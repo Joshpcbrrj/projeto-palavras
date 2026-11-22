@@ -58,7 +58,7 @@ function tituloDaRota(rota) {
     [ROTAS.PALAVRAS]: 'Estudar palavras',
     [ROTAS.FRASES]: 'Estudar frases',
     [ROTAS.TEXTO]: 'Ler e ouvir',
-    [ROTAS.REVISAR]: 'Revisar arquivo',
+    [ROTAS.REVISAR]: 'Abrir arquivos',
   }[rota];
 }
 

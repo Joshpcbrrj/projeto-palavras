@@ -34,7 +34,7 @@ export class MenuScreen {
             </a>
           </div>
           <a class="menu__revisar" href="#/${ROTAS.REVISAR}">
-            📂 Revisar um PDF exportado <span aria-hidden="true">→</span>
+            📂 Abrir PDF ou arquivo para estudar/revisar <span aria-hidden="true">→</span>
           </a>
         </section>
       `

@@ -26,9 +26,9 @@ As imagens abaixo mostram a escolha entre os três modos de estudo, a entrada de
 | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | <img src="docs/screenshots/frases.png" alt="Entrada de texto para separar e praticar frases" width="420" /> | <img src="docs/screenshots/palavras.png" alt="Entrada de palavras soltas, uma por linha ou separadas por espaços" width="420" /> |
 
-| Ouvir e estudar                                                                                           | Revisar um documento                                                                           |
-| --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| <img src="docs/screenshots/leitura.png" alt="Leitura frase a frase com controles de áudio" width="420" /> | <img src="docs/screenshots/revisar.png" alt="Documento PDF aberto para revisão" width="420" /> |
+| Ouvir e estudar                                                                                           | Abrir e estudar documentos                                                                                        |
+| --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| <img src="docs/screenshots/leitura.png" alt="Leitura frase a frase com controles de áudio" width="420" /> | <img src="docs/screenshots/revisar.png" alt="Tela para abrir PDFs e arquivos de estudo ou revisão" width="420" /> |
 
 | Flashcards                                                                                                               | Tema escuro                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
@@ -40,6 +40,7 @@ As imagens abaixo mostram a escolha entre os três modos de estudo, a entrada de
 - **Ajuda a praticar listening.** Ouça o texto frase a frase, com destaque da frase atual, velocidade ajustável e controles de pausa, repetição e navegação.
 - **Oferece três opções de exportação.** Gere um kit com PDF e MP3, somente o PDF ou somente o MP3. Os nomes incluem tipo, título e data; no kit, PDF e MP3 compartilham o mesmo nome-base.
 - **Gera PDFs revisáveis.** O PDF inclui o idioma, o conteúdo e, se desejado, uma data de revisão. Ele pode ser reaberto no aplicativo para continuar o estudo.
+- **Importa material de outras fontes.** Abra PDFs com texto selecionável, TXT, MD ou JSON e escolha ouvir textos, praticar frases ou extrair palavras. PDFs digitalizados sem texto selecionável não são suportados.
 - **Mantém a sessão temporária.** Textos, arquivos abertos, preferências e andamento não são guardados entre visitas. Baixe o PDF para manter um material e selecione-o novamente na próxima sessão.
 - **Funciona como PWA.** Instale no celular ou computador; a interface e os recursos principais ficam disponíveis offline depois do carregamento inicial.
 
@@ -49,9 +50,9 @@ As imagens abaixo mostram a escolha entre os três modos de estudo, a entrada de
 2. Cole seu material: um texto para leitura, um texto com frases completas ou palavras soltas (uma por linha ou separadas por espaços).
 3. Escolha o idioma, ouça e pratique. Palavras informadas diretamente são mantidas mesmo quando são palavras comuns do idioma.
 4. Baixe o PDF do modo escolhido. O nome inclui o tipo, o título e a data; a tradução para português é opcional e depende do tradutor nativo do navegador.
-5. Em outra visita, abra **Revisar**, selecione o PDF e retome a leitura ou os flashcards.
+5. Em outra visita, abra **PDF ou arquivo para estudar/revisar**. PDFs exportados retomam a revisão; PDFs externos com texto selecionável podem ser ouvidos como texto ou encaminhados para frases e palavras.
 
-Na tela de revisão também é possível abrir PDFs antigos, TXT, MD e arquivos JSON de materiais de versões anteriores. A agenda de revisão é atualizada no próximo PDF baixado; ela não fica armazenada no aplicativo.
+Também é possível abrir PDFs antigos, TXT, MD e arquivos JSON de materiais de versões anteriores. A agenda de revisão é atualizada no próximo PDF baixado; ela não fica armazenada no aplicativo.
 
 ## Áudio e compatibilidade
 

@@ -35,14 +35,14 @@ O aplicativo não gera textos por tema, não exige conta e não mantém textos o
 
 ## Próximas melhorias
 
-| Prioridade | Proposta                                         | Critério de conclusão                                                                                                                                  |
-| ---------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| P0         | Unificar a entrada de texto e a abertura de PDFs | Um PDF com texto selecionável pode entrar no mesmo fluxo de ouvir/estudar sem obrigar a pessoa a entender qual tela escolher.                          |
-| P0         | Melhorar a preparação do player por idioma       | Antes de iniciar, mostrar se existe voz compatível e permitir testar uma amostra; em caso negativo, explicar a limitação sem fallback de outro idioma. |
-| P1         | Validar a experiência em navegadores reais       | Testar leitura, pausa/retomada, vozes ausentes, navegação móvel e revisão de PDFs em Chrome, Edge, Firefox e Safari.                                   |
-| P1         | Refinar acessibilidade e adaptação móvel         | Verificar foco do teclado, leitores de tela, alvos de toque, contraste e telas estreitas em cada etapa principal.                                      |
-| P2         | Avaliar idiomas de tradução                      | Documentar os pares suportados pelo tradutor nativo; só anunciar suporte quando validado no navegador.                                                 |
-| P2         | Reavaliar o MP3                                  | Medir tamanho, tempo e uso em aparelhos móveis antes de ampliar idiomas ou promover o recurso.                                                         |
+| Prioridade | Proposta                                         | Critério de conclusão                                                                                                                                                                    |
+| ---------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Concluída  | Unificar a entrada de texto e a abertura de PDFs | PDFs com texto selecionável podem ser abertos pelo menu e encaminhados para ouvir textos, praticar frases ou extrair palavras; PDFs digitalizados são identificados como não suportados. |
+| P0         | Melhorar a preparação do player por idioma       | Antes de iniciar, mostrar se existe voz compatível e permitir testar uma amostra; em caso negativo, explicar a limitação sem fallback de outro idioma.                                   |
+| P1         | Validar a experiência em navegadores reais       | Testar leitura, pausa/retomada, vozes ausentes, navegação móvel e revisão de PDFs em Chrome, Edge, Firefox e Safari.                                                                     |
+| P1         | Refinar acessibilidade e adaptação móvel         | Verificar foco do teclado, leitores de tela, alvos de toque, contraste e telas estreitas em cada etapa principal.                                                                        |
+| P2         | Avaliar idiomas de tradução                      | Documentar os pares suportados pelo tradutor nativo; só anunciar suporte quando validado no navegador.                                                                                   |
+| P2         | Reavaliar o MP3                                  | Medir tamanho, tempo e uso em aparelhos móveis antes de ampliar idiomas ou promover o recurso.                                                                                           |
 
 ## Qualidade técnica
 
@@ -62,7 +62,7 @@ O plano será executado em etapas, preservando a experiência sem conta, backend
 | Etapa           | Melhoria                                 | Critério de conclusão                                                                                                                                                                    |
 | --------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1 — Em execução | Reforçar os testes existentes            | Cobrir comportamentos relevantes nas áreas com baixa cobertura, mantendo todos os testes atuais e alcançando pelo menos 95% global em statements, branches, functions e lines.           |
-| 2               | Importar texto de PDFs                   | Abrir PDFs com texto selecionável e encaminhar o conteúdo aos modos Textos, Frases ou Palavras; informar claramente que PDFs digitalizados sem camada de texto não são suportados.       |
+| 2 — Concluída   | Importar texto de PDFs                   | Abrir PDFs com texto selecionável e encaminhar o conteúdo aos modos Textos, Frases ou Palavras; informar claramente que PDFs digitalizados sem camada de texto não são suportados.       |
 | 3               | Adicionar escuta ativa                   | Tocar uma frase antes de revelá-la e permitir marcar “entendi” ou “revisar”; manter as marcações apenas na sessão e permitir exportar o material marcado para revisão.                   |
 | 4               | Capturar vocabulário com contexto        | Selecionar palavras ou expressões do texto, preservar a frase de origem e enviá-las ao modo Palavras, sem armazenamento entre visitas.                                                   |
 | 5               | Validar navegador e acessibilidade       | Testar em navegador real os fluxos críticos de voz, teclado, foco e telas móveis; incluir no CI as verificações automatizadas que forem estáveis.                                        |

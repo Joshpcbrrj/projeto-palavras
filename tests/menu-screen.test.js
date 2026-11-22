@@ -16,7 +16,9 @@ describe('entrada do aplicativo', () => {
     expect(raiz.querySelector('a[href="#/texto"]').textContent).toContain('Textos');
     expect(raiz.querySelector('a[href="#/frases"]').textContent).toContain('Frases');
     expect(raiz.querySelector('a[href="#/palavras"]').textContent).toContain('Palavras');
-    expect(raiz.querySelector('a[href="#/revisar"]')).not.toBeNull();
+    expect(raiz.querySelector('a[href="#/revisar"]').textContent).toContain(
+      'Abrir PDF ou arquivo para estudar/revisar'
+    );
     expect(raiz.querySelector('#criarTema')).toBeNull();
   });
 });

@@ -36,9 +36,9 @@ export class ReviewScreen {
           <div class="cartao">
             ${cabecalhoTela({
               icone: '📂',
-              titulo: 'Revisar arquivo',
+              titulo: 'Abrir arquivo para estudar ou revisar',
               subtitulo:
-                'Abra PDFs exportados pelo app (inclusive das versões antigas), arquivos .txt ou backups .json.',
+                'Abra PDFs do app ou outros PDFs com texto selecionável, arquivos TXT/MD ou backups JSON. PDFs digitalizados sem texto selecionável não são suportados.',
             })}
             <label class="area-arquivos" id="areaArquivos" tabindex="0">
               <input
@@ -72,7 +72,7 @@ export class ReviewScreen {
           icone: '🗂️',
           titulo: 'Nenhum arquivo aberto',
           texto:
-            'Os PDFs gerados pelo app guardam as palavras, frases ou textos estudados e a data da próxima revisão.',
+            'Abra um PDF exportado para retomar uma revisão ou um PDF com texto selecionável para estudar o conteúdo.',
         })}
       </div>`;
     }
