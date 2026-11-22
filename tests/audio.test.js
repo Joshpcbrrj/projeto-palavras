@@ -58,6 +58,24 @@ describe('VoiceManager', () => {
     await expect(vm.carregar()).resolves.toEqual([]);
     expect(vm.escolher('en-US')).toBeNull();
   });
+
+  test('usa o callback legado e tolera falhas ao consultar as vozes', () => {
+    const synth = {
+      getVoices: () => {
+        throw new Error('indisponível');
+      },
+    };
+    const vm = new VoiceManager({ synth });
+    const mudou = vi.fn();
+    vm.aoMudar(mudou);
+
+    expect(vm.vozes).toEqual([]);
+    synth.getVoices = () => vozes;
+    synth.onvoiceschanged();
+
+    expect(mudou).toHaveBeenCalledWith(vozes);
+    expect(vm.vozes).toEqual(vozes);
+  });
 });
 
 describe('Speaker', () => {
@@ -106,6 +124,39 @@ describe('Speaker', () => {
     expect(
       await new Speaker({ synth: criarSynthFalso(), Utterance: FakeUtterance }).falar('  ')
     ).toBe(false);
+  });
+
+  test('desbloqueia a síntese uma única vez e expõe o estado de fala', () => {
+    const synth = criarSynthFalso();
+    const speaker = new Speaker({ synth, Utterance: FakeUtterance });
+
+    expect(speaker.falando).toBe(false);
+    speaker.desbloquear();
+    speaker.desbloquear();
+    expect(synth.falas).toHaveLength(1);
+    expect(synth.falas[0].volume).toBe(0);
+
+    synth.speaking = true;
+    expect(speaker.falando).toBe(true);
+    speaker.cancelar();
+    expect(synth.speaking).toBe(false);
+  });
+
+  test('tolera falhas do navegador ao desbloquear, cancelar e iniciar a fala', async () => {
+    const synth = {
+      cancel: () => {
+        throw new Error('falha ao cancelar');
+      },
+      speak: () => {
+        throw new Error('falha ao falar');
+      },
+    };
+    const speaker = new Speaker({ synth, Utterance: FakeUtterance });
+
+    expect(() => speaker.desbloquear()).not.toThrow();
+    expect(() => speaker.cancelar()).not.toThrow();
+    await expect(speaker.falar('texto')).resolves.toBe(false);
+    expect(speaker.ativas.size).toBe(0);
   });
 
   test('tempo-limite de segurança cresce com o texto e diminui com a velocidade', () => {
@@ -202,5 +253,56 @@ describe('TextReader', () => {
     leitor.carregar('A. B. C. D.');
     await leitor.tocar();
     expect(leitor.estado).toBe(ESTADOS_LEITOR.ERRO);
+  });
+
+  test('ignora comandos sem trechos e limita a navegação ao intervalo válido', () => {
+    const leitor = new TextReader(speaker);
+    expect(leitor.carregar('   ')).toEqual([]);
+    leitor.tocar();
+    leitor.proximo();
+    leitor.anterior();
+    expect(leitor.estado).toBe(ESTADOS_LEITOR.PARADO);
+
+    leitor.carregar('Um. Dois.');
+    leitor.irPara(-3);
+    expect(leitor.indice).toBe(0);
+    leitor.irPara(20);
+    expect(leitor.indice).toBe(1);
+    leitor.proximo();
+    expect(leitor.indice).toBe(1);
+    leitor.anterior();
+    expect(leitor.indice).toBe(0);
+  });
+
+  test('alterar velocidade e idioma reinicia o trecho atual; retomar após conclusão começa do início', async () => {
+    const chamadas = [];
+    const manual = {
+      falar(texto, opcoes) {
+        return new Promise((resolve) => {
+          const chamada = { texto, opcoes, resolve };
+          chamadas.push(chamada);
+          opcoes.signal.addEventListener('abort', () => resolve(false), { once: true });
+        });
+      },
+    };
+    const leitor = new TextReader(manual);
+    leitor.carregar('First. Second.');
+    leitor.tocar(1);
+    expect(chamadas[0].texto).toBe('Second.');
+
+    leitor.setVelocidade(0.8);
+    expect(chamadas.at(-1).opcoes.velocidade).toBe(0.8);
+    leitor.setIdioma('fr-FR');
+    expect(chamadas.at(-1).opcoes.idioma).toBe('fr-FR');
+    leitor.parar();
+    expect(leitor.estado).toBe(ESTADOS_LEITOR.PARADO);
+
+    const rapido = new TextReader(speaker);
+    rapido.carregar('Done.');
+    rapido.tocar();
+    await aguardarEstado(rapido, ESTADOS_LEITOR.CONCLUIDO);
+    rapido.retomar();
+    expect(rapido.estado).toBe(ESTADOS_LEITOR.TOCANDO);
+    await aguardarEstado(rapido, ESTADOS_LEITOR.CONCLUIDO);
   });
 });

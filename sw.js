@@ -32,6 +32,7 @@ const ARQUIVOS_APP = [
   './js/audio/export/engines.js',
   './js/audio/export/index.js',
   './js/audio/export/kokoro-worker.js',
+  './js/audio/export/kokoro-worker-runtime.js',
   './js/audio/export/mp3.js',
   './js/audio/export/plan.js',
   './js/audio/export/preview.js',

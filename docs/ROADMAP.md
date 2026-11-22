@@ -50,9 +50,23 @@ O projeto prioriza HTML/CSS/ES modules nativos, funções pequenas, entrada de d
 
 - execute `npm run check` antes de enviar uma contribuição;
 - acrescente testes para mudanças observáveis do fluxo;
+- mantenha pelo menos 95% de cobertura global de statements, branches, functions e lines, sem testes artificiais;
 - atualize este documento e o README quando produto, telas ou limitações mudarem;
 - atualize as capturas em `docs/screenshots/` quando uma tela documentada mudar;
 - mantenha a CSP e a lista do service worker alinhadas aos arquivos e serviços realmente utilizados.
+
+## Plano de melhorias aprovado
+
+O plano será executado em etapas, preservando a experiência sem conta, backend ou persistência de materiais. A cobertura será acompanhada durante todo o trabalho; cada funcionalidade nova deve chegar com testes de comportamento.
+
+| Etapa           | Melhoria                                 | Critério de conclusão                                                                                                                                                                    |
+| --------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 — Em execução | Reforçar os testes existentes            | Cobrir comportamentos relevantes nas áreas com baixa cobertura, mantendo todos os testes atuais e alcançando pelo menos 95% global em statements, branches, functions e lines.           |
+| 2               | Importar texto de PDFs                   | Abrir PDFs com texto selecionável e encaminhar o conteúdo aos modos Textos, Frases ou Palavras; informar claramente que PDFs digitalizados sem camada de texto não são suportados.       |
+| 3               | Adicionar escuta ativa                   | Tocar uma frase antes de revelá-la e permitir marcar “entendi” ou “revisar”; manter as marcações apenas na sessão e permitir exportar o material marcado para revisão.                   |
+| 4               | Capturar vocabulário com contexto        | Selecionar palavras ou expressões do texto, preservar a frase de origem e enviá-las ao modo Palavras, sem armazenamento entre visitas.                                                   |
+| 5               | Validar navegador e acessibilidade       | Testar em navegador real os fluxos críticos de voz, teclado, foco e telas móveis; incluir no CI as verificações automatizadas que forem estáveis.                                        |
+| 6               | Atualizar documentação e qualidade final | Atualizar README, arquitetura, roadmap, capturas e orientação de contribuição; executar os checks completos e confirmar que a cobertura permanece em pelo menos 95% nas quatro métricas. |
 
 ## Fora do escopo atual
 

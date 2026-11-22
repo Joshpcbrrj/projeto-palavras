@@ -1,7 +1,11 @@
-import { beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { limparPersistenciaLegada } from '../js/services/storage.js';
 
 beforeEach(() => localStorage.clear());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
 
 describe('limpeza dos dados de versões anteriores', () => {
   test('remove somente as chaves próprias do app', () => {
@@ -18,5 +22,18 @@ describe('limpeza dos dados de versões anteriores', () => {
     expect(localStorage.getItem('ap_rascunho_texto')).toBeNull();
     expect(localStorage.getItem('theme')).toBe('dark');
     expect(localStorage.getItem('audio_idioma')).toBe('en-US');
+  });
+
+  test('avisa se o navegador bloquear o armazenamento local', () => {
+    const erro = new Error('bloqueado');
+    const aviso = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.stubGlobal('localStorage', {
+      removeItem: vi.fn(() => {
+        throw erro;
+      }),
+    });
+
+    expect(() => limparPersistenciaLegada()).not.toThrow();
+    expect(aviso).toHaveBeenCalledWith('Não foi possível limpar os dados locais antigos:', erro);
   });
 });

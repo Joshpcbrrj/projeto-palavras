@@ -15,7 +15,7 @@ import {
   reamostrar,
   suavizarBordas,
 } from '../js/audio/export/mp3.js';
-import { KokoroMotor } from '../js/audio/export/engines.js';
+import { escolherDispositivo, KokoroMotor } from '../js/audio/export/engines.js';
 import { _limparCacheAudio, gerarMp3, nomeArquivoMp3 } from '../js/audio/export/index.js';
 
 beforeEach(() => _limparCacheAudio());
@@ -215,6 +215,18 @@ describe('MP3', () => {
 });
 
 describe('motores de voz', () => {
+  test('escolhe WebGPU quando disponível e usa WASM como fallback', async () => {
+    await expect(escolherDispositivo({ requestAdapter: async () => ({}) })).resolves.toBe('webgpu');
+    await expect(escolherDispositivo({ requestAdapter: async () => null })).resolves.toBe('wasm');
+    await expect(
+      escolherDispositivo({
+        requestAdapter: async () => {
+          throw new Error('WebGPU indisponível');
+        },
+      })
+    ).resolves.toBe('wasm');
+  });
+
   test('Kokoro: conversa com o worker, informa o download e repassa erros', async () => {
     class WorkerFalso {
       postMessage(msg) {
@@ -243,5 +255,24 @@ describe('motores de voz', () => {
     expect(r.taxa).toBe(24000);
     await expect(motor.sintetizar('falha', { voz: 'af_heart' })).rejects.toThrow('boom');
     motor.destruir();
+  });
+
+  test('compartilha o carregamento e rejeita a promessa se o worker falhar', async () => {
+    const worker = {
+      postMessage: vi.fn(),
+      terminate: vi.fn(),
+    };
+    const criarWorker = vi.fn(() => worker);
+    const motor = new KokoroMotor({ criarWorker });
+    const carregamento = motor.carregar();
+
+    expect(motor.carregar()).toBe(carregamento);
+    await vi.waitFor(() => expect(worker.postMessage).toHaveBeenCalledOnce());
+    worker.onerror({ message: 'worker indisponível' });
+
+    await expect(carregamento).rejects.toThrow('worker indisponível');
+    expect(criarWorker).toHaveBeenCalledOnce();
+    expect(worker.terminate).toHaveBeenCalledOnce();
+    expect(motor.pendentes.size).toBe(0);
   });
 });
