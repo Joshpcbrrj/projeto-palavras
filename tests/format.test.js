@@ -9,10 +9,16 @@ import {
   statusRevisao,
   validarPacote,
 } from '../js/pdf/format.js';
+import { nomeTipo } from '../js/config.js';
 
 const hoje = new Date(2026, 9, 18); // 18/10/2026
 
 describe('pacote de dados', () => {
+  test('usa nomes neutros para tipos desconhecidos', () => {
+    expect(nomeTipo('desconhecido')).toBe('itens');
+    expect(nomeTipo('desconhecido', { plural: false })).toBe('item');
+  });
+
   test('codifica e decodifica preservando Unicode', () => {
     const pacote = criarPacote({
       tipo: 'frases',
@@ -36,6 +42,8 @@ describe('pacote de dados', () => {
     expect(validarPacote({ app: 'aprendendo-palavras', tipo: 'texto', texto: '   ' })).toBeNull();
     expect(decodificarPacote(`${MARCADOR}%%%`)).toBeNull();
     expect(decodificarPacote('sem marcador')).toBeNull();
+    expect(decodificarPacote(null)).toBeNull();
+    expect(decodificarPacote(`${MARCADOR}${btoa('{')}`)).toBeNull();
   });
 
   test('normaliza idioma desconhecido e itens vazios', () => {
@@ -48,6 +56,60 @@ describe('pacote de dados', () => {
     expect(p.idioma).toBe('en-US');
     expect(p.itens).toEqual(['a', 'b']);
     expect(p.id).toBeTruthy();
+  });
+
+  test('preserva metadados opcionais válidos e ignora os inválidos', () => {
+    const pacote = validarPacote({
+      app: 'aprendendo-palavras',
+      tipo: 'palavras',
+      itens: [' casa ', 'sol'],
+      traducao: [null, 'sun'],
+      contextos: ['A casa é azul.', null],
+      fonte: {
+        nome: 'Artigo',
+        titulo: 'Título',
+        url: 'https://example.com/artigo',
+        licenca: 'CC BY-SA',
+      },
+      nivel: 'iniciante',
+    });
+
+    expect(pacote).toMatchObject({
+      itens: ['casa', 'sol'],
+      traducao: ['', 'sun'],
+      contextos: ['A casa é azul.', ''],
+      fonte: {
+        nome: 'Artigo',
+        titulo: 'Título',
+        url: 'https://example.com/artigo',
+        licenca: 'CC BY-SA',
+      },
+      nivel: 'iniciante',
+    });
+    expect(
+      validarPacote({
+        app: 'aprendendo-palavras',
+        tipo: 'palavras',
+        itens: ['casa'],
+        fonte: { nome: 'Fonte insegura', url: 'http://example.com' },
+        nivel: 'nível-inválido',
+      })
+    ).not.toHaveProperty('fonte');
+  });
+
+  test('valida campos ausentes de texto e listas sem assumir tipos inválidos', () => {
+    expect(validarPacote({ app: 'aprendendo-palavras', tipo: 'texto' })).toBeNull();
+    expect(validarPacote({ app: 'aprendendo-palavras', tipo: 'palavras' })).toBeNull();
+    expect(
+      validarPacote({
+        app: 'aprendendo-palavras',
+        tipo: 'palavras',
+        itens: ['casa'],
+        traducao: [null],
+        contextos: [null],
+        fonte: 'não é um objeto',
+      })
+    ).toMatchObject({ itens: ['casa'] });
   });
 });
 
@@ -72,6 +134,19 @@ describe('revisão espaçada', () => {
     expect(revisao.historico).toHaveLength(7);
   });
 
+  test('inicia uma revisão quando ainda não existe e aceita campos opcionais ausentes', () => {
+    expect(proximaRevisao(null, hoje)).toMatchObject({
+      etapa: 0,
+      revisarEm: '2026-10-19',
+      historico: [],
+    });
+    expect(proximaRevisao({}, hoje)).toMatchObject({
+      etapa: 1,
+      revisarEm: '2026-10-21',
+      historico: ['2026-10-18'],
+    });
+  });
+
   test('aceita intervalo personalizado e data em formato brasileiro', () => {
     expect(criarRevisao({ intervaloDias: 10, hoje }).revisarEm).toBe('2026-10-28');
     expect(criarRevisao({ revisarEm: '25/12/2026', hoje }).revisarEm).toBe('2026-12-25');
@@ -87,6 +162,10 @@ describe('revisão espaçada', () => {
       situacao: 'futura',
       texto: 'Revisar amanhã',
     });
+    expect(statusRevisao({ revisarEm: '2026-10-20' }, hoje).texto).toBe('Revisar em 2 dias');
+    expect(statusRevisao({ revisarEm: '2026-10-17' }, hoje).texto).toBe(
+      'Revisão atrasada há 1 dia'
+    );
     expect(statusRevisao(null, hoje).situacao).toBe('sem-data');
   });
 });

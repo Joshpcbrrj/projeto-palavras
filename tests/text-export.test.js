@@ -8,6 +8,7 @@ vi.mock('../js/pdf/exporter.js', async (importOriginal) => ({
 const { TextScreen } = await import('../js/screens/TextScreen.js');
 const { settings } = await import('../js/services/settings.js');
 const { exportarPdf } = await import('../js/pdf/exporter.js');
+const { criarPacote } = await import('../js/pdf/format.js');
 
 let raiz;
 let tela;
@@ -69,5 +70,37 @@ describe('fluxo do texto próprio até o PDF revisável', () => {
     });
     expect(localStorage.getItem('progresso_estudo')).toBeNull();
     expect(localStorage.getItem('ap_rascunho_texto')).toBeNull();
+  });
+
+  test('reaproveita a tradução do PDF reaberto e invalida quando o texto muda', async () => {
+    const material = criarPacote({
+      tipo: 'texto',
+      titulo: 'Artigo',
+      idioma: 'en-US',
+      texto: 'A short article.',
+      traducao: 'Um artigo curto.',
+    });
+    tela = new TextScreen({ material });
+    tela.montar(raiz);
+    raiz.querySelector('#btnExportarTexto').click();
+    await vi.waitFor(() => expect(exportarPdf).toHaveBeenCalledOnce());
+    expect(exportarPdf.mock.calls[0][0].traducao).toBe('Um artigo curto.');
+
+    raiz.querySelector('#abaEditar').click();
+    raiz.querySelector('#textoTitulo').value = '';
+    raiz.querySelector('#textoTitulo').dispatchEvent(new Event('input'));
+    const conteudo = raiz.querySelector('#textoConteudo');
+    conteudo.value = 'A changed article.';
+    conteudo.dispatchEvent(new Event('input'));
+    raiz.querySelector('#textoRevisao').value = '0';
+    raiz.querySelector('#btnExportarTexto').click();
+    await vi.waitFor(() => expect(exportarPdf).toHaveBeenCalledTimes(2));
+
+    expect(exportarPdf.mock.calls[1][0]).toMatchObject({
+      titulo: 'Texto de estudo',
+      texto: 'A changed article.',
+      revisao: null,
+    });
+    expect(exportarPdf.mock.calls[1][0]).not.toHaveProperty('traducao');
   });
 });

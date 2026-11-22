@@ -11,6 +11,7 @@
  *   app: 'aprendendo-palavras', versao: 3, id, tipo: 'palavras'|'frases'|'texto',
  *   titulo, idioma, criadoEm, itens?: string[], texto?: string,
  *   traducao?: string (textos) | string[] (palavras/frases, na ordem dos itens),
+ *   contextos?: string[] (palavras, na ordem dos itens),
  *   revisao: { etapa, intervaloDias, revisarEm: 'AAAA-MM-DD', historico: string[] }
  * }
  */
@@ -126,6 +127,20 @@ export function validarPacote(dados) {
       );
       if (traducao.some(Boolean)) pacote.traducao = traducao;
     }
+    if (pacote.tipo === TIPOS.PALAVRAS && Array.isArray(dados.contextos)) {
+      if (dados.contextos.length === brutos.length) {
+        const contextos = brutos.flatMap((item, k) =>
+          item
+            ? [
+                String(dados.contextos[k] ?? '')
+                  .trim()
+                  .slice(0, 500),
+              ]
+            : []
+        );
+        if (contextos.some(Boolean)) pacote.contextos = contextos;
+      }
+    }
   }
   return pacote;
 }
@@ -163,6 +178,7 @@ export function criarPacote({
   fonte,
   nivel,
   traducao,
+  contextos,
 }) {
   return validarPacote({
     app: APP.id,
@@ -177,6 +193,7 @@ export function criarPacote({
     fonte,
     nivel,
     traducao,
+    contextos,
     // `null` significa "não agendar"; sem o campo, agenda a primeira revisão.
     revisao: revisao === undefined ? criarRevisao() : revisao,
   });

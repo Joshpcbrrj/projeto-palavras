@@ -374,6 +374,14 @@
   box-shadow: 0 18px 40px rgba(76, 29, 149, 0.35);
 }
 
+.escuta-ativa__marcacoes {
+  width: min(100%, 34rem);
+}
+
+.escuta-ativa__marcacoes p {
+  min-height: 1.5em;
+}
+
 .flashcard__texto {
   font-weight: 800;
   line-height: 1.15;
@@ -381,6 +389,14 @@
   overflow-wrap: anywhere;
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
   max-width: 100%;
+}
+
+.flashcard__contexto {
+  max-width: 68ch;
+  margin: 0;
+  font-size: clamp(0.95rem, 3vw, 1.15rem);
+  line-height: 1.55;
+  opacity: 0.9;
 }
 
 .flashcard__texto[data-tamanho='g'] {
@@ -545,6 +561,29 @@
   line-height: 1.85;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+.captura-vocabulario {
+  padding-top: 1rem;
+  border-top: 1px solid var(--borda);
+}
+
+.captura-vocabulario .secao__titulo {
+  margin-bottom: 0.35rem;
+}
+
+.captura-vocabulario .lista-itens {
+  padding: 0.65rem 0.9rem;
+}
+
+.captura-vocabulario .lista-itens li + li {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--borda);
+}
+
+.captura-vocabulario .lista-itens p {
+  margin: 0.2rem 0 0;
 }
 
 .leitor__trecho {

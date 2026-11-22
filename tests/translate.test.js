@@ -128,6 +128,71 @@ describe('exportação com tradução', () => {
     expect(api.create).not.toHaveBeenCalled();
   });
 
+  test('não tenta traduzir um pacote que já tem todas as traduções', async () => {
+    const pacote = criarPacote({
+      tipo: 'palavras',
+      idioma: 'en-US',
+      itens: ['cat', 'dog'],
+      traducao: ['gato', 'cão'],
+    });
+    const api = apiTranslator();
+    await expect(adicionarTraducao(pacote, { api })).resolves.toEqual({ pacote, aviso: '' });
+    expect(api.create).not.toHaveBeenCalled();
+  });
+
+  test('propaga cancelamento e usa mensagem genérica quando uma falha não tem mensagem', async () => {
+    const pacote = criarPacote(palavras);
+    const cancelamento = new DOMException('cancelado', 'AbortError');
+    const apiCancelada = {
+      availability: async () => 'available',
+      create: async () => {
+        throw cancelamento;
+      },
+    };
+    await expect(adicionarTraducao(pacote, { api: apiCancelada })).rejects.toBe(cancelamento);
+
+    const logErro = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const apiSemMensagem = {
+      availability: async () => 'available',
+      create: async () => {
+        throw {};
+      },
+    };
+    const resultado = await adicionarTraducao(pacote, { api: apiSemMensagem });
+    expect(resultado.aviso).toContain('erro desconhecido');
+    expect(logErro).toHaveBeenCalledOnce();
+    logErro.mockRestore();
+  });
+
+  test('reaproveita apenas traduções conhecidas não vazias', () => {
+    expect(
+      traducoesConhecidas(
+        null,
+        { itens: ['cat'], traducao: 'não é uma lista' },
+        { itens: ['cat', 'dog'], traducao: ['', 'cão'] }
+      )
+    ).toEqual(new Map([['dog', 'cão']]));
+  });
+
+  test('mantém itens sem tradução e o pacote original se os dados não puderem ser normalizados', async () => {
+    const pacote = criarPacote(palavras);
+    const apiComItemVazio = {
+      availability: async () => 'available',
+      create: async () => ({
+        translate: async (texto) => (texto === 'cat' ? '' : '[dog]'),
+      }),
+    };
+    const resultado = await adicionarTraducao(pacote, { api: apiComItemVazio });
+    expect(resultado.pacote.traducao).toEqual(['', '[dog]']);
+
+    const invalido = { tipo: 'desconhecido', idioma: '', itens: ['cat'] };
+    const api = apiTranslator();
+    await expect(adicionarTraducao(invalido, { api })).resolves.toMatchObject({
+      pacote: invalido,
+      aviso: '',
+    });
+  });
+
   test('português não é traduzido; sem tradutor ou com erro, o PDF sai e o app avisa', async () => {
     const pt = await exportarMaterialPdf({ ...palavras, idioma: 'pt-BR' });
     expect(pt.aviso).toBe('');

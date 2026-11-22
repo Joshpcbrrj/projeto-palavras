@@ -186,7 +186,39 @@ function desenharCabecalho(esc, pacote, hoje) {
   esc.y += 23;
 }
 
-function desenharPalavras(esc, itens) {
+function desenharPalavras(esc, itens, contextos = []) {
+  if (contextos.some(Boolean)) {
+    const { doc } = esc;
+    itens.forEach((item, i) => {
+      const contexto = contextos[i];
+      const larguraTexto = LARGURA_UTIL - 18;
+      const palavra = esc.bloco(item, {
+        tamanho: 11.5,
+        negrito: true,
+        largura: larguraTexto,
+        alturaLinha: 1.25,
+      });
+      const blocoContexto = contexto
+        ? esc.bloco(`Contexto: ${contexto}`, {
+            tamanho: 9,
+            cor: COR.suave,
+            largura: larguraTexto,
+            alturaLinha: 1.3,
+          })
+        : null;
+      const altura = palavra.altura + (blocoContexto ? blocoContexto.altura + 2 : 0) + 5;
+      esc.garantirEspaco(altura);
+      doc.setFillColor(...COR.fundo);
+      doc.roundedRect(MARGEM, esc.y - 1, LARGURA_UTIL, altura, 2, 2, 'F');
+      esc.fonte({ tamanho: 9, negrito: true, cor: COR.primaria });
+      doc.text(`${i + 1}.`, MARGEM + 7, esc.y + 0.4, { baseline: 'top' });
+      palavra.desenhar(MARGEM + 12, esc.y);
+      if (blocoContexto) blocoContexto.desenhar(MARGEM + 12, esc.y + palavra.altura + 1.5);
+      esc.y += altura + 1.5;
+    });
+    return;
+  }
+
   const { doc } = esc;
   const colunas = 3;
   const larguraColuna = LARGURA_UTIL / colunas;
@@ -370,7 +402,7 @@ export function gerarDocumentoPdf(
   const esc = new Escritor(doc, rasterizar);
 
   desenharCabecalho(esc, pacote, hoje);
-  if (pacote.tipo === TIPOS.PALAVRAS) desenharPalavras(esc, pacote.itens);
+  if (pacote.tipo === TIPOS.PALAVRAS) desenharPalavras(esc, pacote.itens, pacote.contextos || []);
   else if (pacote.tipo === TIPOS.FRASES) desenharFrases(esc, pacote.itens);
   else desenharTexto(esc, pacote.texto);
   if (pacote.fonte) desenharFonte(esc, pacote.fonte);

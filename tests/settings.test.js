@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { settings } from '../js/services/settings.js';
 
 beforeEach(() => {
@@ -12,6 +12,7 @@ describe('preferências temporárias da sessão', () => {
     expect(prefs).toMatchObject({ tema: null, audioAutomatico: true, repeticoes: 1 });
     expect(settings.getTempo('palavras')).toBe(2);
     expect(settings.getTempo('frases')).toBe(3);
+    expect(settings.getTempo('desconhecido')).toBe(settings.getTempo('palavras'));
   });
 
   test('mantém alterações durante a página, mas começa de novo após recarregar', () => {
@@ -38,5 +39,13 @@ describe('preferências temporárias da sessão', () => {
     settings.aoMudar((chave, valor) => mudancas.push([chave, valor]));
     settings.set('tema', 'light');
     expect(mudancas).toEqual([['tema', 'light']]);
+  });
+
+  test('permite remover um ouvinte sem notificar após a remoção', () => {
+    const ouvinte = vi.fn();
+    const remover = settings.aoMudar(ouvinte);
+    remover();
+    settings.set('tema', 'dark');
+    expect(ouvinte).not.toHaveBeenCalled();
   });
 });

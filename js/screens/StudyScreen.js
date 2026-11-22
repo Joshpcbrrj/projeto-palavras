@@ -68,6 +68,11 @@ export class StudyScreen {
     this.material = parametros.material || null;
     this.conhecidas = parametros.conhecidas || new Map();
     this.texto = parametros.texto || '';
+    this.escutaAtiva = tipo === TIPOS.FRASES && Boolean(parametros.escutaAtiva);
+    this.marcacoesEscuta = new Map();
+    this.escutaProntaParaRevelar = false;
+    this.escutaRevelada = false;
+    this.controleEscuta = null;
     this.itensDisponiveis = parametros.itens?.length ? [...parametros.itens] : [];
     this.etapa = this.itensDisponiveis.length ? 1 : 0;
 
@@ -86,6 +91,17 @@ export class StudyScreen {
     this.avisoVozExibido = false;
     this.eventos = criarEscopoEventos();
     this.seletorVoz = null;
+    const itensComContextos = Array.isArray(parametros.itens) ? parametros.itens : [];
+    const contextos =
+      Array.isArray(parametros.contextos) &&
+      parametros.contextos.length === itensComContextos.length
+        ? parametros.contextos
+        : [];
+    this.contextosPorItem = new Map(
+      itensComContextos.flatMap((item, indice) =>
+        contextos[indice] ? [[item, contextos[indice]]] : []
+      )
+    );
   }
 
   get nome() {
@@ -109,6 +125,7 @@ export class StudyScreen {
   }
 
   desmontar() {
+    this.controleEscuta?.abort();
     this.sessao?.encerrar();
     speaker.cancelar();
     this.eventos.limpar();
@@ -271,7 +288,18 @@ ${this.texto}</textarea
           </div>
         </div>
         <div class="resumo-sessao" id="resumoSessao"></div>
-
+        ${
+          this.tipo === TIPOS.FRASES
+            ? html`<div class="campo">
+              ${alternador({
+                id: 'cfgEscutaAtiva',
+                rotulo: 'Escuta ativa',
+                ajuda: 'Ouça cada frase, tente compreendê-la e marque se entendeu ou quer revisar.',
+                marcado: this.escutaAtiva,
+              })}
+            </div>`
+            : ''
+        }
         <details class="mais-opcoes">
           <summary class="mais-opcoes__titulo">
             ⚙️ Mais opções
@@ -391,6 +419,11 @@ ${this.texto}</textarea
       settings.set('audioAutomatico', c.audioAutomatico);
       resumo();
     });
+    if (this.tipo === TIPOS.FRASES) {
+      $('#cfgEscutaAtiva', r).addEventListener('change', (e) => {
+        this.escutaAtiva = e.target.checked;
+      });
+    }
     r.querySelectorAll('input[name="cfgRepeticoes"]').forEach((input) =>
       input.addEventListener('change', () => {
         c.repeticoes = Number(valorSegmentado(r, 'cfgRepeticoes')) || 1;
@@ -445,6 +478,7 @@ ${this.texto}</textarea
 
   iniciarSessao(itens) {
     const c = this.config;
+    this.marcacoesEscuta.clear();
     let lista = itens;
     if (!lista) {
       lista = c.embaralhar
@@ -457,9 +491,10 @@ ${this.texto}</textarea
       itens: lista,
       intervaloMs: c.tempo * 1000,
       falar: (item, signal) =>
-        c.audioAutomatico ? this.pronunciar(item, signal) : Promise.resolve(),
+        !this.escutaAtiva && c.audioAutomatico ? this.pronunciar(item, signal) : Promise.resolve(),
       aoMostrar: (item, indice, total) => this.mostrarItem(item, indice, total),
       aoMudarEstado: (estado) => this.atualizarEstado(estado),
+      aguardarAvancoManual: this.escutaAtiva,
       aoConcluir: () => {
         this.atualizarRevisao();
         this.irPara(3);
@@ -472,7 +507,7 @@ ${this.texto}</textarea
   async pronunciar(item, signal) {
     const c = this.config;
     for (let i = 0; i < c.repeticoes; i++) {
-      if (signal?.aborted) return;
+      if (signal?.aborted) return false;
       const falou = await speaker.falar(item, {
         idioma: c.idioma,
         velocidade: c.velocidade,
@@ -483,10 +518,48 @@ ${this.texto}</textarea
           this.avisoVozExibido = true;
           toast.aviso('Não há uma voz compatível com este idioma neste dispositivo.');
         }
-        return;
+        return false;
       }
-      if (i < c.repeticoes - 1 && !(await esperar(450, signal))) return;
+      if (i < c.repeticoes - 1 && !(await esperar(450, signal))) return false;
     }
+    return true;
+  }
+
+  async ouvirFraseAtiva() {
+    if (!this.escutaAtiva || !this.sessao) return;
+    const botao = $('#btnOuvir', this.raiz);
+    botao.disabled = true;
+    this.controleEscuta?.abort();
+    const controle = new AbortController();
+    this.controleEscuta = controle;
+    try {
+      speaker.desbloquear();
+      const ouvida = await this.pronunciar(this.sessao.itemAtual, controle.signal);
+      if (!botao.isConnected || controle.signal.aborted) return;
+      this.escutaProntaParaRevelar = true;
+      $('#btnRevelar', this.raiz).disabled = false;
+      $('#escutaAtivaStatus', this.raiz).textContent = ouvida
+        ? 'Áudio concluído. Revele a frase quando quiser.'
+        : 'Não foi possível reproduzir o áudio. Você pode revelar a frase ou verificar a voz selecionada.';
+    } catch (erro) {
+      if (!controle.signal.aborted) {
+        toast.erro(`Não foi possível reproduzir a frase: ${erro.message}`);
+      }
+    } finally {
+      if (botao.isConnected) botao.disabled = false;
+      if (this.controleEscuta === controle) this.controleEscuta = null;
+    }
+  }
+
+  marcarEscuta(marcacao) {
+    if (!this.escutaAtiva || !this.escutaRevelada || !this.sessao) return;
+    this.marcacoesEscuta.set(this.sessao.indice, marcacao);
+    this.sessao.proximo();
+  }
+
+  itensMarcadosEscuta(marcacao) {
+    if (!this.sessao) return [];
+    return this.sessao.itens.filter((_, indice) => this.marcacoesEscuta.get(indice) === marcacao);
   }
 
   htmlEstudo() {
@@ -512,9 +585,34 @@ ${this.texto}</textarea
 
         <div class="flashcard ${this.tipo === TIPOS.FRASES ? 'flashcard--frase' : ''}">
           <p class="flashcard__texto" id="flashcardTexto" aria-live="polite"></p>
+          ${
+            this.tipo === TIPOS.PALAVRAS && this.contextosPorItem.size
+              ? html`<p class="flashcard__contexto" id="flashcardContexto" hidden></p>`
+              : ''
+          }
           <button type="button" class="btn btn--claro" id="btnOuvir" title="Ouvir (Enter)">
             🔊 Ouvir ${IDIOMAS[this.config.idioma]?.bandeira || ''}
           </button>
+          ${
+            this.escutaAtiva
+              ? html`
+                <button type="button" class="btn btn--claro" id="btnRevelar" disabled>
+                  Revelar frase
+                </button>
+                <div class="escuta-ativa__marcacoes" id="escutaAtivaMarcacoes" hidden>
+                  <p id="escutaAtivaStatus" aria-live="polite"></p>
+                  <div class="acoes acoes--centro">
+                    <button type="button" class="btn btn--sucesso" data-escuta="entendi">
+                      Entendi
+                    </button>
+                    <button type="button" class="btn btn--secundario" data-escuta="revisar">
+                      Preciso revisar
+                    </button>
+                  </div>
+                </div>
+              `
+              : ''
+          }
         </div>
 
         <div class="controles" role="group" aria-label="Controles do estudo">
@@ -558,11 +656,15 @@ ${this.texto}</textarea
 
         <div class="estudo__ajustes">
           ${controleVelocidade({ id: 'estVelocidade', valor: this.config.velocidade })}
-          ${alternador({
-            id: 'estAudio',
-            rotulo: 'Áudio automático',
-            marcado: this.config.audioAutomatico,
-          })}
+          ${
+            this.escutaAtiva
+              ? ''
+              : alternador({
+                  id: 'estAudio',
+                  rotulo: 'Áudio automático',
+                  marcado: this.config.audioAutomatico,
+                })
+          }
         </div>
         <p class="atalhos" aria-hidden="true">
           <kbd>Espaço</kbd> pausar · <kbd>←</kbd> <kbd>→</kbd> navegar · <kbd>Enter</kbd> ouvir ·
@@ -576,31 +678,53 @@ ${this.texto}</textarea
     const r = this.raiz;
     const s = this.sessao;
     $('#btnAnterior', r).addEventListener('click', () => s.anterior());
-    $('#btnProximo', r).addEventListener('click', () => s.proximo());
-    $('#btnPausar', r).addEventListener('click', () => s.alternar());
+    $('#btnProximo', r).addEventListener('click', () => this.avancarEstudo());
+    $('#btnPausar', r).addEventListener('click', () => {
+      if (s.estado === ESTADOS_SESSAO.RODANDO) this.controleEscuta?.abort();
+      s.alternar();
+    });
     $('#btnEncerrar', r).addEventListener('click', () => this.encerrarSessao());
     $('#btnOuvir', r).addEventListener('click', () => {
-      speaker.desbloquear();
-      this.pronunciar(s.itemAtual);
+      if (this.escutaAtiva) this.ouvirFraseAtiva();
+      else {
+        speaker.desbloquear();
+        this.pronunciar(s.itemAtual);
+      }
     });
+    if (this.escutaAtiva) {
+      $('#btnRevelar', r).addEventListener('click', () => {
+        if (!this.escutaProntaParaRevelar) return;
+        this.escutaRevelada = true;
+        $('#flashcardTexto', r).textContent = s.itemAtual;
+        $('#escutaAtivaMarcacoes', r).hidden = false;
+        $('#escutaAtivaStatus', r).textContent = 'Marque sua compreensão para continuar.';
+        $('#btnRevelar', r).disabled = true;
+      });
+      $('#escutaAtivaMarcacoes', r).addEventListener('click', (e) => {
+        const botao = e.target.closest('[data-escuta]');
+        if (botao) this.marcarEscuta(botao.dataset.escuta);
+      });
+    }
     conectarVelocidade(r, 'estVelocidade', (v) => {
       this.config.velocidade = v;
       settings.set('velocidadeFala', v);
     });
-    $('#estAudio', r).addEventListener('change', (e) => {
-      this.config.audioAutomatico = e.target.checked;
-      settings.set('audioAutomatico', e.target.checked);
-      if (!e.target.checked) speaker.cancelar();
-    });
+    if (!this.escutaAtiva) {
+      $('#estAudio', r).addEventListener('change', (e) => {
+        this.config.audioAutomatico = e.target.checked;
+        settings.set('audioAutomatico', e.target.checked);
+        if (!e.target.checked) speaker.cancelar();
+      });
+    }
 
     this.eventos.on(document, 'keydown', (e) => {
       if (e.target.closest?.('input, textarea, select') || e.altKey || e.ctrlKey || e.metaKey)
         return;
       const acoes = {
         ' ': () => s.alternar(),
-        ArrowRight: () => s.proximo(),
+        ArrowRight: () => this.avancarEstudo(),
         ArrowLeft: () => s.anterior(),
-        Enter: () => this.pronunciar(s.itemAtual),
+        Enter: () => (this.escutaAtiva ? this.ouvirFraseAtiva() : this.pronunciar(s.itemAtual)),
         Escape: () => this.encerrarSessao(),
       };
       const acao = acoes[e.key];
@@ -615,6 +739,7 @@ ${this.texto}</textarea
   }
 
   mostrarItem(item, indice, total) {
+    this.controleEscuta?.abort();
     const texto = $('#flashcardTexto', this.raiz);
     if (!texto) return;
     texto.textContent =
@@ -624,6 +749,11 @@ ${this.texto}</textarea
     texto.classList.remove('flashcard__texto--entrada');
     void texto.offsetWidth; // reinicia a animação
     texto.classList.add('flashcard__texto--entrada');
+    const contexto = $('#flashcardContexto', this.raiz);
+    if (contexto) {
+      contexto.textContent = this.contextosPorItem.get(item) || '';
+      contexto.hidden = !contexto.textContent;
+    }
 
     $('#estudoContador', this.raiz).textContent =
       `${this.nomeSingular.replace(/^./, (l) => l.toUpperCase())} ${indice + 1} de ${total}`;
@@ -631,6 +761,20 @@ ${this.texto}</textarea
     $('#estudoBarraValor', this.raiz).style.width = `${(vistos / total) * 100}%`;
     $('#estudoBarra', this.raiz).setAttribute('aria-valuenow', String(vistos));
     $('#btnAnterior', this.raiz).disabled = indice === 0;
+    if (this.escutaAtiva) {
+      this.escutaProntaParaRevelar = false;
+      this.escutaRevelada = false;
+      texto.textContent = 'Ouça a frase e tente compreendê-la.';
+      $('#btnRevelar', this.raiz).disabled = true;
+      $('#escutaAtivaMarcacoes', this.raiz).hidden = true;
+      $('#escutaAtivaStatus', this.raiz).textContent = '';
+      $('#btnProximo', this.raiz).disabled = !this.marcacoesEscuta.has(indice);
+    }
+  }
+
+  avancarEstudo() {
+    if (this.escutaAtiva && !this.marcacoesEscuta.has(this.sessao.indice)) return;
+    this.sessao.proximo();
   }
 
   atualizarEstado(estado) {
@@ -652,6 +796,7 @@ ${this.texto}</textarea
   encerrarSessao() {
     const s = this.sessao;
     if (!s) return;
+    this.controleEscuta?.abort();
     s.encerrar();
     speaker.cancelar();
     this.atualizarRevisao();
@@ -674,6 +819,8 @@ ${this.texto}</textarea
     const s = this.sessao;
     const completo = s.estado === ESTADOS_SESSAO.CONCLUIDA;
     const vistos = s.itensVistos;
+    const entendidos = this.itensMarcadosEscuta('entendi');
+    const revisar = this.itensMarcadosEscuta('revisar');
     const etapaSugerida = this.material?.revisao?.etapa ?? 0;
     const tituloPadrao =
       this.titulo || `${nomeTipo(this.tipo, { maiuscula: true })} de ${formatarDataBR(new Date())}`;
@@ -687,6 +834,14 @@ ${this.texto}</textarea
             <span class="estatistica__valor">${vistos.length}</span
             ><span class="estatistica__rotulo">${this.nome} estudadas</span>
           </div>
+          ${
+            this.escutaAtiva
+              ? html`<p class="texto-centro">
+                Entendi: <strong>${entendidos.length}</strong> · Para revisar:
+                <strong>${revisar.length}</strong>
+              </p>`
+              : ''
+          }
           <div class="estatistica">
             <span class="estatistica__valor">${formatarDuracao(s.segundosAtivos)}</span
             ><span class="estatistica__rotulo">de estudo</span>
@@ -722,15 +877,45 @@ ${this.texto}</textarea
         <div class="campo">
           <span class="campo__rotulo">Incluir no PDF</span>
           <div class="segmentado">
+            ${
+              this.escutaAtiva
+                ? html`
+                  <label class="segmentado__opcao"
+                    ><input
+                      type="radio"
+                      name="pdfItens"
+                      value="revisar"
+                      ${revisar.length ? html`checked` : html`disabled`}
+                    /><span>Para revisar (${revisar.length})</span></label
+                  >
+                  <label class="segmentado__opcao"
+                    ><input
+                      type="radio"
+                      name="pdfItens"
+                      value="entendi"
+                      ${!revisar.length && entendidos.length ? html`checked` : ''}
+                      ${entendidos.length ? '' : html`disabled`}
+                    /><span>Entendi (${entendidos.length})</span></label
+                  >
+                  <label class="segmentado__opcao"
+                    ><input type="radio" name="pdfItens" value="vistos" /><span
+                      >Estudadas (${vistos.length})</span
+                    ></label
+                  >
+                `
+                : html`<label class="segmentado__opcao"
+                    ><input type="radio" name="pdfItens" value="vistos" checked /><span
+                      >Estudadas (${vistos.length})</span
+                    ></label
+                  >`
+            }
             <label class="segmentado__opcao"
-              ><input type="radio" name="pdfItens" value="vistos" checked /><span
-                >Estudadas (${vistos.length})</span
-              ></label
-            >
-            <label class="segmentado__opcao"
-              ><input type="radio" name="pdfItens" value="todos" /><span
-                >Todas (${this.itensDisponiveis.length})</span
-              ></label
+              ><input
+                type="radio"
+                name="pdfItens"
+                value="todos"
+                ${this.escutaAtiva && !revisar.length && !entendidos.length ? html`checked` : ''}
+              /><span>Todas (${this.itensDisponiveis.length})</span></label
             >
           </div>
         </div>
@@ -781,6 +966,8 @@ ${this.texto}</textarea
   ligarResultado() {
     const r = this.raiz;
     const vistos = this.sessao.itensVistos;
+    const entendidos = this.itensMarcadosEscuta('entendi');
+    const revisar = this.itensMarcadosEscuta('revisar');
 
     $('#btnDeNovo', r).addEventListener('click', () => {
       speaker.desbloquear();
@@ -790,6 +977,7 @@ ${this.texto}</textarea
       this.material = null;
       this.conhecidas = new Map();
       this.titulo = '';
+      this.contextosPorItem.clear();
       this.itensDisponiveis = [];
       this.irPara(0);
     });
@@ -814,11 +1002,22 @@ ${this.texto}</textarea
     const dadosExportacao = () => {
       const dias = Number($('#pdfRevisao', r).value);
       const etapa = this.material?.revisao?.etapa ?? 0;
+      const selecao = valorSegmentado(r, 'pdfItens');
+      const itens =
+        selecao === 'revisar'
+          ? revisar
+          : selecao === 'entendi'
+            ? entendidos
+            : selecao === 'vistos'
+              ? vistos
+              : this.itensDisponiveis;
+      const contextos = itens.map((item) => this.contextosPorItem.get(item) || '');
       return {
         tipo: this.tipo,
         titulo: $('#pdfTitulo', r).value.trim() || tituloPadrao(this.tipo),
         idioma: this.config.idioma,
-        itens: valorSegmentado(r, 'pdfItens') === 'todos' ? this.itensDisponiveis : vistos,
+        itens,
+        ...(contextos.some(Boolean) ? { contextos } : {}),
         revisao: dias
           ? criarRevisao({
               etapa,

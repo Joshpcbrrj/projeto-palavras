@@ -8,12 +8,14 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['js/**/*.js'],
-      reporter: ['text', 'lcov', 'json-summary'],
+      reporter: ['text', 'lcovonly', 'json-summary'],
+      // Avoid deleting stale HTML reports with inaccessible ACLs on Windows.
+      clean: false,
       thresholds: {
-        statements: 75,
-        branches: 80,
-        functions: 80,
-        lines: 75,
+        statements: 95,
+        branches: 95,
+        functions: 95,
+        lines: 95,
       },
     },
   },

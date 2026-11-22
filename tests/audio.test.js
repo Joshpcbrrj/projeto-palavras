@@ -1,5 +1,11 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { VoiceManager, normalizarIdioma, pontuarVoz } from '../js/audio/voices.js';
+import {
+  VoiceManager,
+  idiomaBase,
+  normalizarIdioma,
+  pontuarVoz,
+  vozDeAltaQualidade,
+} from '../js/audio/voices.js';
 import { Speaker, estimarDuracaoMs } from '../js/audio/speaker.js';
 import { ESTADOS_LEITOR, TextReader } from '../js/audio/reader.js';
 import { FakeUtterance, criarSynthFalso, voz } from './helpers/fakeSpeech.js';
@@ -28,6 +34,20 @@ describe('VoiceManager', () => {
     expect(vm.escolher('pt-BR').name).toBe('Luciana');
     expect(normalizarIdioma('pt_BR')).toBe('pt-br');
     expect(pontuarVoz(vozes[0], 'ja-JP')).toBe(-1);
+    expect(normalizarIdioma(null)).toBe('');
+    expect(idiomaBase('pt_BR')).toBe('pt');
+  });
+
+  test('ordena vozes equivalentes por nome e reconhece indicadores de qualidade', () => {
+    const vm = new VoiceManager({
+      synth: criarSynthFalso({
+        vozes: [voz('Equal Z', 'en-US'), voz('Equal A', 'en-US')],
+      }),
+    });
+    expect(vm.listar('en-US').map((v) => v.name)).toEqual(['Equal A', 'Equal Z']);
+    expect(vozDeAltaQualidade(voz('Natural Voice', 'en-US'))).toBe(true);
+    expect(vozDeAltaQualidade({})).toBe(false);
+    expect(pontuarVoz(voz('Compact Voice', 'en-US'), 'en-US')).toBe(91);
   });
 
   test('respeita a voz escolhida pelo usuário', () => {
@@ -57,6 +77,9 @@ describe('VoiceManager', () => {
     expect(vm.disponivel).toBe(false);
     await expect(vm.carregar()).resolves.toEqual([]);
     expect(vm.escolher('en-US')).toBeNull();
+    const semGetVoices = new VoiceManager({ synth: {} });
+    expect(semGetVoices.vozes).toEqual([]);
+    semGetVoices.definirPreferida('en-US', '');
   });
 
   test('usa o callback legado e tolera falhas ao consultar as vozes', () => {
@@ -164,6 +187,43 @@ describe('Speaker', () => {
       estimarDuracaoMs('a'.repeat(14), 1)
     );
     expect(estimarDuracaoMs('a'.repeat(140), 2)).toBeLessThan(estimarDuracaoMs('a'.repeat(140), 1));
+    expect(estimarDuracaoMs('', 0)).toBe(4000);
+  });
+
+  test('retorna sem falar se o sinal já foi cancelado ou cancela durante o carregamento', async () => {
+    const synth = criarSynthFalso();
+    const controle = new AbortController();
+    const vm = { carregar: vi.fn(async () => controle.abort()) };
+    const speaker = new Speaker({ synth, Utterance: FakeUtterance, vozes: vm });
+    controle.abort();
+    await expect(speaker.falar('hello', { signal: controle.signal })).resolves.toBe(false);
+    expect(vm.carregar).not.toHaveBeenCalled();
+
+    const outroControle = new AbortController();
+    const vozesQueCancelam = {
+      carregar: vi.fn(async () => outroControle.abort()),
+    };
+    const speakerDuranteCarregamento = new Speaker({
+      synth,
+      Utterance: FakeUtterance,
+      vozes: vozesQueCancelam,
+    });
+    await expect(
+      speakerDuranteCarregamento.falar('hello', { signal: outroControle.signal })
+    ).resolves.toBe(false);
+    expect(synth.falas).toHaveLength(0);
+  });
+
+  test('retoma a síntese quando o navegador está pausado', async () => {
+    const synth = criarSynthFalso();
+    synth.paused = true;
+    const retomar = vi.spyOn(synth, 'resume');
+    const speaker = new Speaker({ synth, Utterance: FakeUtterance });
+    const fala = speaker.falar('hello');
+    await vi.waitFor(() => expect(synth.falas).toHaveLength(1));
+    synth.falas[0].onend();
+    await expect(fala).resolves.toBe(true);
+    expect(retomar).toHaveBeenCalledOnce();
   });
 });
 

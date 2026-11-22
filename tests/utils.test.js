@@ -1,11 +1,13 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import {
   amostra,
   dataISO,
   diferencaDias,
   embaralhar,
   esperar,
+  formatarDataBR,
   formatarDuracao,
+  gerarId,
   lerData,
   limitar,
   slug,
@@ -39,7 +41,21 @@ describe('utilitários', () => {
     expect(dataISO(new Date(2026, 0, 5))).toBe('2026-01-05');
     expect(lerData('2026-02-30')).toBeNull();
     expect(lerData('31/12/2026')).toEqual(new Date(2026, 11, 31));
+    expect(lerData(new Date(2026, 0, 5))).toEqual(new Date(2026, 0, 5));
+    expect(lerData(new Date(NaN))).toBeNull();
+    expect(lerData('not a date')).toBeNull();
+    expect(formatarDataBR('2026-01-05')).toBe(new Date(2026, 0, 5).toLocaleDateString('pt-BR'));
+    expect(formatarDataBR('not a date')).toBe('\u2014');
     expect(diferencaDias(new Date(2026, 9, 18, 23), new Date(2026, 9, 19, 1))).toBe(1);
+  });
+
+  test('gerarId usa UUID quando disponível e mantém fallback', () => {
+    vi.stubGlobal('crypto', { randomUUID: () => 'uuid-de-teste' });
+    expect(gerarId()).toBe('uuid-de-teste');
+
+    vi.stubGlobal('crypto', undefined);
+    expect(gerarId()).toMatch(/^id-[\da-z]+-[\da-z]+$/);
+    vi.unstubAllGlobals();
   });
 
   test('formatarDuracao', () => {
@@ -59,6 +75,10 @@ describe('utilitários', () => {
     const promessa = esperar(10_000, controle.signal);
     controle.abort();
     await expect(promessa).resolves.toBe(false);
+
+    const jaAbortado = new AbortController();
+    jaAbortado.abort();
+    await expect(esperar(10_000, jaAbortado.signal)).resolves.toBe(false);
     await expect(esperar(1)).resolves.toBe(true);
   });
 });

@@ -18,6 +18,7 @@ describe('importação de arquivos de texto e JSON', () => {
       origem: ORIGENS.TEXTO_LIVRE,
       titulo: 'minha aula de ingles',
     });
+    expect(interpretarTexto('A short text.', '').titulo).toBe('Texto de estudo');
   });
 
   describe('importação de PDFs', () => {
@@ -159,6 +160,11 @@ describe('importação de arquivos de texto e JSON', () => {
       'meu_estudo.json'
     );
     expect(m).toMatchObject({ tipo: 'palavras', itens: ['casa', 'sol'], origem: ORIGENS.LEGADO });
+    const [frases] = interpretarJSON(
+      JSON.stringify({ itens: ['Good morning.'], tipoEstudo: 'frases' }),
+      'f.json'
+    );
+    expect(frases).toMatchObject({ tipo: 'frases', itens: ['Good morning.'] });
   });
 
   test('mensagens claras para arquivos que não são materiais', () => {
@@ -177,5 +183,22 @@ describe('importação de arquivos de texto e JSON', () => {
     await expect(lerArquivo(new File(['x'], 'foto.png', { type: 'image/png' }))).rejects.toThrow(
       'não suportado'
     );
+  });
+
+  test('lerArquivo importa JSON e usa MIME text/plain sem depender da extensão', async () => {
+    const pacote = criarPacote({ tipo: 'palavras', itens: ['apple'] });
+    const arquivoJson = new File(
+      [JSON.stringify({ app: 'aprendendo-palavras', materiais: [pacote] })],
+      'backup.json',
+      { type: 'application/json' }
+    );
+    await expect(lerArquivo(arquivoJson)).resolves.toMatchObject([
+      { tipo: 'palavras', itens: ['apple'], nomeArquivo: 'backup.json' },
+    ]);
+
+    const texto = new File(['A sentence.'], 'lesson.data', { type: 'text/plain' });
+    await expect(lerArquivo(texto)).resolves.toMatchObject([
+      { tipo: 'texto', texto: 'A sentence.', nomeArquivo: 'lesson.data' },
+    ]);
   });
 });
