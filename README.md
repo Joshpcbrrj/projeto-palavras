@@ -4,7 +4,7 @@
 
 # Aprendendo Palavras
 
-**Aprenda inglês de forma simples: crie textos no seu nível, ouça com pronúncia, estude com flashcards e revise com PDFs e MP3.**
+**Aprenda idiomas de forma simples: use seus próprios textos, ouça com pronúncia, estude com flashcards e revise com PDFs e MP3.**
 
 [![CI](https://github.com/Joshpcbrrj/projeto-palavras/actions/workflows/ci.yml/badge.svg)](https://github.com/Joshpcbrrj/projeto-palavras/actions/workflows/ci.yml)
 [![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-green.svg)](LICENSE)
@@ -35,20 +35,21 @@
 
 ## Recursos
 
-|                                        |                                                                                                                                                                                                                                                                                                 |
-| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ✨ **Criar textos**                    | Diálogos sobre qualquer tema, explicações estilo enciclopédia (Wikipédia, com Simple English para iniciantes) e textos no seu nível (iniciante, intermediário, fluente — 700, 1.200 e 2.000 palavras). Tema pode ser digitado em português. Usa a Wikipédia e o Google Gemini (chave gratuita). |
-| 🎵 **Exportar MP3**                    | Áudio de textos (com uma voz por pessoa nos diálogos) e da pronúncia das palavras/frases estudadas, com repetições, pausas e o número de cada item (para acompanhar no PDF) — grátis, com a voz neural Kokoro gerada no próprio navegador.                                                      |
-| 📖 **Flashcards de palavras e frases** | Cole um texto e o app extrai as palavras (sem repetições e, se quiser, sem as muito comuns como “the”, “to”, “is”) ou as frases. Funciona com qualquer alfabeto, inclusive japonês e chinês.                                                                                                    |
-| 🔊 **Pronúncia automática**            | Cada item é falado ao aparecer, com repetição de 1× a 3×, velocidade ajustável e escolha da voz.                                                                                                                                                                                                |
-| ⏯️ **Controle total do estudo**        | Pausar, voltar, avançar e ouvir de novo — com atalhos de teclado.                                                                                                                                                                                                                               |
-| 🎧 **Leitura de textos**               | O texto é lido frase a frase com destaque na tela; clique em qualquer frase para ouvir a partir dela, repita a frase atual ou adicione pausas.                                                                                                                                                  |
-| 📦 **Kit de estudo**                   | PDF + MP3 com um clique, com o mesmo nome de arquivo. No fim do PDF, uma página com **tudo traduzido para o português** (mesma numeração ou mesmos parágrafos), para revisar rápido.                                                                                                            |
-| 📄 **PDFs revisáveis**                 | Os PDFs exportados guardam os dados exatos do estudo e a data da próxima revisão. Abra-os depois em “Revisar arquivo” para continuar.                                                                                                                                                           |
-| 🗓️ **Revisão espaçada**                | Cada revisão concluída agenda a próxima (1 → 3 → 7 → 14 → 30 → 60 dias). Revisões pendentes aparecem na tela inicial.                                                                                                                                                                           |
-| 📈 **Progresso**                       | Sessões, tempo de estudo, palavras estudadas, textos/PDFs/MP3 criados, dias seguidos e backup em JSON que pode ser **juntado** entre aparelhos.                                                                                                                                                 |
-| 🌙 **Tema claro e escuro**             | Segue o sistema automaticamente ou pela sua escolha.                                                                                                                                                                                                                                            |
-| 📱 **PWA**                             | Instale no celular ou no computador e use offline.                                                                                                                                                                                                                                              |
+|                                        |                                                                                                                                                                                                                                            |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ✍️ **Usar seu próprio texto**          | Cole um texto, abra um arquivo `.txt` ou `.md` e envie para leitura e exportação em PDF. Esse é o fluxo principal da aplicação e não depende de chave de IA.                                                                               |
+| ✨ **Criar por tema**                  | Recurso opcional para diálogos e textos gerados por nível. Pode usar fontes livres e Wikipédia; Gemini continua opcional.                                                                                                                  |
+| 🎵 **Exportar MP3**                    | Áudio de textos (com uma voz por pessoa nos diálogos) e da pronúncia das palavras/frases estudadas, com repetições, pausas e o número de cada item (para acompanhar no PDF) — grátis, com a voz neural Kokoro gerada no próprio navegador. |
+| 📖 **Flashcards de palavras e frases** | Cole um texto e o app extrai as palavras (sem repetições e, se quiser, sem as muito comuns como “the”, “to”, “is”) ou as frases. Funciona com qualquer alfabeto, inclusive japonês e chinês.                                               |
+| 🔊 **Pronúncia automática**            | Cada item é falado ao aparecer, com repetição de 1× a 3×, velocidade ajustável e escolha da voz.                                                                                                                                           |
+| ⏯️ **Controle total do estudo**        | Pausar, voltar, avançar e ouvir de novo — com atalhos de teclado.                                                                                                                                                                          |
+| 🎧 **Leitura de textos**               | O texto é lido frase a frase com destaque na tela; clique em qualquer frase para ouvir a partir dela, repita a frase atual ou adicione pausas.                                                                                             |
+| 📦 **Kit de estudo**                   | PDF + MP3 com um clique, com o mesmo nome de arquivo. No fim do PDF, uma página com **tudo traduzido para o português** (mesma numeração ou mesmos parágrafos), para revisar rápido.                                                       |
+| 📄 **PDFs revisáveis**                 | Os PDFs exportados guardam os dados exatos do estudo e a data da próxima revisão. Abra-os depois em “Revisar arquivo” para continuar.                                                                                                      |
+| 🗓️ **Revisão espaçada**                | Cada revisão concluída agenda a próxima (1 → 3 → 7 → 14 → 30 → 60 dias). Revisões pendentes aparecem na tela inicial.                                                                                                                      |
+| 📈 **Progresso**                       | Sessões, tempo de estudo, palavras estudadas, textos/PDFs/MP3 criados, dias seguidos e backup em JSON que pode ser **juntado** entre aparelhos.                                                                                            |
+| 🌙 **Tema claro e escuro**             | Segue o sistema automaticamente ou pela sua escolha.                                                                                                                                                                                       |
+| 📱 **PWA**                             | Instale no celular ou no computador e use offline.                                                                                                                                                                                         |
 
 <table>
   <tr>
@@ -67,9 +68,10 @@
 
 ## Como usar
 
-1. **Criar um texto** — em **Criar textos**, escolha o modo (diálogo, mergulhar no tema ou por nível), digite o tema (pode ser em português), o nível (que também define o tamanho do texto) e clique em **Criar texto**. Depois, ouça, gere o PDF/MP3 ou transforme em flashcards.
-2. **Estudar palavras ou frases** — cole um texto (ou abra um `.txt`), confira o idioma e a quantidade e clique em **Iniciar estudo**. Voz, repetição, velocidade, pausa e ordem ficam em **Mais opções**.
-3. **Durante o estudo** — use os botões ou o teclado:
+1. **Usar seu próprio texto** — em **Texto**, cole ou digite o conteúdo, abra um arquivo `.txt`/`.md` e informe o idioma. Depois, ouça frase a frase, gere o PDF/MP3 ou transforme o conteúdo em flashcards.
+2. **Criar por tema (opcional)** — em **Criar textos**, escolha um modo e um tema. Wikipédia e fontes livres podem ser usadas sem chave; Gemini continua opcional para melhorar ou adaptar o texto.
+3. **Estudar palavras ou frases** — cole um texto (ou abra um `.txt`), confira o idioma e a quantidade e clique em **Iniciar estudo**. Voz, repetição, velocidade, pausa e ordem ficam em **Mais opções**.
+4. **Durante o estudo** — use os botões ou o teclado:
 
    | Tecla                     | Ação                    |
    | ------------------------- | ----------------------- |
@@ -78,10 +80,10 @@
    | <kbd>Enter</kbd>          | Ouvir de novo           |
    | <kbd>Esc</kbd>            | Encerrar                |
 
-4. **Ao terminar** — baixe o **kit de estudo** (PDF + MP3) ou só um deles, escolhendo quando quer revisar e se o PDF terá a tradução no final. O progresso da sessão é salvo automaticamente.
-5. **Revisar** — no dia marcado, abra **Revisar arquivo**, selecione o PDF e clique em **Estudar** (ou **Ouvir**, para textos). Pode selecionar a pasta do kit inteira: os MP3 são ignorados, pois o PDF já guarda tudo. Vários PDFs do mesmo tipo e idioma podem ser combinados num único estudo.
-6. **Ler e ouvir um texto** — cole o texto, vá para a aba **Ouvir** e acompanhe o destaque. Dali você também pode exportar o MP3 ou transformar o texto em flashcards.
-7. **Configurações** (⚙️ no topo) — idioma de estudo, tema, chave do Gemini, preferência da IA (qualidade ou rapidez) e vozes do MP3.
+5. **Ao terminar** — baixe o **kit de estudo** (PDF + MP3) ou só um deles, escolhendo quando quer revisar e se o PDF terá a tradução no final. O progresso da sessão é salvo automaticamente.
+6. **Revisar** — no dia marcado, abra **Revisar arquivo**, selecione o PDF e clique em **Estudar** (ou **Ouvir**, para textos). Pode selecionar a pasta do kit inteira: os MP3 são ignorados, pois o PDF já guarda tudo. Vários PDFs do mesmo tipo e idioma podem ser combinados num único estudo.
+7. **Ler e ouvir um texto** — cole o texto, vá para a aba **Ouvir** e acompanhe o destaque. Dali você também pode exportar o MP3 ou transformar o texto em flashcards.
+8. **Configurações** (⚙️ no topo) — idioma de estudo, tema, chave do Gemini, preferência da IA (qualidade ou rapidez) e vozes do MP3.
 
 ## PDFs revisáveis
 

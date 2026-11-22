@@ -154,8 +154,8 @@ export class CreateScreen {
         <section class="tela tela--criar">
           <header class="criar__cabecalho">
             <p class="criar__etiqueta">Novo material</p>
-            <h1 class="criar__titulo">Criar texto</h1>
-            <p class="criar__subtitulo">Escolha um formato e comece em poucos segundos.</p>
+            <h1 class="criar__titulo">Criar por tema</h1>
+            <p class="criar__subtitulo">Este recurso é opcional. Para estudar algo seu, use Texto.</p>
           </header>
 
           <div class="cartao criar__painel">

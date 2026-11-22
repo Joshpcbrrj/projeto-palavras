@@ -36,7 +36,7 @@ describe('Menu', () => {
     tela = new MenuScreen();
     tela.montar(raiz);
     expect(raiz.querySelectorAll('.modo')).toHaveLength(3);
-    expect(raiz.querySelector('.menu__criar').getAttribute('href')).toBe('#/criar');
+    expect(raiz.querySelector('.menu__criar').getAttribute('href')).toBe('#/texto');
     expect(raiz.querySelector('.resumo').textContent).toContain('sessões');
     expect(raiz.querySelector('.cartao--destaque')).toBeNull();
   });

@@ -25,11 +25,11 @@ const MODOS = [
     cor: 'azul',
   },
   {
-    rota: ROTAS.TEXTO,
-    icone: '▶',
-    titulo: 'Ouvir',
-    descricao: 'Leia frase a frase',
-    cor: 'ambar',
+    rota: ROTAS.REVISAR,
+    icone: '↻',
+    titulo: 'Revisar',
+    descricao: 'Continue seus PDFs',
+    cor: 'rosa',
   },
 ];
 
@@ -59,10 +59,10 @@ export class MenuScreen {
 
           ${pendentes.length ? this.painelRevisoes(pendentes) : ''}
 
-          <a class="menu__criar" href="#/${ROTAS.CRIAR}">
+          <a class="menu__criar" href="#/${ROTAS.TEXTO}">
             <span>
-              <strong>Criar novo texto</strong>
-              <small>Escolha um tema e comece a praticar</small>
+              <strong>Colar ou abrir um texto</strong>
+              <small>Ouvir, criar PDF e revisar depois</small>
             </span>
             <span class="menu__criar-seta" aria-hidden="true">→</span>
           </a>

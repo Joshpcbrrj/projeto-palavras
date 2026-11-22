@@ -17,7 +17,6 @@ import { storage } from '../services/storage.js';
 import { contarPalavras, extrairFrases, extrairPalavras } from '../text/extract.js';
 import {
   alternador,
-  cabecalhoTela,
   conectarSeletorVoz,
   conectarVelocidade,
   controleVelocidade,
@@ -109,13 +108,12 @@ export class TextScreen {
       this.raiz,
       html`
         <section class="tela">
+          <header class="criar__cabecalho">
+            <p class="criar__etiqueta">Seu material</p>
+            <h1 class="criar__titulo">Texto próprio</h1>
+            <p class="criar__subtitulo">Cole ou abra um texto para ouvir e criar seu PDF.</p>
+          </header>
           <div class="cartao">
-            ${cabecalhoTela({
-              icone: '🎧',
-              titulo: 'Ler e ouvir um texto',
-              subtitulo:
-                'Escute frase a frase, ajuste a velocidade e exporte em PDF para revisar depois.',
-            })}
             ${
               this.fonte
                 ? html`<p class="cartao__nota texto-pequeno">Fonte: <a href="${this.fonte.url}" target="_blank" rel="noopener">${this.fonte.nome} — ${this.fonte.titulo}</a> (${this.fonte.licenca})</p>`
@@ -528,7 +526,7 @@ ${this.texto}</textarea
   htmlExportar() {
     return html`
       <div class="cartao">
-        <h3 class="secao__titulo">📄 Exportar e estudar</h3>
+        <h3 class="secao__titulo">Exportar e estudar</h3>
         <p class="texto-suave">
           O PDF guarda o texto completo, o idioma e a data de revisão. Abra-o depois em “Revisar
           arquivo”.
