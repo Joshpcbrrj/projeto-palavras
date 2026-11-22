@@ -6,9 +6,7 @@
 
 **Estude textos, frases ou palavras com áudio e baixe um PDF para revisar depois.**
 
-[![CI](https://github.com/Joshpcbrrj/projeto-palavras/actions/workflows/ci.yml/badge.svg)](https://github.com/Joshpcbrrj/projeto-palavras/actions/workflows/ci.yml)
-[![Licença MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-green.svg)](LICENSE)
-[![PWA](https://img.shields.io/badge/PWA-instal%C3%A1vel%20e%20offline-5A0FC8)](https://web.dev/progressive-web-apps/)
+[![CI](https://github.com/Joshpcbrrj/projeto-palavras/actions/workflows/ci.yml/badge.svg)](https://github.com/Joshpcbrrj/projeto-palavras/actions/workflows/ci.yml) [![Cobertura de testes](https://codecov.io/gh/Joshpcbrrj/projeto-palavras/branch/main/graph/badge.svg)](https://codecov.io/gh/Joshpcbrrj/projeto-palavras) [![Licença MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-green.svg)](LICENSE) [![PWA](https://img.shields.io/badge/PWA-instal%C3%A1vel%20e%20offline-5A0FC8)](https://web.dev/progressive-web-apps/)
 
 [**Abrir o aplicativo →**](https://joshpcbrrj.github.io/projeto-palavras/)
 

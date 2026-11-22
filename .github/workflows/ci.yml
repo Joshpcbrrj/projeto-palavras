@@ -46,3 +46,29 @@ jobs:
         with:
           name: cobertura
           path: coverage/
+
+  publicar-cobertura:
+    name: Publicar cobertura no Codecov
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: verificar
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Baixar relatório de cobertura
+        uses: actions/download-artifact@v7
+        with:
+          name: cobertura
+          path: coverage
+
+      - name: Enviar cobertura ao Codecov
+        uses: codecov/codecov-action@v7
+        with:
+          files: coverage/lcov.info
+          use_oidc: true
+          fail_ci_if_error: false
