@@ -20,7 +20,7 @@ O aplicativo não gera textos por tema, não exige conta e não mantém textos o
 | Frases                      | Funcional                            | Cola um texto; frases completas são separadas por pontuação ou quebras de linha e exportadas em PDF de frases.     |
 | Palavras                    | Funcional                            | Recebe palavras soltas, preserva inclusive termos comuns informados pela pessoa e exporta PDF de palavras.         |
 | Listening                   | Funcional, dependente do dispositivo | A Web Speech API é gratuita e não exige servidor, mas a lista e a qualidade das vozes variam por sistema e idioma. |
-| Estudo de palavras e frases | Funcional                            | Os modos de palavras e frases oferecem flashcards, controles de sessão e áudio.                                    |
+| Estudo de palavras e frases | Funcional                            | Frases oferecem escuta ativa; palavras capturadas no leitor mantêm a frase de origem no flashcard e no PDF.        |
 | PDF e retomada              | Funcional                            | O PDF preserva o conteúdo e a revisão. A pessoa precisa baixar o arquivo e selecioná-lo de novo em outra visita.   |
 | Tradução no PDF             | Opcional                             | Usa o tradutor nativo do navegador quando disponível; não há garantia de suporte para todos os idiomas.            |
 | MP3                         | Extra avançado                       | Kokoro gera MP3 no navegador, apenas em inglês, com download inicial de modelo de 90 a 330 MB.                     |
@@ -63,10 +63,12 @@ O plano será executado em etapas, preservando a experiência sem conta, backend
 | --------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1 — Em execução | Reforçar os testes existentes            | Cobrir comportamentos relevantes nas áreas com baixa cobertura, mantendo todos os testes atuais e alcançando pelo menos 95% global em statements, branches, functions e lines.           |
 | 2 — Concluída   | Importar texto de PDFs                   | Abrir PDFs com texto selecionável e encaminhar o conteúdo aos modos Textos, Frases ou Palavras; informar claramente que PDFs digitalizados sem camada de texto não são suportados.       |
-| 3               | Adicionar escuta ativa                   | Tocar uma frase antes de revelá-la e permitir marcar “entendi” ou “revisar”; manter as marcações apenas na sessão e permitir exportar o material marcado para revisão.                   |
-| 4               | Capturar vocabulário com contexto        | Selecionar palavras ou expressões do texto, preservar a frase de origem e enviá-las ao modo Palavras, sem armazenamento entre visitas.                                                   |
-| 5               | Validar navegador e acessibilidade       | Testar em navegador real os fluxos críticos de voz, teclado, foco e telas móveis; incluir no CI as verificações automatizadas que forem estáveis.                                        |
-| 6               | Atualizar documentação e qualidade final | Atualizar README, arquitetura, roadmap, capturas e orientação de contribuição; executar os checks completos e confirmar que a cobertura permanece em pelo menos 95% nas quatro métricas. |
+| 3 — Concluída   | Adicionar escuta ativa                   | Tocar uma frase antes de revelá-la e permitir marcar “entendi” ou “revisar”; manter as marcações apenas na sessão e permitir exportar o material marcado para revisão.                   |
+| 4 — Concluída   | Capturar vocabulário com contexto        | Selecionar palavras ou expressões no texto, preservar a frase de origem e enviá-las ao modo Palavras e ao PDF, sem armazenamento entre visitas.                                          |
+| 5 — Em execução | Validar navegador e acessibilidade       | Testar em navegador real os fluxos críticos de voz, teclado, foco e telas móveis; incluir no CI as verificações automatizadas que forem estáveis.                                        |
+| 6 — Em execução | Atualizar documentação e qualidade final | Atualizar README, arquitetura, roadmap, capturas e orientação de contribuição; executar os checks completos e confirmar que a cobertura permanece em pelo menos 95% nas quatro métricas. |
+
+Validação manual parcial: os fluxos de escuta ativa e captura de vocabulário foram exercitados no Chromium integrado; em viewport de 390 px não houve rolagem horizontal. A matriz Chrome, Edge, Firefox e Safari, leitores de tela e testes físicos de toque ainda precisa ser concluída.
 
 ## Fora do escopo atual
 

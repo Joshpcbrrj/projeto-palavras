@@ -8,6 +8,9 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e 
 ### Alterado
 
 - A tela inicial agora apresenta **Textos**, **Frases** e **Palavras** como opções independentes, além do acesso separado para abrir arquivos de estudo ou revisão.
+- O modo Frases inclui escuta ativa: ouvir antes de revelar, classificar a compreensão e exportar as frases para revisão.
+- O leitor de textos permite capturar palavras com a frase de origem; o contexto acompanha o flashcard e o PDF de palavras.
+- O README inclui formas de apoiar o projeto e atualiza os fluxos de estudo com escuta ativa e vocabulário contextual.
 - A abertura de arquivos agora destaca PDFs externos com texto selecionável e explica que PDFs digitalizados sem texto selecionável não são suportados.
 - README, roadmap e capturas de tela acompanham o fluxo atualizado de abertura e estudo de arquivos.
 - O modo Palavras recebe termos soltos e não remove palavras comuns informadas explicitamente.

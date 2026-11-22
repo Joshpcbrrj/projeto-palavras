@@ -40,10 +40,15 @@ index.html
 2. `text/extract.js` separa frases e palavras para o estudo.
 3. `TextReader` divide textos longos em trechos e chama `Speaker.falar()`.
 4. `VoiceManager` escolhe uma voz compatível com o idioma. Se nenhuma estiver disponível, `Speaker` não chama a síntese e a tela informa a limitação.
+5. A seleção de uma palavra no leitor guarda, em memória, a frase de origem e encaminha ambos ao modo Palavras.
+
+### Escuta ativa
+
+No modo Frases, `StudySession` pode aguardar um avanço manual. A tela toca a frase sob demanda, revela o texto depois da tentativa e guarda a classificação “entendi” ou “revisar” apenas na sessão. A exportação pode incluir as frases marcadas para revisão.
 
 ### PDF e revisão
 
-`services/export.js` monta um pacote validado por `pdf/format.js` e o envia ao `pdf/exporter.js`. O documento visível contém o material e a agenda; os metadados embutidos preservam os dados estruturados para uma reabertura fiel. A tradução é opcional e usa a API nativa do navegador quando suportada. O app não mantém uma biblioteca, histórico ou agenda local.
+`services/export.js` monta um pacote validado por `pdf/format.js` e o envia ao `pdf/exporter.js`. O documento visível contém o material e a agenda; os metadados embutidos preservam os dados estruturados — incluindo o contexto opcional das palavras — para uma reabertura fiel. A tradução é opcional e usa a API nativa do navegador quando suportada. O app não mantém uma biblioteca, histórico ou agenda local.
 
 `ReviewScreen` lê PDFs com PDF.js e também aceita TXT, MD e JSON de materiais legados. Os arquivos abertos ficam em memória durante a visita. Ao concluir uma revisão e baixar um novo PDF, a próxima data é gravada nesse novo documento.
 

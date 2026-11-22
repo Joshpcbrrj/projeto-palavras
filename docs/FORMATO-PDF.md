@@ -20,6 +20,10 @@ O Base64 mantém o campo em ASCII puro, então acentos e escritas não latinas s
   "idioma": "en-US",              // código BCP-47 suportado pelo app
   "criadoEm": "2026-10-18T14:00:00.000Z",
   "itens": ["apple", "banana"],   // para palavras e frases
+  "contextos": [                  // opcional: frase de origem de cada palavra, na mesma ordem
+    "I ate an apple after lunch.",
+    "The banana is ripe."
+  ],
   "texto": "…",                   // para textos
   "traducao": "…",                // opcional: tradução para o português — texto (textos)
                                   //   ou lista com uma tradução por item, na mesma ordem
@@ -58,7 +62,8 @@ Implementação: [`js/pdf/format.js`](../js/pdf/format.js). A tela Revisar ainda
 ## Layout visível
 
 - Cabeçalho com título, tipo e idioma; faixa com data de geração, quantidade e data de revisão.
-- Palavras em três colunas, frases numeradas, ou o texto em parágrafos.
+- Palavras sem contexto em três colunas; palavras com contexto em cartões legíveis; frases numeradas; ou texto em parágrafos.
+- Quando presente, `contextos` acompanha as palavras por posição e é preservado ao reabrir ou combinar PDFs.
 - Nos textos, linhas curtas sem pontuação final (títulos de seção) aparecem em destaque.
 - Quando o conteúdo tem `fonte`, uma linha de atribuição (com link) aparece após o texto.
 - Logo depois do conteúdo, o quadro “Como revisar este arquivo”.

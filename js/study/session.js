@@ -27,7 +27,15 @@ export class StudySession {
    * @param {(estado: string) => void} [opcoes.aoMudarEstado]
    * @param {() => void} [opcoes.aoConcluir]
    */
-  constructor({ itens, intervaloMs, falar, aoMostrar, aoMudarEstado, aoConcluir }) {
+  constructor({
+    itens,
+    intervaloMs,
+    falar,
+    aoMostrar,
+    aoMudarEstado,
+    aoConcluir,
+    aguardarAvancoManual = false,
+  }) {
     if (!Array.isArray(itens) || itens.length === 0) {
       throw new Error('A sessão precisa de pelo menos um item.');
     }
@@ -37,6 +45,7 @@ export class StudySession {
     this.aoMostrar = aoMostrar || (() => {});
     this.aoMudarEstado = aoMudarEstado || (() => {});
     this.aoConcluir = aoConcluir || (() => {});
+    this.aguardarAvancoManual = Boolean(aguardarAvancoManual);
     this.indice = 0;
     this.estado = ESTADOS_SESSAO.PRONTA;
     this.vistos = new Set();
@@ -44,6 +53,7 @@ export class StudySession {
     this.segundosAtivos = 0;
     this._marcoAtivo = null;
     this._controle = null;
+    this._aguardarAvanco = null;
   }
 
   get total() {
@@ -87,6 +97,10 @@ export class StudySession {
 
   proximo() {
     if (this._finalizada()) return;
+    if (this.aguardarAvancoManual && this._aguardarAvanco) {
+      this._aguardarAvanco();
+      return;
+    }
     if (this.indice >= this.total - 1) {
       this.vistos.add(this.indice);
       this._concluir();
@@ -145,8 +159,16 @@ export class StudySession {
       this._mostrar();
       await this.falar(this.itemAtual, signal);
       if (signal.aborted) return;
-      const continuar = await esperar(this.intervaloMs, signal);
-      if (!continuar || signal.aborted) return;
+      if (this.aguardarAvancoManual) {
+        await new Promise((resolve) => {
+          this._aguardarAvanco = resolve;
+        });
+        this._aguardarAvanco = null;
+        if (signal.aborted) return;
+      } else {
+        const continuar = await esperar(this.intervaloMs, signal);
+        if (!continuar || signal.aborted) return;
+      }
       if (this.indice >= this.total - 1) {
         this._concluir();
         return;
@@ -167,6 +189,8 @@ export class StudySession {
   }
 
   _cancelar() {
+    this._aguardarAvanco?.();
+    this._aguardarAvanco = null;
     if (this._controle) {
       this._controle.abort();
       this._controle = null;

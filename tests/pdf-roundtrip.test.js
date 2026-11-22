@@ -36,6 +36,25 @@ describe('PDF: geração e revisão (ida e volta)', () => {
     expect(material.id).toBe(pacote.id);
   });
 
+  test('contextos de palavras permanecem alinhados e legíveis no PDF reaberto', async () => {
+    const pacote = criarPacote({
+      tipo: 'palavras',
+      idioma: 'en-US',
+      itens: ['apple', '', 'bridge'],
+      contextos: ['An apple fell from the tree.', 'ignorado', 'The bridge is old.'],
+    });
+    expect(pacote.contextos).toEqual(['An apple fell from the tree.', 'The bridge is old.']);
+
+    const bytes = gerarBytes(pacote);
+    const material = await interpretarPdf(bytes, 'palavras.pdf', pdfjsLib);
+    expect(material.contextos).toEqual(pacote.contextos);
+
+    const pdf = await pdfjsLib.getDocument({ data: bytes, verbosity: 0 }).promise;
+    const texto = await extrairTextoPdf(pdf);
+    expect(texto).toContain('Contexto: An apple fell from the tree.');
+    expect(texto).toContain('Contexto: The bridge is old.');
+  });
+
   test('frases e data de revisão são preservadas', async () => {
     const revisao = criarRevisao({ etapa: 2, revisarEm: '2026-10-25', historico: ['2026-10-18'] });
     const itens = ['Where is the train station?', 'I would like a cup of coffee, please.'];

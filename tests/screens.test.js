@@ -3,19 +3,33 @@
  * Sem síntese de voz no jsdom, o áudio é ignorado e o fluxo continua.
  */
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+
+const mocks = vi.hoisted(() => ({ exportarPdfComBotao: vi.fn() }));
+vi.mock('../js/ui/exportActions.js', async (importOriginal) => ({
+  ...(await importOriginal()),
+  exportarPdfComBotao: mocks.exportarPdfComBotao,
+}));
+
 import { MenuScreen } from '../js/screens/MenuScreen.js';
 import { StudyScreen } from '../js/screens/StudyScreen.js';
+import { TextScreen } from '../js/screens/TextScreen.js';
 import { ReviewScreen, _limparMateriaisAbertos } from '../js/screens/ReviewScreen.js';
 import { settings } from '../js/services/settings.js';
 import { criarPacote } from '../js/pdf/format.js';
+import { speaker } from '../js/audio/index.js';
+import { definirNavegador } from '../js/core/nav.js';
 
 let raiz;
 let tela;
+let navegar;
 
 beforeEach(() => {
   localStorage.clear();
   settings._resetar();
   _limparMateriaisAbertos();
+  mocks.exportarPdfComBotao.mockReset();
+  navegar = vi.fn();
+  definirNavegador(navegar);
   document.body.innerHTML = '<main id="app"></main>';
   raiz = document.getElementById('app');
 });
@@ -23,6 +37,7 @@ beforeEach(() => {
 afterEach(() => {
   tela?.desmontar?.();
   tela = null;
+  vi.restoreAllMocks();
   vi.useRealTimers();
 });
 
@@ -104,6 +119,82 @@ describe('Estudo de palavras (fluxo completo)', () => {
     expect(raiz.textContent).toContain('Do PDF');
   });
 
+  test('palavras capturadas no leitor levam a frase de origem para o estudo', () => {
+    const material = criarPacote({
+      tipo: 'texto',
+      titulo: 'Texto de teste',
+      idioma: 'en-US',
+      texto: 'An apple fell to the ground.',
+    });
+    tela = new TextScreen({ material });
+    tela.montar(raiz);
+
+    const trecho = raiz.querySelector('.leitor__trecho').firstChild;
+    const range = document.createRange();
+    range.setStart(trecho, 3);
+    range.setEnd(trecho, 8);
+    const selecao = window.getSelection();
+    selecao.removeAllRanges();
+    selecao.addRange(range);
+    document.dispatchEvent(new Event('selectionchange'));
+
+    expect(raiz.querySelector('#btnCapturarPalavra').disabled).toBe(false);
+    clicar('#btnCapturarPalavra');
+    expect(tela.palavrasCapturadas).toEqual(['apple']);
+    expect(tela.contextosCapturados).toEqual(['An apple fell to the ground.']);
+
+    clicar('#btnEstudarCapturadas');
+    expect(navegar).toHaveBeenCalledWith(
+      'palavras',
+      expect.objectContaining({
+        itens: ['apple'],
+        contextos: ['An apple fell to the ground.'],
+        idioma: 'en-US',
+      })
+    );
+  });
+
+  test('expressões selecionadas também são capturadas como um único item', () => {
+    const material = criarPacote({
+      tipo: 'texto',
+      idioma: 'en-US',
+      texto: 'An apple fell to the ground.',
+    });
+    tela = new TextScreen({ material });
+    tela.montar(raiz);
+
+    const trecho = raiz.querySelector('.leitor__trecho').firstChild;
+    const range = document.createRange();
+    range.setStart(trecho, 3);
+    range.setEnd(trecho, 13);
+    const selecao = window.getSelection();
+    selecao.removeAllRanges();
+    selecao.addRange(range);
+    document.dispatchEvent(new Event('selectionchange'));
+
+    expect(raiz.querySelector('#btnCapturarPalavra').disabled).toBe(false);
+    clicar('#btnCapturarPalavra');
+    expect(tela.palavrasCapturadas).toEqual(['apple fell']);
+    expect(tela.contextosCapturados).toEqual(['An apple fell to the ground.']);
+  });
+
+  test('palavra capturada exibe o contexto durante o estudo', async () => {
+    vi.useFakeTimers();
+    settings.set('audioAutomatico', false);
+    tela = new StudyScreen('palavras', {
+      itens: ['apple'],
+      contextos: ['An apple fell to the ground.'],
+    });
+    tela.montar(raiz);
+    clicar('#btnIniciar');
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(raiz.querySelector('#flashcardContexto').textContent).toBe(
+      'An apple fell to the ground.'
+    );
+    expect(raiz.querySelector('#flashcardContexto').hidden).toBe(false);
+  });
+
   test('textos com HTML são exibidos como texto, nunca executados', async () => {
     vi.useFakeTimers();
     const malicioso = '<img src=x onerror="window.invadido=true">';
@@ -140,6 +231,51 @@ describe('Estudo de palavras (fluxo completo)', () => {
     expect(raiz.querySelector('#flashcardTexto').textContent).toBe('UM');
     tecla('Escape');
     expect(raiz.querySelector('.resultado__titulo').textContent).toBe('Sessão encerrada');
+  });
+
+  test('escuta ativa exige ouvir, revelar e classificar antes de avançar e exporta as classificações', async () => {
+    vi.useFakeTimers();
+    vi.spyOn(speaker, 'falar').mockResolvedValue(true);
+    tela = new StudyScreen('frases', {
+      itens: ['A primeira frase.', 'A segunda frase.'],
+      escutaAtiva: true,
+    });
+    tela.montar(raiz);
+    tela.config.embaralhar = false;
+    clicar('#btnIniciar');
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(tela.sessao.indice).toBe(0);
+    expect(raiz.querySelector('#flashcardTexto').textContent).toContain('Ouça a frase');
+    expect(raiz.querySelector('#btnProximo').disabled).toBe(true);
+    clicar('#btnOuvir');
+    await vi.advanceTimersByTimeAsync(0);
+    expect(tela.sessao.indice).toBe(0);
+    expect(raiz.querySelector('#btnRevelar').disabled).toBe(false);
+    expect(raiz.querySelector('#flashcardTexto').textContent).not.toContain('A primeira frase');
+
+    clicar('#btnRevelar');
+    expect(raiz.querySelector('#flashcardTexto').textContent).toBe('A primeira frase.');
+    clicar('[data-escuta="revisar"]');
+    await vi.advanceTimersByTimeAsync(0);
+    expect(raiz.querySelector('#flashcardTexto').textContent).toContain('Ouça a frase');
+
+    clicar('#btnOuvir');
+    await vi.advanceTimersByTimeAsync(0);
+    clicar('#btnRevelar');
+    clicar('[data-escuta="entendi"]');
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(raiz.querySelector('.resultado__titulo').textContent).toBe('Estudo concluído!');
+    expect(raiz.textContent).toMatch(/Para revisar:\s*1/);
+    expect(raiz.querySelector('input[name="pdfItens"][value="revisar"]').checked).toBe(true);
+    expect(tela.itensMarcadosEscuta('revisar')).toEqual(['A primeira frase.']);
+    expect(tela.itensMarcadosEscuta('entendi')).toEqual(['A segunda frase.']);
+    clicar('#btnExportar');
+    await vi.waitFor(() => expect(mocks.exportarPdfComBotao).toHaveBeenCalledOnce());
+    expect(mocks.exportarPdfComBotao.mock.calls[0][1]).toMatchObject({
+      itens: ['A primeira frase.'],
+    });
   });
 });
 

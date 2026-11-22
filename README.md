@@ -26,18 +26,23 @@ As imagens abaixo mostram a escolha entre os três modos de estudo, a entrada de
 | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | <img src="docs/screenshots/frases.png" alt="Entrada de texto para separar e praticar frases" width="420" /> | <img src="docs/screenshots/palavras.png" alt="Entrada de palavras soltas, uma por linha ou separadas por espaços" width="420" /> |
 
-| Ouvir e estudar                                                                                           | Abrir e estudar documentos                                                                                        |
-| --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| <img src="docs/screenshots/leitura.png" alt="Leitura frase a frase com controles de áudio" width="420" /> | <img src="docs/screenshots/revisar.png" alt="Tela para abrir PDFs e arquivos de estudo ou revisão" width="420" /> |
+| Ouvir e capturar vocabulário                                                                                                           | Abrir e estudar documentos                                                                                        |
+| -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| <img src="docs/screenshots/leitura.png" alt="Leitor de texto com a palavra selecionada e sua frase de origem capturada" width="420" /> | <img src="docs/screenshots/revisar.png" alt="Tela para abrir PDFs e arquivos de estudo ou revisão" width="420" /> |
 
-| Flashcards                                                                                                               | Tema escuro                                                                                    |
-| ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
-| <img src="docs/screenshots/flashcard.png" alt="Flashcard de palavras com controles de áudio e velocidade" width="420" /> | <img src="docs/screenshots/flashcard-escuro.png" alt="Flashcard no tema escuro" width="420" /> |
+| Flashcards com contexto                                                                                              | Tema escuro                                                                                    |
+| -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| <img src="docs/screenshots/flashcard-contexto.png" alt="Flashcard de palavra com sua frase de origem" width="420" /> | <img src="docs/screenshots/flashcard-escuro.png" alt="Flashcard no tema escuro" width="420" /> |
+
+| Escuta ativa                                                                                                                                |
+| ------------------------------------------------------------------------------------------------------------------------------------------- |
+| <img src="docs/screenshots/escuta-ativa.png" alt="Flashcard de frase com controles para revelar e classificar a compreensão" width="420" /> |
 
 ## O que o aplicativo faz
 
 - **Oferece três modos diretos.** Em **Textos**, cole, digite ou abra um `.txt`/`.md` para ouvir a leitura. Em **Frases**, cole um texto com frases completas. Em **Palavras**, informe palavras soltas, de preferência uma por linha.
-- **Ajuda a praticar listening.** Ouça o texto frase a frase, com destaque da frase atual, velocidade ajustável e controles de pausa, repetição e navegação.
+- **Ajuda a praticar listening.** Ouça o texto frase a frase, com destaque da frase atual, velocidade ajustável e controles de pausa, repetição e navegação. Em **Frases**, a escuta ativa permite ouvir antes de revelar e marcar cada frase para revisão.
+- **Guarda vocabulário em contexto.** No leitor de texto, selecione uma palavra ou expressão para estudá-la junto com a frase de origem; o contexto aparece no flashcard e no PDF de palavras.
 - **Oferece três opções de exportação.** Gere um kit com PDF e MP3, somente o PDF ou somente o MP3. Os nomes incluem tipo, título e data; no kit, PDF e MP3 compartilham o mesmo nome-base.
 - **Gera PDFs revisáveis.** O PDF inclui o idioma, o conteúdo e, se desejado, uma data de revisão. Ele pode ser reaberto no aplicativo para continuar o estudo.
 - **Importa material de outras fontes.** Abra PDFs com texto selecionável, TXT, MD ou JSON e escolha ouvir textos, praticar frases ou extrair palavras. PDFs digitalizados sem texto selecionável não são suportados.
@@ -116,10 +121,21 @@ Os testes usam Vitest e jsdom para validar extração, sessões, leitura em voz 
 
 Ao alterar os arquivos estáticos ou a política de segurança, execute `npm run check`. A versão publicada deve permanecer igual em `package.json`, `js/config.js` e `sw.js` para invalidar corretamente o cache do PWA.
 
+## Apoie o projeto
+
+O Aprendendo Palavras é gratuito e aberto. Se ele ajuda você a estudar, você pode apoiar o desenvolvimento:
+
+|                                                                                   Pix                                                                                    |                                           Bitcoin (BlueWallet)                                            |                                                                      Outras criptomoedas (HiddenSwap)                                                                      |
+| :----------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| <a href="https://nubank.com.br/cobrar/1i7whc/6b00f69e-18fc-4ede-8251-9aa5ab30882a"><img src="docs/img/donate-pix.png" alt="QR code para apoiar com Pix" width="180"></a> | <img src="docs/img/donate-bitcoin.png" alt="QR code para apoiar com Bitcoin pela BlueWallet" width="180"> | <a href="https://hiddenswap.com/pay/U5SUjiUR"><img src="docs/img/donate-hiddenswap.png" alt="QR code para apoiar com outras criptomoedas pelo HiddenSwap" width="180"></a> |
+|                                        [Pagar com Pix](https://nubank.com.br/cobrar/1i7whc/6b00f69e-18fc-4ede-8251-9aa5ab30882a)                                         |                               `bc1qpavyz63u90f5y8mawj0lydn55hr3f9l9kum7mq`                                |                                                        [Pagar pelo HiddenSwap](https://hiddenswap.com/pay/U5SUjiUR)                                                        |
+
+Os QR codes foram copiados de [Joshpcbrrj/syllabook](https://github.com/Joshpcbrrj/syllabook/tree/main/docs/img) e são distribuídos sob a licença [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). O código deste projeto continua sob MIT.
+
 ## Contribuir
 
-Relatos de bugs e propostas de melhoria são bem-vindos. Consulte [CONTRIBUTING.md](CONTRIBUTING.md) antes de abrir uma contribuição.
+Relatos de bugs e propostas de melhoria são bem-vindos. Consulte [CONTRIBUTING.md](CONTRIBUTING.md) e o [Código de Conduta](CODE_OF_CONDUCT.md) antes de abrir uma contribuição.
 
 ## Licença
 
-Distribuído sob a licença [MIT](LICENSE).
+O código do aplicativo é distribuído sob a licença [MIT](LICENSE). Os QR codes da seção de apoio têm licença [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) e a atribuição da origem está indicada naquela seção.

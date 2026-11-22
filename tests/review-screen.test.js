@@ -118,7 +118,7 @@ describe('Reabrir material para revisão', () => {
   });
 
   test('combina listas do mesmo tipo e idioma, remove duplicatas e exporta sob confirmação', async () => {
-    const pacote = (id, itens, traducao) => ({
+    const pacote = (id, itens, traducao, contextos) => ({
       ...criarPacote({
         tipo: 'palavras',
         titulo: id,
@@ -126,11 +126,22 @@ describe('Reabrir material para revisão', () => {
         id,
         itens,
         traducao,
+        contextos,
       }),
       nomeArquivo: `${id}.pdf`,
     });
-    const primeira = pacote('one', ['apple', 'banana'], ['maçã', 'banana']);
-    const segunda = pacote('two', ['banana', 'orange'], ['banana', 'laranja']);
+    const primeira = pacote(
+      'one',
+      ['apple', 'banana'],
+      ['maçã', 'banana'],
+      ['An apple fell.', 'A yellow banana.']
+    );
+    const segunda = pacote(
+      'two',
+      ['banana', 'orange'],
+      ['banana', 'laranja'],
+      ['Bananas are tasty.', 'An orange is sweet.']
+    );
     const outroIdioma = {
       ...criarPacote({
         tipo: 'palavras',
@@ -157,6 +168,7 @@ describe('Reabrir material para revisão', () => {
       'palavras',
       expect.objectContaining({
         itens: ['apple', 'banana', 'orange'],
+        contextos: ['An apple fell.', 'A yellow banana.', 'An orange is sweet.'],
         idioma: 'en-US',
         conhecidas: expect.any(Map),
       })
@@ -172,6 +184,7 @@ describe('Reabrir material para revisão', () => {
       tipo: 'palavras',
       idioma: 'en-US',
       itens: ['apple', 'banana', 'orange'],
+      contextos: ['An apple fell.', 'A yellow banana.', 'An orange is sweet.'],
     });
   });
 

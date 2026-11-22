@@ -53,6 +53,10 @@ export class TextScreen {
       : null;
     this.dialogo = false;
     this.vozesDialogo = new Map();
+    this.palavrasCapturadas = [];
+    this.contextosCapturados = [];
+    this.selecaoVocabulario = null;
+    this.statusCaptura = 'Selecione uma palavra ou expressão para guardar seu contexto.';
     this.velocidade = settings.get('velocidadeFala');
     this.eventos = criarEscopoEventos();
     this.seletorVoz = null;
@@ -287,6 +291,38 @@ ${this.texto}</textarea
         <div class="leitor__texto" id="leitorTexto" tabindex="0"
           aria-label="Texto. Clique em uma frase para ouvir a partir dela.">${partes}</div>
 
+        <div class="captura-vocabulario">
+          <h3 class="secao__titulo">Guardar vocabulário com contexto</h3>
+          <p class="texto-suave">
+            Selecione uma palavra ou expressão em uma frase. O contexto será incluído no estudo e
+            no PDF.
+          </p>
+          <div class="acoes">
+            <button type="button" class="btn btn--secundario" id="btnCapturarPalavra" disabled>
+              ➕ Adicionar seleção
+            </button>
+            <button
+              type="button"
+              class="btn btn--primario"
+              id="btnEstudarCapturadas"
+              ${this.palavrasCapturadas.length ? '' : html`hidden`}
+            >
+              Estudar palavras capturadas (${this.palavrasCapturadas.length})
+            </button>
+          </div>
+          <p class="campo__ajuda" id="vocabCapturaStatus" aria-live="polite">
+            ${this.statusCaptura}
+          </p>
+          <ol class="lista-itens" id="vocabCapturas">
+            ${this.palavrasCapturadas.map(
+              (palavra, i) => html`<li>
+                <strong>${palavra}</strong>
+                <p class="texto-suave texto-pequeno">${this.contextosCapturados[i]}</p>
+              </li>`
+            )}
+          </ol>
+        </div>
+
         <div class="controles" role="group" aria-label="Controles de leitura">
           <button
             type="button"
@@ -395,6 +431,19 @@ ${this.texto}</textarea
       speaker.desbloquear();
       leitor.tocar(Number(trecho.dataset.trecho));
     });
+    const atualizarSelecao = () => this.atualizarSelecaoVocabulario();
+    $('#leitorTexto', r).addEventListener('mouseup', atualizarSelecao);
+    $('#leitorTexto', r).addEventListener('keyup', atualizarSelecao);
+    this.eventos.on(document, 'selectionchange', atualizarSelecao);
+    $('#btnCapturarPalavra', r).addEventListener('click', () => this.capturarPalavraSelecionada());
+    $('#btnEstudarCapturadas', r).addEventListener('click', () => {
+      navegar(ROTAS.PALAVRAS, {
+        itens: [...this.palavrasCapturadas],
+        contextos: [...this.contextosCapturados],
+        idioma: this.idioma,
+        texto: this.texto,
+      });
+    });
 
     conectarVelocidade(r, 'leitorVelocidade', (v) => {
       this.velocidade = v;
@@ -430,6 +479,80 @@ ${this.texto}</textarea
       }
     });
     this.aoMudarLeitor({ estado: leitor.estado, indice: leitor.indice, total: leitor.total });
+  }
+
+  atualizarSelecaoVocabulario() {
+    const selecao = window.getSelection();
+    if (!selecao) return;
+    if (selecao.isCollapsed || !selecao.rangeCount) {
+      if (document.activeElement === $('#btnCapturarPalavra', this.raiz)) return;
+      this.selecaoVocabulario = null;
+      $('#btnCapturarPalavra', this.raiz).disabled = true;
+      return;
+    }
+
+    const area = $('#leitorTexto', this.raiz);
+    const range = selecao.getRangeAt(0);
+    const elemento = (no) => (no.nodeType === Node.ELEMENT_NODE ? no : no.parentElement);
+    const inicio = elemento(range.startContainer)?.closest('.leitor__trecho');
+    const fim = elemento(range.endContainer)?.closest('.leitor__trecho');
+    const textoSelecionado = selecao.toString().trim().replace(/\s+/g, ' ');
+    const palavras = extrairPalavras(textoSelecionado, {
+      idioma: this.idioma,
+      ignorarComuns: false,
+    });
+
+    this.selecaoVocabulario =
+      area.contains(range.startContainer) &&
+      area.contains(range.endContainer) &&
+      inicio &&
+      inicio === fim &&
+      palavras.length
+        ? { palavra: textoSelecionado, contexto: inicio.textContent.trim() }
+        : null;
+
+    const botao = $('#btnCapturarPalavra', this.raiz);
+    botao.disabled = !this.selecaoVocabulario;
+    if (!this.selecaoVocabulario) {
+      $('#vocabCapturaStatus', this.raiz).textContent =
+        'Selecione uma palavra ou expressão dentro de uma frase.';
+    } else {
+      $('#vocabCapturaStatus', this.raiz).textContent =
+        `Pronta para guardar: ${this.selecaoVocabulario.palavra}`;
+    }
+  }
+
+  capturarPalavraSelecionada() {
+    const selecao = this.selecaoVocabulario;
+    if (!selecao) return;
+    const duplicada = this.palavrasCapturadas.some(
+      (palavra) =>
+        palavra.toLocaleLowerCase(this.idioma) === selecao.palavra.toLocaleLowerCase(this.idioma)
+    );
+    if (duplicada) {
+      this.statusCaptura = `${selecao.palavra} já foi capturada.`;
+      $('#vocabCapturaStatus', this.raiz).textContent = this.statusCaptura;
+      return;
+    }
+
+    this.palavrasCapturadas.push(selecao.palavra);
+    this.contextosCapturados.push(selecao.contexto);
+    this.statusCaptura = `${selecao.palavra} adicionada com a frase de origem.`;
+    $('#vocabCapturaStatus', this.raiz).textContent = this.statusCaptura;
+    this.selecaoVocabulario = null;
+    const lista = $('#vocabCapturas', this.raiz);
+    const item = document.createElement('li');
+    const termo = document.createElement('strong');
+    termo.textContent = selecao.palavra;
+    const contexto = document.createElement('p');
+    contexto.className = 'texto-suave texto-pequeno';
+    contexto.textContent = selecao.contexto;
+    item.append(termo, contexto);
+    lista.append(item);
+    const estudar = $('#btnEstudarCapturadas', this.raiz);
+    estudar.hidden = false;
+    estudar.textContent = `Estudar palavras capturadas (${this.palavrasCapturadas.length})`;
+    $('#btnCapturarPalavra', this.raiz).disabled = true;
   }
 
   aoMudarLeitor({ estado, indice, total }) {

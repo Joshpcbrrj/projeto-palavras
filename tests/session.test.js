@@ -85,6 +85,54 @@ describe('StudySession', () => {
     expect(aoConcluir).toHaveBeenCalled();
   });
 
+  test('aguarda avanço manual após cada item e conclui só após a última confirmação', async () => {
+    const aoConcluir = vi.fn();
+    const { sessao, exibidos } = criar({
+      itens: ['primeira frase', 'segunda frase'],
+      intervaloMs: 100,
+      aguardarAvancoManual: true,
+      aoConcluir,
+    });
+
+    sessao.iniciar();
+    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(exibidos).toEqual(['primeira frase']);
+    expect(sessao.estado).toBe(ESTADOS_SESSAO.RODANDO);
+
+    sessao.proximo();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(exibidos).toEqual(['primeira frase', 'segunda frase']);
+    expect(sessao.estado).toBe(ESTADOS_SESSAO.RODANDO);
+
+    sessao.proximo();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(sessao.estado).toBe(ESTADOS_SESSAO.CONCLUIDA);
+    expect(aoConcluir).toHaveBeenCalledOnce();
+  });
+
+  test('pausar enquanto aguarda avanço manual permite retomar a mesma frase', async () => {
+    const { sessao, exibidos } = criar({
+      itens: ['primeira frase', 'segunda frase'],
+      intervaloMs: 100,
+      aguardarAvancoManual: true,
+    });
+
+    sessao.iniciar();
+    await vi.advanceTimersByTimeAsync(0);
+    sessao.pausar();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(sessao.estado).toBe(ESTADOS_SESSAO.PAUSADA);
+    expect(exibidos).toEqual(['primeira frase']);
+
+    sessao.retomar();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(exibidos).toEqual(['primeira frase', 'primeira frase']);
+    sessao.proximo();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(exibidos.at(-1)).toBe('segunda frase');
+  });
+
   test('respeita estados finais e permite ouvir o item atual sob demanda', async () => {
     const falar = vi.fn(async () => 'ouvido');
     const { sessao } = criar({ itens: ['primeiro', 'último'], intervaloMs: 250, falar });

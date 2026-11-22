@@ -228,7 +228,18 @@ export class ReviewScreen {
             m.tipo === TIPOS.TEXTO
               ? html`<p class="material__texto">${m.texto}</p>`
               : html`<ol class="material__itens">
-                ${m.itens.map((item) => html`<li>${item}</li>`)}
+                ${m.itens.map(
+                  (item, indice) => html`<li>
+                    ${item}
+                    ${
+                      m.contextos?.[indice]
+                        ? html`<p class="texto-suave texto-pequeno">
+                          Contexto: ${m.contextos[indice]}
+                        </p>`
+                        : ''
+                    }
+                  </li>`
+                )}
               </ol>`
           }
         </div>
@@ -294,6 +305,7 @@ export class ReviewScreen {
         case 'estudar':
           navegar(material.tipo === TIPOS.FRASES ? ROTAS.FRASES : ROTAS.PALAVRAS, {
             itens: material.itens,
+            contextos: material.contextos,
             material: comRevisao,
           });
           break;
@@ -381,9 +393,24 @@ export class ReviewScreen {
     return unicos(this.arquivosDoGrupo(tipo, idioma).flatMap((m) => m.itens));
   }
 
+  contextosCombinados(tipo, idioma, itens = this.itensCombinados(tipo, idioma)) {
+    if (tipo !== TIPOS.PALAVRAS) return undefined;
+    const porItem = new Map();
+    for (const material of this.arquivosDoGrupo(tipo, idioma)) {
+      material.itens.forEach((item, indice) => {
+        if (material.contextos?.[indice] && !porItem.has(item)) {
+          porItem.set(item, material.contextos[indice]);
+        }
+      });
+    }
+    return itens.map((item) => porItem.get(item) || '');
+  }
+
   estudarCombinado(tipo, idioma) {
+    const itens = this.itensCombinados(tipo, idioma);
     navegar(tipo === TIPOS.FRASES ? ROTAS.FRASES : ROTAS.PALAVRAS, {
-      itens: this.itensCombinados(tipo, idioma),
+      itens,
+      contextos: this.contextosCombinados(tipo, idioma, itens),
       idioma,
       // As traduções dos PDFs originais são reaproveitadas no PDF combinado.
       conhecidas: traducoesConhecidas(...this.arquivosDoGrupo(tipo, idioma)),
@@ -406,6 +433,7 @@ export class ReviewScreen {
         titulo: `${nomeTipo(tipo, { maiuscula: true })} combinadas (${formatarDataBR(new Date())})`,
         idioma,
         itens,
+        contextos: this.contextosCombinados(tipo, idioma, itens),
       },
       { conhecidas: traducoesConhecidas(...lista) }
     );
