@@ -9,6 +9,12 @@ export default defineConfig({
       provider: 'v8',
       include: ['js/**/*.js'],
       reporter: ['text', 'lcov', 'json-summary'],
+      thresholds: {
+        statements: 75,
+        branches: 80,
+        functions: 80,
+        lines: 75,
+      },
     },
   },
 });

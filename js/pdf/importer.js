@@ -127,7 +127,7 @@ export function interpretarJSON(conteudo, nomeArquivo) {
 
   if (dados?.dadosCompletos || dados?.progresso) {
     throw new ErroImportacao(
-      `"${nomeArquivo}" é um backup de progresso. Importe-o na tela "Meu progresso".`
+      `"${nomeArquivo}" é um backup de progresso de uma versão anterior e não é compatível com esta versão.`
     );
   }
   throw new ErroImportacao(`"${nomeArquivo}" não tem um formato reconhecido.`);

@@ -6,10 +6,8 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { MenuScreen } from '../js/screens/MenuScreen.js';
 import { StudyScreen } from '../js/screens/StudyScreen.js';
 import { ReviewScreen, _limparMateriaisAbertos } from '../js/screens/ReviewScreen.js';
-import { ProgressScreen } from '../js/screens/ProgressScreen.js';
-import { _resetarProgresso, progresso } from '../js/services/progress.js';
 import { settings } from '../js/services/settings.js';
-import { criarPacote, criarRevisao } from '../js/pdf/format.js';
+import { criarPacote } from '../js/pdf/format.js';
 
 let raiz;
 let tela;
@@ -17,7 +15,6 @@ let tela;
 beforeEach(() => {
   localStorage.clear();
   settings._resetar();
-  _resetarProgresso();
   _limparMateriaisAbertos();
   document.body.innerHTML = '<main id="app"></main>';
   raiz = document.getElementById('app');
@@ -32,34 +29,30 @@ afterEach(() => {
 const clicar = (seletor) => raiz.querySelector(seletor).click();
 
 describe('Menu', () => {
-  test('mostra os cinco modos (com Criar textos em destaque) e o resumo', () => {
+  test('oferece os três tipos de estudo e revisão sem criação por IA ou painel de progresso', () => {
     tela = new MenuScreen();
     tela.montar(raiz);
-    expect(raiz.querySelectorAll('.modo')).toHaveLength(5);
-    expect(raiz.querySelector('.modo--destaque').getAttribute('href')).toBe('#/criar');
-    expect(raiz.querySelector('.resumo').textContent).toContain('sessões');
-    expect(raiz.querySelector('.cartao--destaque')).toBeNull();
-  });
-
-  test('destaca revisões pendentes', () => {
-    progresso().salvarMaterial(
-      criarPacote({
-        tipo: 'palavras',
-        titulo: 'Lição atrasada',
-        itens: ['a'],
-        revisao: criarRevisao({ revisarEm: '2020-01-01' }),
-      })
-    );
-    tela = new MenuScreen();
-    tela.montar(raiz);
-    const painel = raiz.querySelector('.cartao--destaque');
-    expect(painel.textContent).toContain('Lição atrasada');
-    expect(painel.textContent).toMatch(/atrasada há \d+ dias/);
+    expect(raiz.querySelectorAll('.modo')).toHaveLength(3);
+    expect(raiz.querySelector('a[href="#/texto"]')).not.toBeNull();
+    expect(raiz.querySelector('a[href="#/frases"]')).not.toBeNull();
+    expect(raiz.querySelector('a[href="#/palavras"]')).not.toBeNull();
+    expect(raiz.textContent).toContain('Abrir PDF ou arquivo para estudar/revisar');
+    expect(raiz.textContent).not.toMatch(/sessões|progresso|Gemini|criar textos/i);
   });
 });
 
 describe('Estudo de palavras (fluxo completo)', () => {
-  test('texto → configuração → estudo → resultado, registrando o progresso', async () => {
+  test('o modo palavras inclui termos comuns quando a pessoa os fornece explicitamente', () => {
+    tela = new StudyScreen('palavras', { idioma: 'en-US' });
+    tela.montar(raiz);
+
+    expect(raiz.querySelector('label[for="textoEntrada"]').textContent).toContain(
+      'palavras soltas'
+    );
+    expect(tela.extrair('the\nto\napple')).toEqual(['the', 'to', 'apple']);
+  });
+
+  test('texto → configuração → estudo → resultado sem persistir progresso', async () => {
     vi.useFakeTimers();
     tela = new StudyScreen('palavras');
     tela.montar(raiz);
@@ -85,11 +78,18 @@ describe('Estudo de palavras (fluxo completo)', () => {
 
     await vi.advanceTimersByTimeAsync(3000);
     expect(raiz.querySelector('.resultado__titulo').textContent).toBe('Estudo concluído!');
-    expect(progresso().estatisticas()).toMatchObject({
-      sessoes: 1,
-      palavras: 3,
-      palavrasUnicas: 3,
-    });
+    const botoesExportacao = [...raiz.querySelectorAll('.acoes--exportacao button')];
+    expect(botoesExportacao.map((botao) => botao.id)).toEqual([
+      'btnKit',
+      'btnExportar',
+      'btnExportarMp3',
+    ]);
+    expect(botoesExportacao.map((botao) => botao.textContent.trim())).toEqual([
+      '📦 Exportar kit (PDF + MP3)',
+      '📄 Exportar apenas PDF',
+      '🎵 Exportar apenas áudio MP3',
+    ]);
+    expect(localStorage.getItem('progresso_estudo')).toBeNull();
   });
 
   test('itens vindos de um PDF pulam direto para a configuração', () => {
@@ -143,21 +143,15 @@ describe('Estudo de palavras (fluxo completo)', () => {
   });
 });
 
-describe('Revisar e Progresso', () => {
+describe('Revisar arquivo', () => {
   test('a tela de revisão começa vazia', () => {
     tela = new ReviewScreen();
     tela.montar(raiz);
-    expect(raiz.textContent).toContain('Nenhum arquivo aberto');
-  });
-
-  test('a tela de progresso lista sessões e agenda', () => {
-    progresso().registrarSessao({ tipo: 'frases', itens: ['Olá'], segundos: 30, titulo: 'Aula 1' });
-    progresso().salvarMaterial(
-      criarPacote({ tipo: 'texto', titulo: 'Texto agendado', texto: 'Oi', revisao: criarRevisao() })
+    expect(raiz.textContent).toContain('PDFs com texto selecionável');
+    expect(raiz.textContent).toContain(
+      'PDFs digitalizados sem texto selecionável não são suportados'
     );
-    tela = new ProgressScreen();
-    tela.montar(raiz);
-    expect(raiz.querySelector('.tabela').textContent).toContain('Aula 1');
-    expect(raiz.textContent).toContain('Texto agendado');
+    expect(raiz.textContent).toContain('para estudar o conteúdo');
+    expect(raiz.textContent).toContain('Nenhum arquivo aberto');
   });
 });

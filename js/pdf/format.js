@@ -72,6 +72,7 @@ export function statusRevisao(revisao, hoje = new Date()) {
       texto: dias === 1 ? 'Revisar amanhã' : `Revisar em ${dias} dias`,
     };
   }
+
   if (dias === 0) return { situacao: 'hoje', dias: 0, texto: 'Revisar hoje' };
   const atraso = -dias;
   return {

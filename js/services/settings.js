@@ -1,20 +1,13 @@
-/**
- * Preferências do usuário, persistidas no localStorage.
- * Migra automaticamente as chaves usadas pelas versões anteriores do app.
- */
+/** Preferências voláteis, disponíveis somente enquanto a página está aberta. */
 
 import {
   IDIOMAS,
   IDIOMA_PADRAO,
-  NIVEIS,
   TEMPO_PADRAO,
   TIPOS,
   VELOCIDADE_FALA,
   VOZES_KOKORO,
 } from '../config.js';
-import { storage } from './storage.js';
-
-const CHAVE = 'ap_preferencias';
 
 const MP3_PADRAO = Object.freeze({
   vozKokoro: VOZES_KOKORO[0].id,
@@ -23,10 +16,6 @@ const MP3_PADRAO = Object.freeze({
   numerar: true, // falar "Number 3" antes de cada item, para acompanhar no PDF
   ouvirAoGerar: true, // tocar os trechos enquanto o MP3 é gerado
 });
-
-/** Campos de versões anteriores que não existem mais (removidos ao carregar). */
-const CAMPOS_REMOVIDOS = ['motorIA', 'modeloIA', 'mostrarTraducao'];
-const CAMPOS_MP3_REMOVIDOS = ['motor', 'vozOpenai', 'vozOpenai2', 'chaveOpenai', 'falarTraducao'];
 
 const PADRAO = Object.freeze({
   tema: null, // null = segue o sistema operacional
@@ -39,37 +28,15 @@ const PADRAO = Object.freeze({
   embaralhar: true,
   ignorarComuns: true, // tira "the", "a", "to"... das listas de palavras
   incluirTraducao: true, // tradução para o português no fim do PDF
-  chaveGemini: '', // chave gratuita do Google Gemini (IA para criar textos)
-  velocidadeIA: 'qualidade', // 'qualidade' (Gemini Flash) ou 'rapidez' (Flash-Lite)
-  nivelTexto: 'iniciante',
   mp3: { ...MP3_PADRAO },
 });
-
-function migrarLegado() {
-  const legado = {};
-  const tema = storage.lerTexto('theme');
-  if (tema === 'dark' || tema === 'light') legado.tema = tema;
-
-  const audio = storage.lerTexto('audioAutomatico');
-  if (audio === 'true' || audio === 'false') legado.audioAutomatico = audio === 'true';
-
-  const idioma = storage.lerTexto('audio_idioma');
-  if (idioma && IDIOMAS[idioma]) legado.idioma = idioma;
-  return legado;
-}
 
 function normalizar(dados) {
   const prefs = { ...PADRAO, ...dados };
   prefs.vozes = { ...(dados?.vozes || {}) };
   prefs.tempo = { ...TEMPO_PADRAO, ...(dados?.tempo || {}) };
   prefs.mp3 = { ...MP3_PADRAO, ...(dados?.mp3 || {}) };
-  // Recursos removidos (IA no navegador, MP3 pela OpenAI, tradução): apaga os dados antigos,
-  // inclusive a chave da OpenAI, que não deve ficar guardada sem uso.
-  CAMPOS_REMOVIDOS.forEach((campo) => delete prefs[campo]);
-  CAMPOS_MP3_REMOVIDOS.forEach((campo) => delete prefs.mp3[campo]);
   if (!IDIOMAS[prefs.idioma]) prefs.idioma = IDIOMA_PADRAO;
-  if (!NIVEIS[prefs.nivelTexto]) prefs.nivelTexto = 'iniciante';
-  if (!['qualidade', 'rapidez'].includes(prefs.velocidadeIA)) prefs.velocidadeIA = 'qualidade';
   if (prefs.tema !== 'dark' && prefs.tema !== 'light') prefs.tema = null;
   return prefs;
 }
@@ -79,18 +46,7 @@ const ouvintes = new Set();
 
 export const settings = {
   carregar() {
-    if (cache) return cache;
-    const salvo = storage.lerJSON(CHAVE);
-    if (salvo) {
-      cache = normalizar(salvo);
-      const temCamposAntigos =
-        CAMPOS_REMOVIDOS.some((c) => c in salvo) ||
-        CAMPOS_MP3_REMOVIDOS.some((c) => c in (salvo.mp3 || {}));
-      if (temCamposAntigos) storage.salvarJSON(CHAVE, cache);
-    } else {
-      cache = normalizar(migrarLegado());
-      storage.salvarJSON(CHAVE, cache);
-    }
+    cache ||= normalizar(PADRAO);
     return cache;
   },
 
@@ -101,7 +57,6 @@ export const settings = {
   set(chave, valor) {
     const prefs = this.carregar();
     prefs[chave] = valor;
-    storage.salvarJSON(CHAVE, prefs);
     ouvintes.forEach((fn) => fn(chave, valor));
   },
 

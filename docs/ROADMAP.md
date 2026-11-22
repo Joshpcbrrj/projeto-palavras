@@ -1,136 +1,76 @@
-# Avaliação e plano de melhorias
+# Visão e próximos passos
 
-> **Status:** itens marcados com ✅ já estão implementados.
->
-> **Visão do projeto:** um app web simples e grátis que **gera material de estudo de inglês** — textos no nível certo, **PDFs** e **MP3** — para a pessoa estudar por conta própria, onde e quando quiser. O app ajuda a criar e revisar os arquivos; o estudo acontece com eles.
+## Objetivo do produto
 
-## 1. Avaliação geral
+O Aprendendo Palavras é uma ferramenta gratuita e simples para estudar listening, palavras e frases em diferentes idiomas. A pessoa escolhe um dos três modos e fornece o próprio material:
 
-### 1.1 O app cumpre a visão?
+1. **Textos:** colar, digitar ou abrir um texto para ouvir e acompanhar a leitura;
+2. **Frases:** colar um texto com frases completas para praticar cada frase;
+3. **Palavras:** informar palavras soltas, uma por linha ou separadas por espaços;
+4. baixar um PDF próprio para o tipo escolhido — texto, frases ou palavras — com tipo e data no nome do arquivo;
+5. abrir o PDF novamente em **Revisar** quando quiser estudar.
 
-| Etapa                                     | Situação atual                                                                                                      | Nota      |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | --------- |
-| **Conseguir material no nível certo**     | ✅ Criar textos (diálogo, mergulho no tema, por nível) com métrica de legibilidade                                  | Bom       |
-| **Levar o material para estudar sozinho** | ✅ Kit de estudo (PDF + MP3 com o mesmo nome); MP3 com voz natural, numeração alinhada ao PDF, repetições e pausas  | Muito bom |
-| **Textos que valem a pena estudar**       | ✅ Tamanho mínimo de 700 palavras (iniciante), 1.200 (intermediário) e 2.000 (fluente), com seções e títulos no PDF | Bom       |
-| **Entender e revisar rápido**             | ✅ Tradução para o português no fim do PDF (mesma numeração nas listas, mesmos parágrafos nos textos)               | Bom       |
-| **Revisar no tempo certo**                | ✅ Cada PDF guarda a data da próxima revisão; ao reabri-lo no app, a revisão avança (1 → 3 → 7 → 14 → 30 → 60 dias) | Bom       |
-| **Progresso em vários aparelhos**         | ✅ Backup em JSON que pode ser juntado entre aparelhos sem contar em dobro, com lembrete na tela inicial            | Bom       |
-| **Facilidade de uso**                     | ✅ Telas começam só com o essencial; voz, tempo, repetições, pausa e ordem ficam em “Mais opções”                   | Bom       |
+O aplicativo não gera textos por tema, não exige conta e não mantém textos ou progresso entre visitas. A ideia é reduzir configuração e dependência de APIs pagas, mantendo o arquivo exportado sob controle da pessoa.
 
-Exercícios no PDF (lacunas, perguntas com gabarito) foram avaliados e **descartados**: não são necessários para o objetivo do app.
+## Avaliação atual
 
-### 1.2 Praticidade como app web
+| Área                        | Estado                               | Observação                                                                                                         |
+| --------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| Textos                      | Funcional                            | Cola, digita ou abre TXT/MD para ouvir e exportar um PDF de texto.                                                 |
+| Frases                      | Funcional                            | Cola um texto; frases completas são separadas por pontuação ou quebras de linha e exportadas em PDF de frases.     |
+| Palavras                    | Funcional                            | Recebe palavras soltas, preserva inclusive termos comuns informados pela pessoa e exporta PDF de palavras.         |
+| Listening                   | Funcional, dependente do dispositivo | A Web Speech API é gratuita e não exige servidor, mas a lista e a qualidade das vozes variam por sistema e idioma. |
+| Estudo de palavras e frases | Funcional                            | Os modos de palavras e frases oferecem flashcards, controles de sessão e áudio.                                    |
+| PDF e retomada              | Funcional                            | O PDF preserva o conteúdo e a revisão. A pessoa precisa baixar o arquivo e selecioná-lo de novo em outra visita.   |
+| Tradução no PDF             | Opcional                             | Usa o tradutor nativo do navegador quando disponível; não há garantia de suporte para todos os idiomas.            |
+| MP3                         | Extra avançado                       | Kokoro gera MP3 no navegador, apenas em inglês, com download inicial de modelo de 90 a 330 MB.                     |
+| Persistência                | Intencionalmente ausente             | A aplicação não guarda texto, preferências, histórico ou andamento no navegador.                                   |
 
-| Aspecto                                        | Situação                                                                                                  | Avaliação                             |
-| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| Abrir e usar                                   | Abre direto no navegador, instalável (PWA), funciona offline                                              | ✅ Muito bom                          |
-| Celular                                        | Layout responsivo testado em 390 px, sem rolagem lateral                                                  | ✅ Bom                                |
-| **Mergulhar no tema** e **Por nível** (sem IA) | Wikipédia: resultado em ~1 s, em qualquer aparelho                                                        | ✅ Muito bom                          |
-| **Diálogos** e adaptação de nível              | Google Gemini com chave gratuita: segundos, qualquer aparelho; exige criar a chave uma vez                | ⚠️ Bom, com uma etapa de configuração |
-| **MP3 com Kokoro** (grátis)                    | Listas: segundos a poucos minutos. Textos longos: minutos (ver 1.4). “Ouvir enquanto gera” evita a espera | ⚠️ Lento para textos longos           |
+### Decisões de produto
 
-### 1.3 Simplificação já feita (versão 3.2)
+- **Não reintroduzir geração automática de textos por IA** no fluxo principal. A criação fora do app é mais simples e não depende de quota, chave ou serviço do projeto.
+- **Não criar uma biblioteca local ou sincronização** enquanto a meta for uma experiência sem conta e sem persistência. O PDF é o formato de continuidade.
+- **Manter o player principal baseado na Web Speech API**, com indicação clara de idioma e voz indisponível. Evitar pronúncia com voz de idioma incompatível.
+- **Manter a exportação Kokoro como opcional**, fora do botão principal, e explicar o tamanho do download e o limite de idioma.
 
-- ✅ **Removida a IA no navegador (WebLLM):** exigia download de 0,9–2,3 GB, só rodava em computadores com WebGPU e levava 1–6 minutos por texto. A IA agora é só o Gemini.
-- ✅ **Removido o MP3 pela OpenAI:** era pago e pouco usado. O MP3 agora é só o Kokoro, grátis.
-- ✅ Configurações reduzidas a: idioma, tema, chave do Gemini e vozes do MP3.
-- ✅ Mantido: sem frameworks e sem banco de dados no navegador (IndexedDB) — não compensam no tamanho atual do app.
+## Próximas melhorias
 
-### 1.4 Áudio: qualidade e velocidade (versão 3.4)
+| Prioridade | Proposta                                         | Critério de conclusão                                                                                                                                                                    |
+| ---------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Concluída  | Unificar a entrada de texto e a abertura de PDFs | PDFs com texto selecionável podem ser abertos pelo menu e encaminhados para ouvir textos, praticar frases ou extrair palavras; PDFs digitalizados são identificados como não suportados. |
+| P0         | Melhorar a preparação do player por idioma       | Antes de iniciar, mostrar se existe voz compatível e permitir testar uma amostra; em caso negativo, explicar a limitação sem fallback de outro idioma.                                   |
+| P1         | Validar a experiência em navegadores reais       | Testar leitura, pausa/retomada, vozes ausentes, navegação móvel e revisão de PDFs em Chrome, Edge, Firefox e Safari.                                                                     |
+| P1         | Refinar acessibilidade e adaptação móvel         | Verificar foco do teclado, leitores de tela, alvos de toque, contraste e telas estreitas em cada etapa principal.                                                                        |
+| P2         | Avaliar idiomas de tradução                      | Documentar os pares suportados pelo tradutor nativo; só anunciar suporte quando validado no navegador.                                                                                   |
+| P2         | Reavaliar o MP3                                  | Medir tamanho, tempo e uso em aparelhos móveis antes de ampliar idiomas ou promover o recurso.                                                                                           |
 
-Medições feitas com o Kokoro real no Edge (Windows):
+## Qualidade técnica
 
-- **Volume:** o Kokoro começa cada frase forte (≈ −16 dB) e termina bem mais baixo (−30 a −38 dB numa frase longa); ouvido em sequência, isso soa como “trechos baixos e rompantes”. Não havia saturação nem defeito da compressão MP3 (o MP3 decodificado é igual ao original). ✅ Agora cada trecho é **nivelado** (ganho suavizado em janelas de 50 ms, sem amplificar silêncio, com limitador suave) e as emendas têm entrada/saída suaves. Variação de volume ao longo das frases: de 5,9 dB para 4,0 dB.
-- **Velocidade:** cada chamada à voz tem um custo fixo de ≈ 1,5 s, além do tempo proporcional ao áudio. ✅ O número do item vai no mesmo trecho da palavra, frases curtas do mesmo parágrafo são agrupadas, a voz é carregada enquanto o PDF do kit é gerado e o áudio já sintetizado é reaproveitado ao gerar de novo na mesma visita. Lista de 8 palavras numeradas: de 42,6 s para 27,9 s (−35%).
-- O tempo restante é da própria síntese neural (≈ 1,6× a duração do áudio com placa de vídeo, ≈ 3,5× só com processador) e não tem como cair muito sem trocar de voz. Para não esperar, há o **“Ouvir enquanto gera”**.
+O projeto prioriza HTML/CSS/ES modules nativos, funções pequenas, entrada de dados tratada como texto, testes focados e nenhuma infraestrutura de backend. A suíte cobre regras de extração, sessões, player simulado, PDFs reais e integridade do PWA. Para mudanças futuras:
 
-### 1.5 Criação de textos: velocidade (versão 3.10)
+- execute `npm run check` antes de enviar uma contribuição;
+- acrescente testes para mudanças observáveis do fluxo;
+- mantenha pelo menos 95% de cobertura global de statements, branches, functions e lines, sem testes artificiais;
+- atualize este documento e o README quando produto, telas ou limitações mudarem;
+- atualize as capturas em `docs/screenshots/` quando uma tela documentada mudar;
+- mantenha a CSP e a lista do service worker alinhadas aos arquivos e serviços realmente utilizados.
 
-Antes, um texto intermediário (1.200 palavras) passava por etapas **em sequência**: Wikipédia (≈ 1 s) → a IA “pensava” no nível médio (padrão do Gemini Flash) → escrevia num pedido só, mas parava por volta de 550–600 palavras → até 3 pedidos para “continuar” (cada um reenviando o texto inteiro) → e, se o texto parecesse difícil, uma **reescrita completa**. Resultado: meio minuto ou mais.
+## Plano de melhorias aprovado
 
-Agora:
+O plano será executado em etapas, preservando a experiência sem conta, backend ou persistência de materiais. A cobertura será acompanhada durante todo o trabalho; cada funcionalidade nova deve chegar com testes de comportamento.
 
-- ✅ **Partes ao mesmo tempo:** o texto é escrito em 2 a 4 partes de ≈ 450 palavras (700 → 2, 1.200 → 3, 2.000 → 4), todas pedidas juntas; cada parte cobre um trecho do roteiro (no mergulho, um trecho seguido do artigo), então não se repetem. O tempo total fica perto do tempo de uma parte.
-- ✅ **Raciocínio baixo** (`thinkingLevel: low`): a primeira palavra chega mais cedo; se o modelo não aceitar o ajuste, o app segue sem ele.
-- ✅ **Simplificação só da parte difícil**, em paralelo — nunca o texto inteiro.
-- ✅ **Barra de progresso** (porcentagem, palavras, tempo e partes prontas).
-- ✅ **Opção “Rapidez” (Flash-Lite)** nas Configurações, também grátis.
-- ✅ Wikipédia: buscas em inglês e português em paralelo e artigo guardado na visita.
+| Etapa           | Melhoria                                 | Critério de conclusão                                                                                                                                                                    |
+| --------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 — Em execução | Reforçar os testes existentes            | Cobrir comportamentos relevantes nas áreas com baixa cobertura, mantendo todos os testes atuais e alcançando pelo menos 95% global em statements, branches, functions e lines.           |
+| 2 — Concluída   | Importar texto de PDFs                   | Abrir PDFs com texto selecionável e encaminhar o conteúdo aos modos Textos, Frases ou Palavras; informar claramente que PDFs digitalizados sem camada de texto não são suportados.       |
+| 3               | Adicionar escuta ativa                   | Tocar uma frase antes de revelá-la e permitir marcar “entendi” ou “revisar”; manter as marcações apenas na sessão e permitir exportar o material marcado para revisão.                   |
+| 4               | Capturar vocabulário com contexto        | Selecionar palavras ou expressões do texto, preservar a frase de origem e enviá-las ao modo Palavras, sem armazenamento entre visitas.                                                   |
+| 5               | Validar navegador e acessibilidade       | Testar em navegador real os fluxos críticos de voz, teclado, foco e telas móveis; incluir no CI as verificações automatizadas que forem estáveis.                                        |
+| 6               | Atualizar documentação e qualidade final | Atualizar README, arquitetura, roadmap, capturas e orientação de contribuição; executar os checks completos e confirmar que a cobertura permanece em pelo menos 95% nas quatro métricas. |
 
-Medição com um **Gemini simulado** (mesmo simulador para as duas versões: “pensa” ~4 s no nível médio e ~1 s no baixo, escreve ~75 palavras/s e para em ~600 palavras por resposta, como o modelo real costuma fazer). Não há chave de API no ambiente de desenvolvimento; com o Gemini real os números absolutos mudam, mas a proporção deve se manter:
+## Fora do escopo atual
 
-| Nível         | Versão 3.9.1          | Versão 3.10                      |
-| ------------- | --------------------- | -------------------------------- |
-| Iniciante     | 31,0 s (601 palavras) | 13,2 s (786 palavras)            |
-| Intermediário | 25,0 s (601 palavras) | 7,6 s (1.335 palavras, 3 partes) |
-| Fluente       | 25,1 s (601 palavras) | 9,2 s (2.196 palavras, 4 partes) |
-
-(Na 3.9.1 o simulador repete o texto ao “continuar”, e o app para — por isso os 601 palavras; com o modelo real ela faria mais rodadas e demoraria ainda mais.) No iniciante, o simulador escreve frases longas demais para o nível, o que dispara a simplificação das partes; com textos já no nível, fica perto do intermediário.
-
-**Limite do plano grátis:** cada texto usa de 2 a 4 pedidos simultâneos (mais um ou dois se precisar simplificar/continuar). Se o limite por minuto for atingido, a parte é tentada de novo depois de 1,5 s; se continuar falhando, o app mostra a mensagem do Gemini.
-
-## 2. Avaliação de uso
-
-**Veredito:** é um bom app — bonito, rápido, grátis, funciona no celular e offline, e o ciclo “criar texto → kit de estudo → revisar no dia certo” é útil de verdade.
-
-| #   | Atrito observado                                                      | Situação                                    |
-| --- | --------------------------------------------------------------------- | ------------------------------------------- |
-| U1  | Os arquivos não traziam o significado do conteúdo                     | ✅ Resolvido (K1: tradução no fim do PDF)   |
-| U2  | Textos gerados eram curtos (½ a 1 página)                             | ✅ Resolvido (K10)                          |
-| U3  | Muitas opções antes de começar                                        | ✅ Resolvido (K6)                           |
-| U4  | Listas de palavras incluíam palavras inúteis (“a”, “to”, “her”)       | ✅ Resolvido (K3)                           |
-| U5  | PDF e MP3 eram gerados separadamente                                  | ✅ Resolvido (K4)                           |
-| U6  | MP3 de textos longos é lento (minutos)                                | ⚠️ Melhorado (K7, seção 1.4); limite da voz |
-| U7  | Áudio com trechos baixos e “rompantes”                                | ✅ Resolvido (nivelamento, seção 1.4)       |
-| U8  | Criar textos intermediários e fluentes demorava (meio minuto ou mais) | ✅ Resolvido (K12, seção 1.5)               |
-
-## 3. Funcionalidades
-
-| #   | Proposta                                                                                                                                                                      | Situação         |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
-| K1  | **Tradução no fim do PDF**: página separada com tudo traduzido (mesma numeração nas listas, mesmos parágrafos nos textos); substitui o glossário misturado ao conteúdo (v3.3) | ✅ v3.7          |
-| K2  | Exercícios no PDF com gabarito                                                                                                                                                | Descartado       |
-| K3  | **Filtrar palavras muito comuns** nas listas                                                                                                                                  | ✅ v3.3          |
-| K4  | **Kit de estudo**: PDF + MP3 com um clique e o mesmo nome                                                                                                                     | ✅ v3.3          |
-| K5  | **MP3 numerado** (“Number 3… window”), alinhado ao PDF                                                                                                                        | ✅ v3.3          |
-| K6  | **Começar em 1 clique**: “Mais opções” recolhido no flashcard e no Criar textos                                                                                               | ✅ v3.4          |
-| K7  | **Ouvir enquanto gera** o MP3                                                                                                                                                 | ✅ v3.4          |
-| K8  | Tradução nos flashcards e falada no MP3                                                                                                                                       | Removida na v3.6 |
-| K10 | **Tamanho pelo nível**: 700 / 1.200 / 2.000 palavras no mínimo, com continuação pela IA e complemento da Wikipédia                                                            | ✅ v3.6          |
-| K11 | **Backup que junta aparelhos**: contadores de textos/PDFs/MP3/kits criados, importação com "Juntar" (sem contar em dobro) ou "Substituir", lembrete de backup na tela inicial | ✅ v3.8          |
-| K12 | **Criação rápida**: texto escrito em partes ao mesmo tempo, raciocínio baixo, simplificação só da parte difícil, barra de progresso e opção Flash-Lite                        | ✅ v3.10         |
-
-**Biblioteca dentro do app:** descartada — o estudo acontece com os arquivos, e o fluxo “gerar o PDF → estudar → reabrir em Revisar arquivo” já atende.
-
-**Login com Google (no lugar da chave do Gemini):** avaliado e **descartado** por enquanto:
-
-- Para usar a API do Gemini com login, o projeto precisaria de um projeto no Google Cloud com tela de consentimento OAuth **verificada pelo Google** (o escopo da API de IA é sensível), domínio próprio verificado e política de privacidade.
-- A cota gratuita passaria a ser **do projeto do app, dividida entre todos os usuários** — com poucos usuários ativos, o limite gratuito acabaria rápido e o custo ficaria com o dono do projeto. Com a chave própria, cada pessoa tem a sua cota grátis.
-- Sem servidor, o login no navegador também não guarda sessão por muito tempo (o token expira em 1 hora).
-- ✅ Alternativa adotada (v3.5): **passo a passo ilustrado** no painel da IA, botão **Colar**, limpeza da chave colada e mensagens de erro junto do campo.
-
-## 4. Código (sem perder a simplicidade)
-
-O formato atual — arquivos estáticos, ES modules nativos, **sem etapa de build** — é o mais simples para um app web no GitHub Pages e deve ser mantido.
-
-| #   | Proposta                                                                        | Situação |
-| --- | ------------------------------------------------------------------------------- | -------- |
-| C1  | **Unificar exportações** em um serviço (`js/services/export.js`)                | ✅ v3.3  |
-| C2  | Tipos com JSDoc + `tsc --checkJs` no CI (sem migrar para TypeScript, sem build) | Proposta |
-| C3  | Dividir telas grandes (`StudyScreen`, `TextScreen`) em partes menores           | Proposta |
-| C4  | Teste de fumaça no navegador (Playwright) no CI                                 | Proposta |
-| C5  | **Proteção da branch `main`** exigindo CI verde (configuração no GitHub)        | Pendente |
-| C6  | **Content-Security-Policy** via `<meta>` (protege a chave do Gemini)            | ✅ v3.4  |
-
-## 5. Limitações conhecidas (versão atual)
-
-- **Gemini**: exige criar uma chave gratuita no Google AI Studio (conta Google). O plano gratuito tem limite de pedidos por minuto/dia; o app avisa quando ele é atingido. Sem chave, “Mergulhar no tema” e “Por nível” funcionam só com a Wikipédia.
-- A IA às vezes escreve acima do nível pedido; o app tenta simplificar uma vez e a métrica de legibilidade avisa quando ainda ficou difícil.
-- **Wikipédia** como fonte de nível: a Simple English nem sempre é simples em temas técnicos (a métrica mostra isso). Em temas de situação (“pedir comida”), artigos genéricos desviam o diálogo — por isso a Wikipédia vem desligada por padrão no modo Diálogo.
-- **Kokoro** (MP3) fala apenas inglês e é lento para textos longos (seção 1.4).
-- **Textos longos sem IA (iniciante):** a Simple English costuma ter 200–1.300 palavras por artigo; o restante vem da Wikipédia em inglês normal, que é mais difícil (o app avisa). Com o Gemini, o texto todo sai no nível.
-- **MP3 de textos longos:** um texto fluente (2.000 palavras ≈ 13 min de áudio) leva vários minutos para gerar; o “Ouvir enquanto gera” evita a espera.
-- O filtro de palavras muito comuns existe só para inglês.
-- **Tradutor do Chrome/Edge** (sem chave do Gemini) traduz frase por frase, com menos contexto que o Gemini; não existe no Firefox nem no Safari. Na primeira vez o navegador baixa o pacote do idioma — se demorar mais de 45 s, o PDF sai sem a tradução e o app avisa.
-- PDFs “impressos como PDF” ou salvos por outros programas podem perder o pacote de dados; nesse caso o app reconstrói o conteúdo pelo texto, sem a data de revisão.
+- geração de texto por tema, chave de IA ou backend próprio;
+- conta, sincronização e armazenamento de progresso;
+- OCR de PDFs digitalizados e importação irrestrita de páginas web;
+- prometer voz natural ou MP3 para idiomas sem suporte validado.

@@ -14,7 +14,7 @@ O Base64 mantém o campo em ASCII puro, então acentos e escritas não latinas s
 {
   "app": "aprendendo-palavras",
   "versao": 3,
-  "id": "5f0c…",                  // identifica o material na agenda de revisões
+  "id": "5f0c…",                  // identifica o material ao reexportar o documento
   "tipo": "palavras",             // "palavras" | "frases" | "texto"
   "titulo": "Inglês — Lição 3",
   "idioma": "en-US",              // código BCP-47 suportado pelo app
@@ -23,7 +23,7 @@ O Base64 mantém o campo em ASCII puro, então acentos e escritas não latinas s
   "texto": "…",                   // para textos
   "traducao": "…",                // opcional: tradução para o português — texto (textos)
                                   //   ou lista com uma tradução por item, na mesma ordem
-  "nivel": "iniciante",           // opcional: "iniciante" | "intermediario" | "fluente" (textos criados)
+  "nivel": "iniciante",           // opcional: metadado de versões anteriores
   "fonte": {                      // opcional: origem do conteúdo (atribuição exigida pela licença)
     "nome": "Wikipédia",
     "titulo": "Economics",
@@ -39,13 +39,13 @@ O Base64 mantém o campo em ASCII puro, então acentos e escritas não latinas s
 }
 ```
 
-Implementação: [`js/pdf/format.js`](../js/pdf/format.js). O mesmo pacote é usado no JSON exportado pela tela “Revisar arquivo” (`{ "app": "aprendendo-palavras", "materiais": [ … ] }`).
+Implementação: [`js/pdf/format.js`](../js/pdf/format.js). A tela Revisar ainda importa arquivos JSON de materiais legados no formato `{ "app": "aprendendo-palavras", "materiais": [ … ] }`; a versão atual não exporta JSON.
 
 ## Revisão espaçada
 
 - Ao exportar, o usuário escolhe a próxima revisão (a etapa recomendada vem pré-selecionada).
-- Ao concluir o estudo de um material aberto a partir de um PDF, a revisão avança uma etapa e a agenda local é atualizada.
-- Se um PDF antigo for reaberto, a data mais distante entre o PDF e a agenda prevalece.
+- Ao concluir o estudo de um material aberto a partir de um PDF, a revisão avança uma etapa em memória. Baixar um novo PDF grava a nova data no documento.
+- Não há agenda local entre visitas; ao reabrir um documento, a data salva nele é a referência.
 
 ## Leitura (ordem de tentativas)
 
@@ -66,6 +66,10 @@ Implementação: [`js/pdf/format.js`](../js/pdf/format.js). O mesmo pacote é us
 - PDFs das versões 3.3 a 3.5 podem ter um campo `glossario` (tradução antiga); ele é ignorado na leitura.
 - Rodapé de cada página com o nome do app, a data de geração e “Página X de Y”.
 - As fontes padrão do PDF cobrem apenas o Latin-1. Textos com outros caracteres (cirílico, CJK…) são desenhados como imagem via canvas com as fontes do sistema; os dados exatos continuam no pacote.
+
+## Nome dos arquivos
+
+O PDF segue o formato `<tipo>_<titulo>_<data>_<hora>.pdf`. O prefixo identifica o modo (`texto`, `frases` ou `palavras`), e a data/hora usa o relógio local do dispositivo. Por exemplo: `frases_viagem_2026-10-18_09h05.pdf`. O MP3 exportado sozinho usa o mesmo padrão e extensão `.mp3`; no kit, ambos compartilham exatamente o mesmo nome-base.
 
 ## Compatibilidade futura
 

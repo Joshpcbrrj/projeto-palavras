@@ -1,6 +1,5 @@
 /**
- * Ações de exportação usadas pelas telas: botão "PDF", "Kit de estudo (PDF + MP3)"
- * e a opção de incluir a tradução no fim do PDF.
+ * Ações de exportação usadas pelas telas: PDF, MP3 e kit de estudo.
  */
 
 import { html, render } from '../core/dom.js';
@@ -12,6 +11,23 @@ import { toast } from './toast.js';
 
 const emPortugues = (idioma) => String(idioma || '').startsWith('pt');
 
+/** As três opções de exportação, na mesma ordem em todas as telas. */
+export function botoesExportacao(idPdf) {
+  return html`
+    <div class="acoes acoes--exportacao" role="group" aria-label="Opções de exportação">
+      <button type="button" class="btn btn--primario" id="btnKit">
+        📦 Exportar kit (PDF + MP3)
+      </button>
+      <button type="button" class="btn btn--secundario" id="${idPdf}">
+        📄 Exportar apenas PDF
+      </button>
+      <button type="button" class="btn btn--secundario" id="btnExportarMp3">
+        🎵 Exportar apenas áudio MP3
+      </button>
+    </div>
+  `;
+}
+
 /** Opção "Incluir tradução no final" (oculta para material em português). */
 export function alternadorTraducao(idioma) {
   return html`<div class="area-traducao" ${emPortugues(idioma) ? html`hidden` : ''}>
@@ -19,7 +35,7 @@ export function alternadorTraducao(idioma) {
       id: 'incluirTraducao',
       rotulo: 'Incluir a tradução no final do PDF',
       ajuda:
-        'Uma página extra com tudo traduzido para o português (mesma numeração ou mesmos parágrafos), para revisar rápido. Usa o Gemini, se configurado, ou o tradutor do Chrome/Edge.',
+        'Uma página extra com o texto traduzido para o português. Depende do tradutor nativo estar disponível neste navegador.',
       marcado: settings.get('incluirTraducao'),
     })}
   </div>`;

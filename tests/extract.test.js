@@ -127,3 +127,29 @@ test('pareceTitulo reconhece títulos de seção, mas não frases nem falas', ()
   expect(pareceTitulo('')).toBe(false);
   expect(pareceTitulo('x'.repeat(90))).toBe(false);
 });
+
+test('usa segmentação alternativa quando o código de idioma é inválido', () => {
+  expect(extrairPalavras('Hello, world!', { idioma: 'invalid_locale!' })).toEqual([
+    'Hello',
+    'world',
+  ]);
+  expect(extrairFrases('First. Second!', { idioma: 'invalid_locale!' })).toEqual([
+    'First',
+    'Second',
+  ]);
+  expect(
+    dividirParaLeitura('A sentence. Another sentence.', { idioma: 'invalid_locale!' }).map(
+      (trecho) => trecho.texto
+    )
+  ).toEqual(['A sentence.', 'Another sentence.']);
+});
+
+test('quebra frases longas em espaços e preserva o texto original em cada trecho', () => {
+  const original = `${'palavra '.repeat(24)}fim.`;
+  const partes = dividirParaLeitura(original, { maxCaracteres: 30 });
+  expect(partes.length).toBeGreaterThan(3);
+  for (const parte of partes) {
+    expect(original.slice(parte.inicio, parte.fim)).toBe(parte.texto);
+    expect(parte.texto.length).toBeLessThanOrEqual(30);
+  }
+});

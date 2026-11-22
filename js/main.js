@@ -10,20 +10,17 @@ import { MenuScreen } from './screens/MenuScreen.js';
 import { StudyScreen } from './screens/StudyScreen.js';
 import { TextScreen } from './screens/TextScreen.js';
 import { ReviewScreen } from './screens/ReviewScreen.js';
-import { ProgressScreen } from './screens/ProgressScreen.js';
-import { CreateScreen } from './screens/CreateScreen.js';
-import { SettingsScreen } from './screens/SettingsScreen.js';
 import { iniciarTema } from './ui/theme.js';
 import { toast } from './ui/toast.js';
+import { limparPersistenciaLegada } from './services/storage.js';
 
 function iniciar() {
+  limparPersistenciaLegada();
   iniciarTema();
   const versao = document.getElementById('versaoApp');
   if (versao) versao.textContent = `v${APP.versao}`;
 
   const raiz = document.getElementById('app');
-  const botaoInicio = document.getElementById('btnInicio');
-
   const router = criarRouter({
     raiz,
     rotas: {
@@ -32,17 +29,17 @@ function iniciar() {
       [ROTAS.FRASES]: (p) => new StudyScreen(TIPOS.FRASES, p),
       [ROTAS.TEXTO]: (p) => new TextScreen(p),
       [ROTAS.REVISAR]: () => new ReviewScreen(),
-      [ROTAS.PROGRESSO]: () => new ProgressScreen(),
-      [ROTAS.CRIAR]: () => new CreateScreen(),
-      [ROTAS.CONFIGURACOES]: () => new SettingsScreen(),
     },
     aoNavegar: (rota) => {
-      botaoInicio.hidden = rota === ROTAS.MENU;
       document.title = rota ? `${tituloDaRota(rota)} · Aprendendo Palavras` : 'Aprendendo Palavras';
+      document.querySelectorAll('.nav-mobile [data-rota]').forEach((link) => {
+        const ativa = link.dataset.rota === rota;
+        if (ativa) link.setAttribute('aria-current', 'page');
+        else link.removeAttribute('aria-current');
+      });
     },
   });
   definirNavegador(router.navegar);
-  botaoInicio.addEventListener('click', () => router.navegar(ROTAS.MENU));
 
   // iOS/Safari só libera a voz após um gesto do usuário.
   const desbloquear = () => speaker.desbloquear();
@@ -61,10 +58,7 @@ function tituloDaRota(rota) {
     [ROTAS.PALAVRAS]: 'Estudar palavras',
     [ROTAS.FRASES]: 'Estudar frases',
     [ROTAS.TEXTO]: 'Ler e ouvir',
-    [ROTAS.REVISAR]: 'Revisar arquivo',
-    [ROTAS.PROGRESSO]: 'Meu progresso',
-    [ROTAS.CRIAR]: 'Criar textos',
-    [ROTAS.CONFIGURACOES]: 'Configurações',
+    [ROTAS.REVISAR]: 'Abrir arquivos',
   }[rota];
 }
 

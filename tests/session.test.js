@@ -85,6 +85,37 @@ describe('StudySession', () => {
     expect(aoConcluir).toHaveBeenCalled();
   });
 
+  test('respeita estados finais e permite ouvir o item atual sob demanda', async () => {
+    const falar = vi.fn(async () => 'ouvido');
+    const { sessao } = criar({ itens: ['primeiro', 'último'], intervaloMs: 250, falar });
+    expect(sessao.total).toBe(2);
+    expect(sessao.progresso).toBe(0);
+    expect(sessao.itemAtual).toBe('primeiro');
+    expect(await sessao.ouvirAtual()).toBe('ouvido');
+    expect(falar).toHaveBeenCalledWith('primeiro', expect.any(AbortSignal));
+
+    sessao.setIntervalo(500);
+    expect(sessao.intervaloMs).toBe(500);
+    sessao.iniciar(1);
+    await vi.advanceTimersByTimeAsync(0);
+    sessao.proximo();
+    expect(sessao.estado).toBe(ESTADOS_SESSAO.CONCLUIDA);
+    expect(sessao.progresso).toBe(0.5);
+    sessao.proximo();
+    sessao.anterior();
+    sessao.encerrar();
+    expect(sessao.estado).toBe(ESTADOS_SESSAO.CONCLUIDA);
+
+    sessao.encerrar();
+    sessao.retomar();
+    expect(sessao.estado).toBe(ESTADOS_SESSAO.CONCLUIDA);
+
+    const encerrada = criar().sessao;
+    encerrada.encerrar();
+    encerrada.retomar();
+    expect(encerrada.estado).toBe(ESTADOS_SESSAO.ENCERRADA);
+  });
+
   test('a fala termina antes de começar a pausa do intervalo', async () => {
     const { sessao, exibidos } = criar({
       falar: (_item, signal) =>

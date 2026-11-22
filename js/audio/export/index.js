@@ -4,6 +4,7 @@
  */
 
 import { carimboArquivo, slug } from '../../core/utils.js';
+import { TIPOS } from '../../config.js';
 import { KokoroMotor } from './engines.js';
 import { Mp3Builder, TAXA_PADRAO, obterEncoderMp3, prepararTrecho } from './mp3.js';
 import { planejarAudio } from './plan.js';
@@ -41,8 +42,15 @@ export function criarMotor() {
   return kokoroCompartilhado;
 }
 
-export function nomeArquivoMp3(titulo, data = new Date()) {
-  return `${slug(titulo, 40)}_${carimboArquivo(data)}.mp3`;
+/** O padrão do nome é o mesmo do PDF, para agrupar os arquivos do mesmo material. */
+export function nomeArquivoMp3(conteudo, data = new Date()) {
+  const prefixo =
+    {
+      [TIPOS.PALAVRAS]: 'palavras',
+      [TIPOS.FRASES]: 'frases',
+      [TIPOS.TEXTO]: 'texto',
+    }[conteudo?.tipo] || 'audio';
+  return `${prefixo}_${slug(conteudo?.titulo || 'audio', 30)}_${carimboArquivo(data)}.mp3`;
 }
 
 /**
@@ -107,7 +115,7 @@ export async function gerarMp3(
   const blob = mp3.finalizar();
   return {
     blob,
-    nome: nomeArquivoMp3(conteudo.titulo || 'audio'),
+    nome: nomeArquivoMp3(conteudo),
     duracao: mp3.duracaoSegundos,
     trechos: segmentos.length,
   };

@@ -6,7 +6,7 @@
  * subdiretórios (ex.: GitHub Pages em /projeto-palavras/).
  */
 
-const VERSAO = 'v3.10.0';
+const VERSAO = 'v3.11.0';
 const CACHE_APP = `aprendendo-palavras-${VERSAO}`;
 const CACHE_CDN = 'aprendendo-palavras-cdn';
 
@@ -32,6 +32,7 @@ const ARQUIVOS_APP = [
   './js/audio/export/engines.js',
   './js/audio/export/index.js',
   './js/audio/export/kokoro-worker.js',
+  './js/audio/export/kokoro-worker-runtime.js',
   './js/audio/export/mp3.js',
   './js/audio/export/plan.js',
   './js/audio/export/preview.js',
@@ -39,38 +40,26 @@ const ARQUIVOS_APP = [
   './js/core/nav.js',
   './js/core/router.js',
   './js/core/utils.js',
-  './js/create/engine.js',
-  './js/create/gemini.js',
-  './js/create/generator.js',
-  './js/create/levels.js',
-  './js/create/prompts.js',
-  './js/create/translate.js',
-  './js/create/wikipedia.js',
   './js/pdf/exporter.js',
   './js/pdf/format.js',
   './js/pdf/importer.js',
   './js/pdf/legacy.js',
   './js/pdf/libs.js',
   './js/pdf/raster.js',
-  './js/screens/CreateScreen.js',
+  './js/pdf/translate.js',
   './js/screens/MenuScreen.js',
-  './js/screens/ProgressScreen.js',
   './js/screens/ReviewScreen.js',
-  './js/screens/SettingsScreen.js',
   './js/screens/StudyScreen.js',
   './js/screens/TextScreen.js',
   './js/services/export.js',
-  './js/services/progress.js',
   './js/services/settings.js',
   './js/services/storage.js',
   './js/study/session.js',
   './js/text/comuns.js',
   './js/text/extract.js',
-  './js/ui/aiPanel.js',
   './js/ui/components.js',
   './js/ui/dialog.js',
   './js/ui/exportActions.js',
-  './js/ui/guiaChave.js',
   './js/ui/mp3Dialog.js',
   './js/ui/theme.js',
   './js/ui/toast.js',

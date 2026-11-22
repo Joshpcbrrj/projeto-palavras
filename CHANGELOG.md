@@ -5,6 +5,34 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e 
 
 ## [Não lançado]
 
+### Alterado
+
+- A tela inicial agora apresenta **Textos**, **Frases** e **Palavras** como opções independentes, além do acesso separado para abrir arquivos de estudo ou revisão.
+- A abertura de arquivos agora destaca PDFs externos com texto selecionável e explica que PDFs digitalizados sem texto selecionável não são suportados.
+- README, roadmap e capturas de tela acompanham o fluxo atualizado de abertura e estudo de arquivos.
+- O modo Palavras recebe termos soltos e não remove palavras comuns informadas explicitamente.
+- Os PDFs de cada modo têm nomes com o tipo, o título e a data; README, roadmap e documentação do formato foram atualizados.
+- Kit, PDF e MP3 voltaram a estar disponíveis como três ações explícitas nas telas de exportação; os MP3s agora também incluem tipo, título e data no nome.
+
+## [3.11.0] - 2026-11-21
+
+Fluxo centrado no material escolhido pela pessoa e sem persistência entre visitas.
+
+### Alterado
+
+- Tela inicial e navegação simplificadas para colar texto ou revisar um PDF.
+- A criação de textos por tema, a configuração de chave Gemini e a tela de progresso foram removidas.
+- Texto, preferências e andamento de estudo ficam somente na memória da página. PDFs baixados continuam sendo a forma de guardar materiais e datas de revisão.
+- A tradução opcional do PDF usa apenas a API nativa do navegador, quando disponível.
+- O player não chama a síntese de voz quando não encontra uma voz compatível com o idioma selecionado.
+- README, arquitetura, roadmap, segurança e capturas foram alinhados ao fluxo atual.
+
+### Removido
+
+- Armazenamento de rascunhos, preferências, histórico e agenda no navegador.
+- Geração de texto pela Wikipédia/Gemini e seus componentes de configuração.
+- Backup de progresso e exportação JSON da tela Revisar.
+
 ## [3.10.0] - 2026-10-19
 
 Criação de textos bem mais rápida.
