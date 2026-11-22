@@ -14,13 +14,7 @@ import { progresso } from '../services/progress.js';
 import { settings } from '../services/settings.js';
 import { contarPalavras, extrairFrases, extrairPalavras } from '../text/extract.js';
 import { montarPainelIA } from '../ui/aiPanel.js';
-import {
-  alternador,
-  cabecalhoTela,
-  segmentado,
-  seletorIdioma,
-  valorSegmentado,
-} from '../ui/components.js';
+import { alternador, segmentado, seletorIdioma, valorSegmentado } from '../ui/components.js';
 import {
   abrirKit,
   alternadorTraducao,
@@ -32,21 +26,21 @@ import { toast } from '../ui/toast.js';
 
 const INFO_MODOS = {
   [MODOS.DIALOGO]: {
-    aba: '💬 Diálogo',
+    aba: 'Diálogo',
     descricao:
       'Uma conversa entre duas pessoas sobre o tema — ótima para aprender expressões do dia a dia. Cada pessoa ganha uma voz diferente no áudio.',
     exemplo: 'Ex.: pedir comida num restaurante, entrevista de emprego, no aeroporto',
     precisaIA: true,
   },
   [MODOS.MERGULHO]: {
-    aba: '🌍 Mergulhar no tema',
+    aba: 'Exploração',
     descricao:
       'Um texto explicativo com origem e principais ideias do tema, baseado na Wikipédia. Iniciantes recebem a Simple English Wikipedia, escrita para quem está aprendendo inglês (completada com a Wikipédia normal quando é curta).',
     exemplo: 'Ex.: economia, história do futebol, inteligência artificial',
     precisaIA: false,
   },
   [MODOS.NIVEL]: {
-    aba: '📶 Por nível',
+    aba: 'Por nível',
     descricao:
       'Um texto completo sobre o tema escrito no seu nível: palavras, tamanho das frases e tempos verbais se ajustam ao que você escolher. Sem IA configurada, usa a Wikipédia do nível mais próximo (Simple English para iniciante e intermediário).',
     exemplo: 'Ex.: meio ambiente, viagens, tecnologia no trabalho',
@@ -157,13 +151,14 @@ export class CreateScreen {
     render(
       this.raiz,
       html`
-        <section class="tela">
-          <div class="cartao">
-            ${cabecalhoTela({
-              icone: '✨',
-              titulo: 'Criar textos',
-              subtitulo: 'Gere material de estudo sobre qualquer tema, de graça.',
-            })}
+        <section class="tela tela--criar">
+          <header class="criar__cabecalho">
+            <p class="criar__etiqueta">Novo material</p>
+            <h1 class="criar__titulo">Criar texto</h1>
+            <p class="criar__subtitulo">Escolha um formato e comece em poucos segundos.</p>
+          </header>
+
+          <div class="cartao criar__painel">
             <div class="abas" role="tablist">
               ${Object.entries(INFO_MODOS).map(
                 ([modo, dados]) =>
