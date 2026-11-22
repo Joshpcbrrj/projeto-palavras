@@ -1,24 +1,17 @@
 /**
  * Exportação de materiais de estudo em PDF, num só lugar para todas as telas:
  * monta o pacote, acrescenta a tradução para o português (no fim do arquivo),
- * gera o arquivo e registra no histórico e na agenda de revisões.
+ * gera o arquivo para download, sem armazenar dados do material no navegador.
  */
 
 import { TIPOS } from '../config.js';
-import { obterMotorIA } from '../create/engine.js';
-import { obterTradutor, traduzirItens, traduzirTexto } from '../create/translate.js';
+import { obterTradutor, traduzirItens, traduzirTexto } from '../pdf/translate.js';
 import { criarPacote } from '../pdf/format.js';
 import { exportarPdf, nomeArquivoPdf } from '../pdf/exporter.js';
-import { contarPalavras } from '../text/extract.js';
-import { progresso } from './progress.js';
 import { settings } from './settings.js';
 
 export const AVISO_SEM_TRADUTOR =
-  'Sem tradutor disponível: configure a chave grátis do Gemini ou use o Chrome/Edge atualizado. O PDF saiu sem a tradução.';
-
-function quantidade(pacote) {
-  return pacote.tipo === TIPOS.TEXTO ? contarPalavras(pacote.texto) : pacote.itens.length;
-}
+  'A tradução automática não está disponível neste navegador. O PDF foi gerado sem a tradução.';
 
 const emPortugues = (idioma) => String(idioma || '').startsWith('pt');
 
@@ -31,7 +24,7 @@ const emPortugues = (idioma) => String(idioma || '').startsWith('pt');
  * @param {Map<string, string>} [opcoes.conhecidas] item → tradução já existente
  * @returns {Promise<{pacote: object, aviso: string}>}
  */
-export async function adicionarTraducao(pacote, { conhecidas = new Map(), ia, api, signal } = {}) {
+export async function adicionarTraducao(pacote, { conhecidas = new Map(), api, signal } = {}) {
   if (emPortugues(pacote.idioma)) return { pacote, aviso: '' };
   if (pacote.tipo === TIPOS.TEXTO ? pacote.traducao : pacote.traducao?.every(Boolean)) {
     return { pacote, aviso: '' };
@@ -43,7 +36,7 @@ export async function adicionarTraducao(pacote, { conhecidas = new Map(), ia, ap
     if (pacote.tipo !== TIPOS.TEXTO && !faltando.length) {
       traducao = pacote.itens.map((item) => conhecidas.get(item));
     } else {
-      const tradutor = await obterTradutor({ idioma: pacote.idioma, ia, api });
+      const tradutor = await obterTradutor({ idioma: pacote.idioma, api });
       if (!tradutor) return { pacote, aviso: AVISO_SEM_TRADUTOR };
       if (pacote.tipo === TIPOS.TEXTO) {
         traducao = await traduzirTexto(pacote.texto, tradutor, { signal });
@@ -92,15 +85,7 @@ export function nomeBaseKit(dados, data = new Date()) {
  */
 export async function exportarMaterialPdf(
   dados,
-  {
-    traduzir = settings.get('incluirTraducao'),
-    conhecidas,
-    nomeArquivo,
-    ia,
-    api,
-    aoEtapa,
-    signal,
-  } = {}
+  { traduzir = settings.get('incluirTraducao'), conhecidas, nomeArquivo, api, aoEtapa, signal } = {}
 ) {
   let pacote = criarPacote(dados);
   if (!pacote) throw new Error('Não há conteúdo para exportar.');
@@ -109,7 +94,6 @@ export async function exportarMaterialPdf(
     if (!emPortugues(pacote.idioma)) aoEtapa?.('Traduzindo…');
     ({ pacote, aviso } = await adicionarTraducao(pacote, {
       conhecidas,
-      ia: ia === undefined ? obterMotorIA() : ia,
       api,
       signal,
     }));
@@ -118,11 +102,5 @@ export async function exportarMaterialPdf(
   }
   aoEtapa?.('Gerando PDF…');
   const nome = await exportarPdf(pacote, { nomeArquivo });
-  progresso().registrarArquivo('exportados', {
-    nome,
-    tipo: pacote.tipo,
-    quantidade: quantidade(pacote),
-  });
-  if (pacote.revisao) progresso().salvarMaterial(pacote);
   return { pacote, nome, aviso };
 }

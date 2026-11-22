@@ -27,15 +27,13 @@ body:
     attributes:
       label: Área
       options:
-        - Criar textos (diálogo, mergulho, por nível)
-        - IA (Gemini)
-        - Exportar MP3
+        - Colar, editar ou abrir texto
         - Flashcards (palavras/frases)
-        - Leitura de texto / áudio
-        - Geração de PDF
-        - Tradução no fim do PDF
-        - Revisar arquivo (leitura de PDF)
-        - Progresso / backup
+        - Leitura / vozes
+        - Exportar PDF
+        - Tradução do PDF
+        - Revisar arquivo
+        - Exportar MP3 (opcional)
         - Visual / tema escuro
         - Instalação (PWA) / offline
         - Outra

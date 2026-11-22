@@ -359,7 +359,7 @@ a {
     right: 0.75rem;
     bottom: max(0.75rem, env(safe-area-inset-bottom));
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     min-height: 68px;
     padding: 0.45rem;
     border: 1px solid var(--borda);

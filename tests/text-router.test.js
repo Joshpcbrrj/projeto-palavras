@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { TextScreen } from '../js/screens/TextScreen.js';
 import { criarRouter } from '../js/core/router.js';
 import { definirNavegador } from '../js/core/nav.js';
-import { _resetarProgresso } from '../js/services/progress.js';
 import { settings } from '../js/services/settings.js';
 import { criarPacote } from '../js/pdf/format.js';
 
@@ -10,27 +9,24 @@ let raiz;
 beforeEach(() => {
   localStorage.clear();
   settings._resetar();
-  _resetarProgresso();
   document.body.innerHTML = '<main id="app"></main>';
   raiz = document.getElementById('app');
 });
 afterEach(() => vi.restoreAllMocks());
 
 describe('Ler e ouvir um texto', () => {
-  test('editor mostra estatísticas e salva rascunho', () => {
+  test('editor mostra estatísticas e não persiste o rascunho', () => {
     const tela = new TextScreen();
     tela.montar(raiz);
     const area = raiz.querySelector('#textoConteudo');
     area.value = 'Olá mundo. Tudo bem?';
     area.dispatchEvent(new Event('input'));
     expect(raiz.querySelector('#textoEstatisticas').textContent).toContain('4 palavras · 2 frases');
-    expect(JSON.parse(localStorage.getItem('ap_rascunho_texto')).texto).toBe(
-      'Olá mundo. Tudo bem?'
-    );
+    expect(localStorage.getItem('ap_rascunho_texto')).toBeNull();
 
     const nova = new TextScreen();
     nova.montar(raiz);
-    expect(raiz.querySelector('#textoConteudo').value).toBe('Olá mundo. Tudo bem?');
+    expect(raiz.querySelector('#textoConteudo').value).toBe('');
     tela.desmontar();
     nova.desmontar();
   });
@@ -80,17 +76,15 @@ describe('Ler e ouvir um texto', () => {
 });
 
 describe('roteador', () => {
-  test('monta a tela da rota, passa parâmetros e respeita podeSair()', async () => {
+  test('monta a rota e passa parâmetros sem solicitar confirmação para sair', async () => {
     vi.spyOn(window, 'scrollTo').mockImplementation(() => {}); // não implementado no jsdom
     location.hash = '';
     const montadas = [];
-    let permitirSaida = true;
     const criarTela = (nome) => (parametros) => ({
       montar: (r) => {
         montadas.push([nome, parametros]);
         r.textContent = nome;
       },
-      podeSair: async () => permitirSaida,
     });
     const router = criarRouter({
       raiz,
@@ -103,10 +97,8 @@ describe('roteador', () => {
     await vi.waitFor(() => expect(raiz.textContent).toBe('texto'));
     expect(montadas.at(-1)).toEqual(['texto', { x: 1 }]);
 
-    permitirSaida = false;
     router.navegar('');
-    await new Promise((r) => setTimeout(r, 20));
-    expect(raiz.textContent).toBe('texto');
-    expect(router.rotaAtual).toBe('texto');
+    await vi.waitFor(() => expect(raiz.textContent).toBe('menu'));
+    expect(router.rotaAtual).toBe('');
   });
 });

@@ -4,12 +4,11 @@
  */
 
 import { IDIOMAS, TIPOS, nomeTipo } from '../config.js';
-import { $, baixarArquivo, html, render } from '../core/dom.js';
+import { $, html, render } from '../core/dom.js';
 import { ROTAS, navegar } from '../core/nav.js';
-import { carimboArquivo, formatarDataBR, unicos } from '../core/utils.js';
+import { formatarDataBR, unicos } from '../core/utils.js';
 import { statusRevisao } from '../pdf/format.js';
 import { ORIGENS, ehArquivoDeAudio, lerArquivo } from '../pdf/importer.js';
-import { progresso, revisaoEfetiva } from '../services/progress.js';
 import { settings } from '../services/settings.js';
 import { contarPalavras, extrairFrases, extrairPalavras } from '../text/extract.js';
 import { cabecalhoTela, estadoVazio, seloRevisao } from '../ui/components.js';
@@ -95,9 +94,6 @@ export class ReviewScreen {
         <div class="secao__cabecalho">
           <h3 class="secao__titulo">Arquivos abertos (${materiaisAbertos.length})</h3>
           <div class="acoes">
-            <button type="button" class="btn btn--fantasma btn--pequeno" id="btnExportarJson">
-              💾 Salvar JSON
-            </button>
             <button type="button" class="btn btn--fantasma btn--pequeno" id="btnLimparLista">
               ✕ Limpar lista
             </button>
@@ -143,7 +139,7 @@ export class ReviewScreen {
   }
 
   htmlMaterial(m, i) {
-    const revisao = revisaoEfetiva(m);
+    const revisao = m.revisao;
     const idioma = IDIOMAS[m.idioma];
     const quantidade =
       m.tipo === TIPOS.TEXTO
@@ -285,24 +281,13 @@ export class ReviewScreen {
         this.atualizarLista();
         return;
       }
-      if (botao.id === 'btnExportarJson') {
-        const dados = {
-          app: 'aprendendo-palavras',
-          materiais: materiaisAbertos.map(({ nomeArquivo: _n, origem: _o, ...p }) => p),
-        };
-        baixarArquivo(
-          new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' }),
-          `materiais_${carimboArquivo()}.json`
-        );
-        return;
-      }
       const { combinar, combinarPdf, idioma } = botao.dataset;
       if (combinar) return this.estudarCombinado(combinar, idioma);
       if (combinarPdf) return this.exportarCombinado(botao, combinarPdf, idioma);
 
       const material = materiaisAbertos[Number(botao.dataset.i)];
       if (!material) return;
-      const comRevisao = { ...material, revisao: revisaoEfetiva(material) };
+      const comRevisao = material;
       const opcoes = { idioma: material.idioma };
 
       switch (botao.dataset.acao) {
@@ -375,14 +360,6 @@ export class ReviewScreen {
           if (existente !== -1) materiaisAbertos.splice(existente, 1, material);
           else materiaisAbertos.push(material);
           abertos++;
-
-          const servico = progresso();
-          servico.registrarArquivo('revisados', {
-            nome: material.nomeArquivo,
-            tipo: material.tipo,
-            quantidade: material.itens?.length ?? 1,
-          });
-          if (material.revisao) servico.salvarMaterial(material);
         }
       } catch (erro) {
         console.error(erro);

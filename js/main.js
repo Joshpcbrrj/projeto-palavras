@@ -10,46 +10,17 @@ import { MenuScreen } from './screens/MenuScreen.js';
 import { StudyScreen } from './screens/StudyScreen.js';
 import { TextScreen } from './screens/TextScreen.js';
 import { ReviewScreen } from './screens/ReviewScreen.js';
-import { ProgressScreen } from './screens/ProgressScreen.js';
-import { CreateScreen } from './screens/CreateScreen.js';
-import { SettingsScreen } from './screens/SettingsScreen.js';
 import { iniciarTema } from './ui/theme.js';
 import { toast } from './ui/toast.js';
-import { settings } from './services/settings.js';
+import { limparPersistenciaLegada } from './services/storage.js';
 
 function iniciar() {
+  limparPersistenciaLegada();
   iniciarTema();
   const versao = document.getElementById('versaoApp');
   if (versao) versao.textContent = `v${APP.versao}`;
 
   const raiz = document.getElementById('app');
-  const idiomaTopo = document.getElementById('idiomaTopo');
-  if (idiomaTopo) {
-    const idiomaAtual = settings.get('idioma');
-    if (idiomaTopo.querySelector(`option[value="${idiomaAtual}"]`)) {
-      idiomaTopo.value = idiomaAtual;
-    } else {
-      const option = document.createElement('option');
-      option.value = idiomaAtual;
-      option.textContent = idiomaAtual.split('-')[0].toUpperCase();
-      idiomaTopo.append(option);
-      idiomaTopo.value = idiomaAtual;
-    }
-    idiomaTopo.addEventListener('change', (evento) => {
-      settings.set('idioma', evento.target.value);
-    });
-    settings.aoMudar((chave, valor) => {
-      if (chave !== 'idioma') return;
-      if (!idiomaTopo.querySelector(`option[value="${valor}"]`)) {
-        const option = document.createElement('option');
-        option.value = valor;
-        option.textContent = valor.split('-')[0].toUpperCase();
-        idiomaTopo.append(option);
-      }
-      idiomaTopo.value = valor;
-    });
-  }
-
   const router = criarRouter({
     raiz,
     rotas: {
@@ -58,9 +29,6 @@ function iniciar() {
       [ROTAS.FRASES]: (p) => new StudyScreen(TIPOS.FRASES, p),
       [ROTAS.TEXTO]: (p) => new TextScreen(p),
       [ROTAS.REVISAR]: () => new ReviewScreen(),
-      [ROTAS.PROGRESSO]: () => new ProgressScreen(),
-      [ROTAS.CRIAR]: () => new CreateScreen(),
-      [ROTAS.CONFIGURACOES]: () => new SettingsScreen(),
     },
     aoNavegar: (rota) => {
       document.title = rota ? `${tituloDaRota(rota)} · Aprendendo Palavras` : 'Aprendendo Palavras';
@@ -91,9 +59,6 @@ function tituloDaRota(rota) {
     [ROTAS.FRASES]: 'Estudar frases',
     [ROTAS.TEXTO]: 'Ler e ouvir',
     [ROTAS.REVISAR]: 'Revisar arquivo',
-    [ROTAS.PROGRESSO]: 'Meu progresso',
-    [ROTAS.CRIAR]: 'Criar textos',
-    [ROTAS.CONFIGURACOES]: 'Configurações',
   }[rota];
 }
 

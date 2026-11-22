@@ -2,9 +2,7 @@
  * Roteador simples baseado no hash da URL (#/palavras, #/texto...).
  *
  * Cada tela é um objeto com `montar(raiz)` e, opcionalmente, `desmontar()`
- * (para parar áudio e timers) e `podeSair()` (para perguntar antes de sair,
- * por exemplo, se há progresso não salvo). O botão "voltar" do navegador
- * funciona normalmente.
+ * (para parar áudio e timers). O botão "voltar" do navegador funciona normalmente.
  */
 
 export function criarRouter({ raiz, rotas, aoNavegar = () => {} }) {
@@ -19,17 +17,8 @@ export function criarRouter({ raiz, rotas, aoNavegar = () => {} }) {
     return rotas[rota] ? rota : '';
   }
 
-  async function trocar(rota) {
+  function trocar(rota) {
     rotaEmTroca = rota;
-    try {
-      if (telaAtual?.podeSair && !(await telaAtual.podeSair())) {
-        ignorarProximo = true;
-        location.hash = `#/${rotaAtual}`;
-        return;
-      }
-    } finally {
-      rotaEmTroca = null;
-    }
     telaAtual?.desmontar?.();
     const parametros = parametrosPendentes || {};
     parametrosPendentes = null;
@@ -40,6 +29,7 @@ export function criarRouter({ raiz, rotas, aoNavegar = () => {} }) {
     window.scrollTo?.({ top: 0 });
     telaAtual.montar(raiz);
     aoNavegar(rota);
+    rotaEmTroca = null;
   }
 
   window.addEventListener('hashchange', () => {

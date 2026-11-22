@@ -62,9 +62,9 @@
 
 .menu__cabecalho {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
   padding: 0.5rem 0 0.25rem;
 }
 
@@ -79,9 +79,15 @@
 
 .menu__titulo {
   max-width: 620px;
+  margin: 0;
   font-size: clamp(1.55rem, 4vw, 2.25rem);
   line-height: 1.12;
   letter-spacing: -0.035em;
+}
+
+.menu__cabecalho > .texto-suave {
+  max-width: 680px;
+  margin: 0;
 }
 
 .menu__sequencia {
@@ -121,52 +127,6 @@
   font-size: 0.86rem;
 }
 
-.menu__criar {
-  min-height: 82px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  border-radius: var(--raio-grande);
-  background: var(--primaria);
-  padding: 1.1rem 1.25rem;
-  color: #fff;
-  box-shadow: 0 12px 28px rgba(109, 40, 217, 0.22);
-  text-decoration: none;
-  transition:
-    transform var(--transicao),
-    box-shadow var(--transicao);
-}
-
-.menu__criar:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 16px 34px rgba(109, 40, 217, 0.28);
-}
-
-.menu__criar span {
-  display: flex;
-  flex-direction: column;
-}
-
-.menu__criar strong {
-  font-size: 1.05rem;
-}
-
-.menu__criar small {
-  margin-top: 0.12rem;
-  color: rgba(255, 255, 255, 0.78);
-}
-
-.menu__criar-seta {
-  width: 40px;
-  height: 40px;
-  display: grid !important;
-  place-items: center;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.16);
-  font-size: 1.25rem;
-}
-
 .menu__modulos {
   display: flex;
   flex-direction: column;
@@ -183,14 +143,29 @@
 
 .grade-modos {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.85rem;
 }
 
 @media (max-width: 620px) {
   .grade-modos {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
   }
+}
+
+.menu__revisar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  align-self: flex-start;
+  padding: 0.35rem 0;
+  color: var(--primaria-texto);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.menu__revisar:hover {
+  text-decoration: underline;
 }
 
 .modo {

@@ -65,7 +65,7 @@ describe('PWA', () => {
     expect(html).not.toContain('cdn.tailwindcss.com');
   });
 
-  test('a Content-Security-Policy libera o script de tema (hash) e as CDNs/APIs usadas', () => {
+  test('a Content-Security-Policy libera o script de tema (hash) e as CDNs usadas', () => {
     const html = ler('index.html');
     const politica = html.match(/http-equiv="Content-Security-Policy"\s+content="([^"]+)"/)[1];
     const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
@@ -75,8 +75,8 @@ describe('PWA', () => {
     const config = ler('js/config.js');
     const origens = [...config.matchAll(/'(https:\/\/[^/']+)\//g)].map((m) => m[1]);
     for (const origem of new Set(origens)) expect(politica).toContain(origem);
-    expect(politica).toContain('https://generativelanguage.googleapis.com');
-    expect(politica).toContain('https://*.wikipedia.org');
+    expect(politica).not.toContain('generativelanguage.googleapis.com');
+    expect(politica).not.toContain('wikipedia.org');
     // O worker da voz herda a política: a biblioteca cria um worker a partir do jsDelivr
     // e baixa o modelo do Hugging Face (sem isso o MP3 trava em "Preparando a voz").
     expect(politica).toMatch(/worker-src[^;]*https:\/\/cdn\.jsdelivr\.net/);

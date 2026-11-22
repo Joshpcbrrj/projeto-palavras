@@ -94,6 +94,7 @@ export class Speaker {
     utterance.pitch = tom;
     utterance.volume = volume;
     const vozEscolhida = voz || (idioma && this.vozes ? this.vozes.escolher(idioma) : null);
+    if (idioma && this.vozes && !vozEscolhida) return false;
     if (vozEscolhida) utterance.voice = vozEscolhida;
 
     return new Promise((resolve) => {

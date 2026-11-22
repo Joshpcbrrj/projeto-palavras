@@ -126,7 +126,7 @@ describe('MP3', () => {
     );
     expect(motor.sintetizar).toHaveBeenCalledTimes(2); // 6 trechos, 2 textos diferentes
     expect(r.trechos).toBe(6);
-    expect(r.nome).toMatch(/^licao-1_.*\.mp3$/);
+    expect(r.nome).toMatch(/^palavras_licao-1_.*\.mp3$/);
     expect(r.duracao).toBeGreaterThan(5);
     expect(progresso).toContain('gerando');
     expect(progresso.at(-1)).toBe('finalizando');
@@ -200,9 +200,16 @@ describe('MP3', () => {
     ).rejects.toThrow('conteúdo');
   });
 
-  test('nome do arquivo', () => {
-    expect(nomeArquivoMp3('Diálogo: Restaurante', new Date(2026, 9, 18, 9, 5))).toBe(
-      'dialogo-restaurante_2026-10-18_09h05.mp3'
+  test('o nome do MP3 identifica o tipo, o título e a data', () => {
+    const data = new Date(2026, 9, 18, 9, 5);
+    expect(nomeArquivoMp3({ tipo: 'texto', titulo: 'Diálogo: Restaurante' }, data)).toBe(
+      'texto_dialogo-restaurante_2026-10-18_09h05.mp3'
+    );
+    expect(nomeArquivoMp3({ tipo: 'frases', titulo: 'Lição 1' }, data)).toBe(
+      'frases_licao-1_2026-10-18_09h05.mp3'
+    );
+    expect(nomeArquivoMp3({ tipo: 'palavras', titulo: 'Lição 1' }, data)).toBe(
+      'palavras_licao-1_2026-10-18_09h05.mp3'
     );
   });
 });

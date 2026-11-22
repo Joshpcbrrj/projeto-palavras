@@ -18,11 +18,9 @@ import {
 } from '../core/utils.js';
 import { speaker } from '../audio/index.js';
 import { criarRevisao, proximaRevisao, statusRevisao, tituloPadrao } from '../pdf/format.js';
-import { progresso } from '../services/progress.js';
 import { settings } from '../services/settings.js';
 import { ESTADOS_SESSAO, StudySession } from '../study/session.js';
 import { extrairFrases, extrairPalavras } from '../text/extract.js';
-import { temListaDeComuns } from '../text/comuns.js';
 import {
   alternador,
   cabecalhoTela,
@@ -37,21 +35,21 @@ import {
   seloRevisao,
   valorSegmentado,
 } from '../ui/components.js';
-import { escolher } from '../ui/dialog.js';
 import { traducoesConhecidas } from '../services/export.js';
 import {
   abrirKit,
   alternadorTraducao,
+  botoesExportacao,
   exportarPdfComBotao,
   ligarAlternadorTraducao,
 } from '../ui/exportActions.js';
 import { abrirExportacaoMp3 } from '../ui/mp3Dialog.js';
+import { toast } from '../ui/toast.js';
 
-const ETAPAS = ['Texto', 'Configurar', 'Estudar', 'Resultado'];
+const ETAPAS = ['Material', 'Configurar', 'Estudar', 'Resultado'];
 
 const EXEMPLOS = {
-  [TIPOS.PALAVRAS]:
-    'The early morning light filled the quiet kitchen. Maria opened the window, made a cup of coffee and started to read her favorite book.',
+  [TIPOS.PALAVRAS]: 'apple\nbridge\ncurious\nmorning\njourney',
   [TIPOS.FRASES]:
     'Good morning! How are you today? I would like a cup of coffee, please. Where is the train station? Thank you very much for your help.',
 };
@@ -85,7 +83,7 @@ export class StudyScreen {
     };
     this.titulo = this.material?.titulo || '';
     this.sessao = null;
-    this.sessaoRegistrada = false;
+    this.avisoVozExibido = false;
     this.eventos = criarEscopoEventos();
     this.seletorVoz = null;
   }
@@ -102,7 +100,7 @@ export class StudyScreen {
     const opcoes = { idioma: this.config.idioma };
     return this.tipo === TIPOS.FRASES
       ? extrairFrases(texto, opcoes)
-      : extrairPalavras(texto, { ...opcoes, ignorarComuns: settings.get('ignorarComuns') });
+      : extrairPalavras(texto, { ...opcoes, ignorarComuns: false });
   }
 
   montar(raiz) {
@@ -115,29 +113,6 @@ export class StudyScreen {
     speaker.cancelar();
     this.eventos.limpar();
     this.seletorVoz?.destruir();
-  }
-
-  async podeSair() {
-    const s = this.sessao;
-    if (this.etapa !== 2 || !s || this.sessaoRegistrada || s.vistos.size === 0) return true;
-    const estavaRodando = s.estado === ESTADOS_SESSAO.RODANDO;
-    s.pausar();
-    const escolha = await escolher({
-      titulo: 'Sair do estudo?',
-      mensagem: `Você estudou ${s.vistos.size} de ${s.total} ${this.nome}. Deseja salvar esse progresso?`,
-      botoes: [
-        { valor: 'continuar', rotulo: 'Continuar estudando', estilo: 'fantasma' },
-        { valor: 'descartar', rotulo: 'Sair sem salvar', estilo: 'secundario' },
-        { valor: 'salvar', rotulo: 'Salvar e sair', estilo: 'primario' },
-      ],
-    });
-    if (escolha === 'salvar') {
-      this.registrarSessao();
-      return true;
-    }
-    if (escolha === 'descartar') return true;
-    if (estavaRodando) s.retomar();
-    return false;
   }
 
   desenhar() {
@@ -184,31 +159,23 @@ export class StudyScreen {
     return html`
       <div class="cartao">
         <div class="campo">
-          <label class="campo__rotulo" for="textoEntrada">Cole ou digite o texto</label>
+          <label class="campo__rotulo" for="textoEntrada">
+            ${this.tipo === TIPOS.PALAVRAS ? 'Cole suas palavras soltas' : 'Cole um texto com frases'}
+          </label>
           <textarea
             id="textoEntrada"
             class="input input--area"
             rows="10"
             placeholder="${
               this.tipo === TIPOS.FRASES
-                ? 'As frases são separadas por ponto final, exclamação, interrogação ou quebra de linha.'
-                : 'Todas as palavras do texto serão extraídas (sem repetições).'
+                ? 'Cole um texto cheio de frases. Cada frase será separada pela pontuação ou por quebras de linha.'
+                : 'Cole uma palavra por linha ou separe-as por espaços. Palavras repetidas entram uma vez.'
             }"
           >
 ${this.texto}</textarea
           >
           <p class="campo__ajuda" id="contagemItens" aria-live="polite"></p>
         </div>
-        ${
-          this.tipo === TIPOS.PALAVRAS && temListaDeComuns(this.config.idioma)
-            ? alternador({
-                id: 'ignorarComuns',
-                rotulo: 'Ignorar palavras muito comuns',
-                ajuda: 'Deixa de fora “the”, “a”, “to”, “is”… para estudar só o que vale a pena.',
-                marcado: settings.get('ignorarComuns'),
-              })
-            : ''
-        }
         <div class="acoes acoes--entre">
           <div class="acoes">
             <label class="btn btn--fantasma">
@@ -238,20 +205,12 @@ ${this.texto}</textarea
       this.texto = area.value;
       const total = this.extrair(this.texto).length;
       continuar.disabled = total === 0;
-      const ignoradas =
-        this.tipo === TIPOS.PALAVRAS && settings.get('ignorarComuns')
-          ? extrairPalavras(this.texto, { idioma: this.config.idioma }).length - total
-          : 0;
       contagem.textContent = this.texto.trim()
         ? total
-          ? `${total} ${total === 1 ? this.nomeSingular : this.nome} encontrada(s), sem repetições${ignoradas ? ` (${ignoradas} muito comuns ignoradas)` : ''}.`
+          ? `${total} ${total === 1 ? this.nomeSingular : this.nome} encontrada(s), sem repetições.`
           : `Nenhuma ${this.nomeSingular} encontrada.`
         : '';
     };
-    $('#ignorarComuns', this.raiz)?.addEventListener('change', (e) => {
-      settings.set('ignorarComuns', e.target.checked);
-      atualizar();
-    });
     let espera;
     area.addEventListener('input', () => {
       clearTimeout(espera);
@@ -494,7 +453,6 @@ ${this.texto}</textarea
       if (c.embaralhar) lista = embaralhar(lista);
     }
 
-    this.sessaoRegistrada = false;
     this.sessao = new StudySession({
       itens: lista,
       intervaloMs: c.tempo * 1000,
@@ -503,7 +461,7 @@ ${this.texto}</textarea
       aoMostrar: (item, indice, total) => this.mostrarItem(item, indice, total),
       aoMudarEstado: (estado) => this.atualizarEstado(estado),
       aoConcluir: () => {
-        this.registrarSessao();
+        this.atualizarRevisao();
         this.irPara(3);
       },
     });
@@ -515,7 +473,18 @@ ${this.texto}</textarea
     const c = this.config;
     for (let i = 0; i < c.repeticoes; i++) {
       if (signal?.aborted) return;
-      await speaker.falar(item, { idioma: c.idioma, velocidade: c.velocidade, signal });
+      const falou = await speaker.falar(item, {
+        idioma: c.idioma,
+        velocidade: c.velocidade,
+        signal,
+      });
+      if (!falou) {
+        if (!signal?.aborted && !this.avisoVozExibido) {
+          this.avisoVozExibido = true;
+          toast.aviso('Não há uma voz compatível com este idioma neste dispositivo.');
+        }
+        return;
+      }
       if (i < c.repeticoes - 1 && !(await esperar(450, signal))) return;
     }
   }
@@ -685,26 +654,17 @@ ${this.texto}</textarea
     if (!s) return;
     s.encerrar();
     speaker.cancelar();
-    if (s.vistos.size) this.registrarSessao();
+    this.atualizarRevisao();
     this.irPara(3);
   }
 
-  registrarSessao() {
+  atualizarRevisao() {
     const s = this.sessao;
-    if (!s || this.sessaoRegistrada || !s.vistos.size) return;
-    this.sessaoRegistrada = true;
-    progresso().registrarSessao({
-      tipo: this.tipo,
-      itens: s.itensVistos,
-      segundos: s.segundosAtivos,
-      idioma: this.config.idioma,
-      titulo: this.material?.titulo,
-    });
+    if (!s) return;
     // Revisar um material conta como uma revisão concluída: agenda a próxima (uma vez por abertura).
     if (this.material && s.estado === ESTADOS_SESSAO.CONCLUIDA && !this.revisaoAvancada) {
       this.revisaoAvancada = true;
       this.material = { ...this.material, revisao: proximaRevisao(this.material.revisao) };
-      progresso().salvarMaterial(this.material);
     }
   }
 
@@ -739,7 +699,7 @@ ${this.texto}</textarea
         ${
           this.material?.revisao && completo
             ? html`<p class="texto-centro">
-              Próxima revisão agendada:
+              Baixe um novo PDF para guardar a próxima revisão:
               <strong>${formatarDataBR(this.material.revisao.revisarEm)}</strong>
             </p>`
             : ''
@@ -747,10 +707,10 @@ ${this.texto}</textarea
       </div>
 
       <div class="cartao">
-        <h3 class="secao__titulo">📄 Exportar para revisar depois</h3>
+        <h3 class="secao__titulo">📄 Exportar para estudar depois</h3>
         <p class="texto-suave">
-          O PDF guarda as ${this.nome}, o idioma e a data de revisão. Para revisar, abra-o em
-          “Revisar arquivo”.
+          Escolha o kit com PDF e MP3, somente o PDF ou somente o áudio. O app não guarda seus
+          materiais entre visitas.
         </p>
         <div class="grade-2 grade-2--compacta">
           <div class="campo">
@@ -775,11 +735,10 @@ ${this.texto}</textarea
           </div>
         </div>
         ${alternadorTraducao(this.config.idioma)}
-        <div class="acoes">
-          <button type="button" class="btn btn--primario" id="btnKit">📦 Kit de estudo (PDF + MP3)</button>
-          <button type="button" class="btn btn--secundario" id="btnExportar">📄 Só o PDF</button>
-          <button type="button" class="btn btn--secundario" id="btnExportarMp3">🎵 Só o MP3</button>
-        </div>
+        ${botoesExportacao('btnExportar')}
+        <p class="campo__ajuda">
+          O MP3 usa a voz Kokoro em inglês e baixa um modelo de 90 a 330 MB na primeira utilização.
+        </p>
       </div>
 
       <div class="cartao">

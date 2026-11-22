@@ -1,6 +1,6 @@
 /**
  * Leitura de textos com áudio: o texto é lido frase a frase, com destaque
- * da frase atual, controle de velocidade, repetição e exportação para PDF.
+ * da frase atual, controle de velocidade, repetição e exportação para PDF/MP3.
  */
 
 import { TIPOS } from '../config.js';
@@ -11,9 +11,7 @@ import { speaker, vozes } from '../audio/index.js';
 import { ehDialogo, separarFalante } from '../audio/export/plan.js';
 import { ESTADOS_LEITOR, TextReader } from '../audio/reader.js';
 import { criarRevisao, proximaRevisao, statusRevisao, tituloPadrao } from '../pdf/format.js';
-import { progresso, revisaoEfetiva } from '../services/progress.js';
 import { settings } from '../services/settings.js';
-import { storage } from '../services/storage.js';
 import { contarPalavras, extrairFrases, extrairPalavras } from '../text/extract.js';
 import {
   alternador,
@@ -31,23 +29,21 @@ import {
   abrirKit,
   alternadorTraducao,
   atualizarAlternadorTraducao,
+  botoesExportacao,
   exportarPdfComBotao,
   ligarAlternadorTraducao,
 } from '../ui/exportActions.js';
 import { abrirExportacaoMp3 } from '../ui/mp3Dialog.js';
 import { toast } from '../ui/toast.js';
 
-const CHAVE_RASCUNHO = 'ap_rascunho_texto';
-
 export class TextScreen {
   /** @param {{material?: object}} [parametros] material do tipo texto vindo da revisão */
   constructor(parametros = {}) {
     const material = parametros.material || null;
-    const rascunho = material ? null : storage.lerJSON(CHAVE_RASCUNHO);
-    this.material = material ? { ...material, revisao: revisaoEfetiva(material) } : null;
-    this.titulo = material?.titulo || rascunho?.titulo || '';
-    this.texto = material?.texto || rascunho?.texto || '';
-    this.idioma = material?.idioma || rascunho?.idioma || settings.get('idioma');
+    this.material = material;
+    this.titulo = material?.titulo || '';
+    this.texto = material?.texto || '';
+    this.idioma = material?.idioma || settings.get('idioma');
     this.modo = material ? 'ouvir' : 'editar';
     this.fonte = material?.fonte || null;
     this.nivel = material?.nivel;
@@ -58,7 +54,6 @@ export class TextScreen {
     this.dialogo = false;
     this.vozesDialogo = new Map();
     this.velocidade = settings.get('velocidadeFala');
-    this.sessaoRegistrada = false;
     this.eventos = criarEscopoEventos();
     this.seletorVoz = null;
     this.leitor = new TextReader(speaker, { aoMudar: (info) => this.aoMudarLeitor(info) });
@@ -84,20 +79,10 @@ export class TextScreen {
   }
 
   desmontar() {
-    this.registrarSessao();
     this.leitor.destruir();
     speaker.cancelar();
     this.eventos.limpar();
     this.seletorVoz?.destruir();
-  }
-
-  salvarRascunho() {
-    if (this.material) return;
-    storage.salvarJSON(CHAVE_RASCUNHO, {
-      titulo: this.titulo,
-      texto: this.texto,
-      idioma: this.idioma,
-    });
   }
 
   desenhar() {
@@ -110,8 +95,10 @@ export class TextScreen {
         <section class="tela">
           <header class="criar__cabecalho">
             <p class="criar__etiqueta">Seu material</p>
-            <h1 class="criar__titulo">Texto próprio</h1>
-            <p class="criar__subtitulo">Cole ou abra um texto para ouvir e criar seu PDF.</p>
+            <h1 class="criar__titulo">Cole seu texto aqui</h1>
+            <p class="criar__subtitulo">
+              Digite, cole ou abra um texto. Depois ouça, pratique e baixe um PDF para revisar.
+            </p>
           </header>
           <div class="cartao">
             ${
@@ -228,18 +215,15 @@ ${this.texto}</textarea
     };
     area.addEventListener('input', () => {
       this.texto = area.value;
-      this.salvarRascunho();
       estatisticas();
     });
     $('#textoTitulo', r).addEventListener('input', (e) => {
       this.titulo = e.target.value;
-      this.salvarRascunho();
     });
     $('#textoIdioma', r).addEventListener('change', (e) => {
       this.idioma = e.target.value;
       settings.set('idioma', this.idioma);
       atualizarAlternadorTraducao(r, this.idioma);
-      this.salvarRascunho();
     });
     $('#textoArquivo', r).addEventListener('change', async (e) => {
       const arquivo = e.target.files?.[0];
@@ -250,7 +234,6 @@ ${this.texto}</textarea
         this.titulo = arquivo.name.replace(/\.[^.]+$/, '');
         $('#textoTitulo', r).value = this.titulo;
       }
-      this.salvarRascunho();
       estatisticas();
     });
     $('#btnLimpar', r).addEventListener('click', () => {
@@ -261,7 +244,6 @@ ${this.texto}</textarea
       this.nivel = undefined;
       area.value = '';
       $('#textoTitulo', r).value = '';
-      this.salvarRascunho();
       estatisticas();
       area.focus();
     });
@@ -391,7 +373,6 @@ ${this.texto}</textarea
       leitor.setIdioma(this.idioma);
       this.seletorVoz.atualizar();
       atualizarAlternadorTraducao(r, this.idioma);
-      this.salvarRascunho();
     });
     this.seletorVoz = conectarSeletorVoz(
       r,
@@ -499,24 +480,11 @@ ${this.texto}</textarea
   }
 
   aoConcluirLeitura() {
-    this.registrarSessao(true);
-  }
-
-  registrarSessao(concluida = false) {
-    if (this.sessaoRegistrada || this.leitor.segundosOuvidos < 15) return;
-    this.sessaoRegistrada = true;
-    progresso().registrarSessao({
-      tipo: TIPOS.TEXTO,
-      quantidade: contarPalavras(this.texto),
-      segundos: this.leitor.segundosOuvidos,
-      idioma: this.idioma,
-      titulo: this.titulo,
-    });
-    if (concluida && this.material?.revisao) {
+    if (this.material?.revisao && !this.revisaoAvancada) {
+      this.revisaoAvancada = true;
       this.material = { ...this.material, revisao: proximaRevisao(this.material.revisao) };
-      progresso().salvarMaterial(this.material);
       toast.sucesso(
-        `Leitura concluída! Próxima revisão: ${formatarDataBR(this.material.revisao.revisarEm)}.`
+        `Leitura concluída. Ao baixar um novo PDF, a próxima revisão será ${formatarDataBR(this.material.revisao.revisarEm)}.`
       );
     }
   }
@@ -526,10 +494,10 @@ ${this.texto}</textarea
   htmlExportar() {
     return html`
       <div class="cartao">
-        <h3 class="secao__titulo">Exportar e estudar</h3>
+        <h3 class="secao__titulo">Exportar para estudar depois</h3>
         <p class="texto-suave">
-          O PDF guarda o texto completo, o idioma e a data de revisão. Abra-o depois em “Revisar
-          arquivo”.
+          Escolha o kit com PDF e MP3, somente o PDF ou somente o áudio. O app não guarda seus
+          textos entre visitas.
         </p>
         <div class="grade-2 grade-2--compacta">
           ${seletorRevisao({
@@ -538,11 +506,10 @@ ${this.texto}</textarea
           })}
         </div>
         ${alternadorTraducao(this.idioma)}
-        <div class="acoes">
-          <button type="button" class="btn btn--primario" id="btnKit">📦 Kit de estudo (PDF + MP3)</button>
-          <button type="button" class="btn btn--secundario" id="btnExportarTexto">📄 Só o PDF</button>
-          <button type="button" class="btn btn--secundario" id="btnExportarMp3">🎵 Só o MP3</button>
-        </div>
+        ${botoesExportacao('btnExportarTexto')}
+        <p class="campo__ajuda">
+          O MP3 usa a voz Kokoro em inglês e baixa um modelo de 90 a 330 MB na primeira utilização.
+        </p>
         <div class="separador"></div>
         <p class="texto-suave">Transforme este texto em flashcards:</p>
         <div class="acoes">

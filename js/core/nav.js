@@ -9,9 +9,6 @@ export const ROTAS = Object.freeze({
   FRASES: 'frases',
   TEXTO: 'texto',
   REVISAR: 'revisar',
-  PROGRESSO: 'progresso',
-  CRIAR: 'criar',
-  CONFIGURACOES: 'configuracoes',
 });
 
 let navegador = () => {};

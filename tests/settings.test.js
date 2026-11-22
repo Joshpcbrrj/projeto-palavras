@@ -6,7 +6,7 @@ beforeEach(() => {
   settings._resetar();
 });
 
-describe('preferências', () => {
+describe('preferências temporárias da sessão', () => {
   test('usa valores padrão', () => {
     const prefs = settings.carregar();
     expect(prefs).toMatchObject({ tema: null, audioAutomatico: true, repeticoes: 1 });
@@ -14,45 +14,23 @@ describe('preferências', () => {
     expect(settings.getTempo('frases')).toBe(3);
   });
 
-  test('migra as chaves das versões anteriores', () => {
-    localStorage.setItem('theme', 'dark');
-    localStorage.setItem('audioAutomatico', 'false');
-    localStorage.setItem('audio_idioma', 'en-GB');
-    const prefs = settings.carregar();
-    expect(prefs).toMatchObject({ tema: 'dark', audioAutomatico: false, idioma: 'en-GB' });
-  });
-
-  test('salva alterações e voz por idioma', () => {
+  test('mantém alterações durante a página, mas começa de novo após recarregar', () => {
     settings.set('velocidadeFala', 1.2);
     settings.setVoz('en-US', 'voz-1');
     settings.setTempo('frases', 4);
+    expect(localStorage.length).toBe(0);
+
     settings._resetar();
-    expect(settings.get('velocidadeFala')).toBe(1.2);
+    expect(settings.get('velocidadeFala')).toBe(0.9);
+    expect(settings.getVoz('en-US')).toBeNull();
+    expect(settings.getTempo('frases')).toBe(3);
+  });
+
+  test('define e remove a voz preferida em memória', () => {
+    settings.setVoz('en-US', 'voz-1');
     expect(settings.getVoz('en-US')).toBe('voz-1');
-    expect(settings.getTempo('frases')).toBe(4);
     settings.setVoz('en-US', null);
     expect(settings.getVoz('en-US')).toBeNull();
-  });
-
-  test('ignora dados corrompidos ou inválidos', () => {
-    localStorage.setItem('ap_preferencias', JSON.stringify({ idioma: 'xx', tema: 'roxo' }));
-    expect(settings.carregar()).toMatchObject({ idioma: 'en-US', tema: null });
-  });
-
-  test('apaga campos de recursos removidos, inclusive a chave antiga da OpenAI', () => {
-    localStorage.setItem(
-      'ap_preferencias',
-      JSON.stringify({
-        motorIA: 'local',
-        modeloIA: 'leve',
-        mp3: { motor: 'openai', chaveOpenai: 'sk-antiga', pausaMs: 1500 },
-      })
-    );
-    const prefs = settings.carregar();
-    expect(prefs.motorIA).toBeUndefined();
-    expect(prefs.mp3).not.toHaveProperty('chaveOpenai');
-    expect(prefs.mp3.pausaMs).toBe(1500);
-    expect(localStorage.getItem('ap_preferencias')).not.toContain('sk-antiga');
   });
 
   test('notifica ouvintes', () => {

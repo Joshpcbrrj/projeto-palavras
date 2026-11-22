@@ -53,7 +53,7 @@ describe('importação de arquivos de texto e JSON', () => {
   test('mensagens claras para arquivos que não são materiais', () => {
     expect(() => interpretarJSON('{', 'quebrado.json')).toThrow(ErroImportacao);
     expect(() => interpretarJSON(JSON.stringify({ dadosCompletos: {} }), 'p.json')).toThrow(
-      'Meu progresso'
+      'versão anterior'
     );
     expect(() => interpretarJSON('{"a":1}', 'x.json')).toThrow('formato reconhecido');
     expect(() => interpretarTexto('   ', 'vazio.txt')).toThrow('não contém texto');

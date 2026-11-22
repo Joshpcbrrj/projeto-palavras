@@ -72,6 +72,14 @@ describe('Speaker', () => {
     expect(speaker.ativas.size).toBe(0); // referência liberada ao terminar
   });
 
+  test('não deixa o navegador escolher silenciosamente uma voz de outro idioma', async () => {
+    const synth = criarSynthFalso({ vozes: [voz('Aria Natural', 'en-US')] });
+    const vm = new VoiceManager({ synth });
+    const speaker = new Speaker({ synth, Utterance: FakeUtterance, vozes: vm });
+    await expect(speaker.falar('bonjour', { idioma: 'fr-FR' })).resolves.toBe(false);
+    expect(synth.falas).toHaveLength(0);
+  });
+
   test('cancelar via AbortSignal interrompe a fala', async () => {
     const synth = criarSynthFalso({ duracaoMs: 5000 });
     const speaker = new Speaker({ synth, Utterance: FakeUtterance });

@@ -9,8 +9,8 @@ vi.mock('../js/pdf/exporter.js', async (original) => ({
   exportarPdf: vi.fn(async () => 'gerado.pdf'),
 }));
 
-const { lerJson, obterTradutor, tradutorGemini, tradutorNavegador, traduzirItens, traduzirTexto } =
-  await import('../js/create/translate.js');
+const { obterTradutor, tradutorNavegador, traduzirItens, traduzirTexto } =
+  await import('../js/pdf/translate.js');
 const { criarPacote } = await import('../js/pdf/format.js');
 const { AVISO_SEM_TRADUTOR, adicionarTraducao, exportarMaterialPdf, traducoesConhecidas } =
   await import('../js/services/export.js');
@@ -31,36 +31,12 @@ function apiTranslator(disponibilidade = 'available') {
   };
 }
 
-/** Gemini falso: devolve o lote recebido com "pt:" na frente. */
-function geminiFalso() {
-  return {
-    gerar: vi.fn(async ({ mensagens }) => {
-      const lote = JSON.parse(mensagens[1].content.slice(mensagens[1].content.indexOf('[')));
-      return JSON.stringify(lote.map((p) => `pt:${p}`));
-    }),
-  };
-}
-
 describe('tradutores', () => {
-  test('lerJson aceita blocos de código', () => {
-    expect(lerJson('```json\n["a"]\n```')).toEqual(['a']);
-  });
-
-  test('material em português não precisa de tradutor; Gemini tem preferência', async () => {
+  test('material em português não precisa de tradutor; os demais usam o nativo quando disponível', async () => {
     expect(await obterTradutor({ idioma: 'pt-BR', api: apiTranslator() })).toBeNull();
-    expect((await obterTradutor({ idioma: 'en-US', ia: geminiFalso() })).nome).toBe('Gemini');
     expect((await obterTradutor({ idioma: 'en-US', api: apiTranslator() })).nome).toBe(
       'Tradutor do navegador'
     );
-  });
-
-  test('Gemini traduz em lotes, em JSON, mantendo a ordem', async () => {
-    const ia = geminiFalso();
-    const partes = Array.from({ length: 130 }, (_, i) => `item ${i}`);
-    const traducoes = await tradutorGemini(ia, 'en-US').traduzirPartes(partes);
-    expect(ia.gerar).toHaveBeenCalledTimes(3); // lotes de 60
-    expect(ia.gerar.mock.calls[0][0].json).toBe(true);
-    expect(traducoes[129]).toBe('pt:item 129');
   });
 
   test('tradutor do navegador: indisponível → null; demora demais → erro claro', async () => {
@@ -114,7 +90,6 @@ describe('exportação com tradução', () => {
   test('acrescenta a tradução de cada item ao PDF (ligada por padrão)', async () => {
     const etapas = [];
     const r = await exportarMaterialPdf(palavras, {
-      ia: null,
       api: apiTranslator(),
       aoEtapa: (e) => etapas.push(e),
     });
@@ -126,9 +101,9 @@ describe('exportação com tradução', () => {
   test('texto: a tradução completa vai para o pacote', async () => {
     const r = await exportarMaterialPdf(
       { tipo: 'texto', idioma: 'en-US', texto: 'Hello.\n\nBye.' },
-      { ia: geminiFalso() }
+      { api: apiTranslator() }
     );
-    expect(r.pacote.traducao).toBe('pt:Hello.\n\npt:Bye.');
+    expect(r.pacote.traducao).toBe('[Hello.]\n\n[Bye.]');
   });
 
   test('reaproveita traduções conhecidas e traduz só o que falta', async () => {
@@ -154,16 +129,16 @@ describe('exportação com tradução', () => {
   });
 
   test('português não é traduzido; sem tradutor ou com erro, o PDF sai e o app avisa', async () => {
-    const pt = await exportarMaterialPdf({ ...palavras, idioma: 'pt-BR' }, { ia: null });
+    const pt = await exportarMaterialPdf({ ...palavras, idioma: 'pt-BR' });
     expect(pt.aviso).toBe('');
     expect(pt.pacote).not.toHaveProperty('traducao');
 
-    const semTradutor = await exportarMaterialPdf(palavras, { ia: null, api: undefined });
+    const semTradutor = await exportarMaterialPdf(palavras);
     expect(semTradutor.aviso).toBe(AVISO_SEM_TRADUTOR);
 
-    const falha = { gerar: vi.fn(async () => Promise.reject(new Error('cota esgotada'))) };
-    const comErro = await exportarMaterialPdf(palavras, { ia: falha });
-    expect(comErro.aviso).toContain('cota esgotada');
+    const falha = { create: vi.fn(async () => Promise.reject(new Error('falha local'))) };
+    const comErro = await exportarMaterialPdf(palavras, { api: falha });
+    expect(comErro.aviso).toContain('falha local');
     expect(exportarPdf).toHaveBeenCalledTimes(3);
   });
 

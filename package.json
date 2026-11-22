@@ -1,9 +1,9 @@
 {
   "name": "aprendendo-palavras",
-  "version": "3.10.0",
+  "version": "3.11.0",
   "private": true,
   "type": "module",
-  "description": "PWA para estudar idiomas com flashcards, leitura em voz alta e PDFs revisáveis.",
+  "description": "PWA para ouvir textos próprios, estudar palavras e frases e exportar PDFs revisáveis.",
   "homepage": "https://joshpcbrrj.github.io/projeto-palavras/",
   "repository": {
     "type": "git",

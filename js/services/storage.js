@@ -1,49 +1,11 @@
-/**
- * Acesso ao localStorage com tolerância a falhas (modo privado, cota cheia, etc.).
- */
+const CHAVES_ANTIGAS = ['ap_preferencias', 'progresso_estudo', 'ap_rascunho_texto'];
 
-function obterStorage() {
+/** Remove dados pessoais gravados por versões anteriores deste app. */
+export function limparPersistenciaLegada() {
   try {
-    return globalThis.localStorage ?? null;
-  } catch {
-    return null;
+    const armazenamento = globalThis.localStorage;
+    CHAVES_ANTIGAS.forEach((chave) => armazenamento?.removeItem(chave));
+  } catch (erro) {
+    console.warn('Não foi possível limpar os dados locais antigos:', erro);
   }
 }
-
-export const storage = {
-  lerTexto(chave) {
-    try {
-      return obterStorage()?.getItem(chave) ?? null;
-    } catch {
-      return null;
-    }
-  },
-
-  lerJSON(chave, padrao = null) {
-    const texto = this.lerTexto(chave);
-    if (texto === null) return padrao;
-    try {
-      return JSON.parse(texto);
-    } catch {
-      return padrao;
-    }
-  },
-
-  salvarJSON(chave, valor) {
-    try {
-      obterStorage()?.setItem(chave, JSON.stringify(valor));
-      return true;
-    } catch (erro) {
-      console.warn('Não foi possível salvar no armazenamento local:', erro);
-      return false;
-    }
-  },
-
-  remover(chave) {
-    try {
-      obterStorage()?.removeItem(chave);
-    } catch {
-      /* ignora */
-    }
-  },
-};

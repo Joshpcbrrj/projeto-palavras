@@ -3,19 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <!--
-      Política de segurança: só carrega código do próprio site e das CDNs usadas, e só
-      conversa com a Wikipédia e o Gemini. Protege a chave do Gemini guardada no navegador.
+      Política de segurança: só carrega código do próprio site e das bibliotecas de terceiros.
       O hash corresponde ao script de tema abaixo (um teste confere; ao editá-lo, atualize).
     -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'sha256-apVhL5tdoXsVhciYorMcrLGyHyDoB+RT+HE0CLGmDj8=' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net 'wasm-unsafe-eval'; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' https://*.wikipedia.org https://generativelanguage.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'"
+      content="default-src 'self'; script-src 'self' 'sha256-Dq/S6B8wDQbL+JSUURqCeX4lplQddlzvqpFKAQBgnTc=' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net 'wasm-unsafe-eval'; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'"
     />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Aprendendo Palavras</title>
     <meta
       name="description"
-      content="Aprenda inglês de forma simples: textos no seu nível, pronúncia, flashcards, PDFs revisáveis e MP3."
+      content="Cole um texto, ouça, pratique palavras e frases e exporte PDFs para revisar."
     />
     <meta name="theme-color" content="#6d28d9" />
     <meta name="color-scheme" content="light dark" />
@@ -28,16 +27,9 @@
     <meta name="apple-mobile-web-app-title" content="Palavras" />
 
     <script>
-      // Aplica o tema antes da primeira pintura para evitar o "flash" de tema errado.
+      // Aplica o tema do sistema antes da primeira pintura.
       (function () {
-        var tema = null;
-        try {
-          tema = (JSON.parse(localStorage.getItem('ap_preferencias')) || {}).tema;
-          if (!tema) tema = localStorage.getItem('theme');
-        } catch (e) {}
-        if (tema !== 'dark' && tema !== 'light') {
-          tema = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        }
+        var tema = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         document.documentElement.dataset.theme = tema;
         // O Windows não tem emojis de bandeira; usa a fonte de bandeiras embutida.
         if (/Windows/.test(navigator.userAgent)) {
@@ -52,7 +44,7 @@
             '<div class="cartao" style="text-align:center">' +
             '<h2 class="secao__titulo">O app não carregou</h2>' +
             '<p class="texto-suave">Isso pode acontecer logo depois de uma atualização. ' +
-            'Clique abaixo para baixar a versão mais nova (seu progresso não é apagado).</p>' +
+            'Clique abaixo para baixar a versão mais nova. Os PDFs baixados não são afetados.</p>' +
             '<p><button type="button" class="btn btn--primario" id="btnAtualizarApp">' +
             'Atualizar o app</button></p></div>';
           document.getElementById('btnAtualizarApp').addEventListener('click', function () {
@@ -98,24 +90,10 @@
         <img class="marca__logo" src="icons/icon.svg" alt="" width="40" height="40" />
         <span class="marca__textos">
           <span class="marca__nome">Aprendendo Palavras</span>
-          <span class="marca__slogan">Estude idiomas todos os dias</span>
+          <span class="marca__slogan">Cole, ouça e revise</span>
         </span>
       </a>
       <nav class="topo__acoes">
-        <label class="idioma-topo" title="Idioma de estudo">
-          <span class="sr-only">Idioma de estudo</span>
-          <select id="idiomaTopo" aria-label="Idioma de estudo">
-            <option value="en-US">EN</option>
-            <option value="es-ES">ES</option>
-          </select>
-        </label>
-        <a
-          href="#/configuracoes"
-          class="btn btn--topo btn--icone"
-          aria-label="Configurações"
-          title="Configurações"
-          >⚙</a
-        >
         <button
           type="button"
           id="btnTema"
@@ -144,13 +122,9 @@
         <span aria-hidden="true">＋</span>
         <span>Texto</span>
       </a>
-      <a href="#/palavras" data-rota="palavras">
-        <span aria-hidden="true">▰</span>
-        <span>Estudar</span>
-      </a>
-      <a href="#/progresso" data-rota="progresso">
+      <a href="#/revisar" data-rota="revisar">
         <span aria-hidden="true">◷</span>
-        <span>Progresso</span>
+        <span>Revisar</span>
       </a>
     </nav>
 

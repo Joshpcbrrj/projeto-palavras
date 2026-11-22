@@ -2,33 +2,35 @@
 
 ## Versões com suporte
 
-Apenas a versão publicada em <https://joshpcbrrj.github.io/projeto-palavras/> (branch `main`) recebe correções.
+Correções de segurança são feitas na versão publicada na branch `main`:
+<https://joshpcbrrj.github.io/projeto-palavras/>.
 
-## Como relatar uma vulnerabilidade
+## Relatar uma vulnerabilidade
 
-**Não abra uma issue pública.** Use o [relato privado de vulnerabilidades do GitHub](https://github.com/Joshpcbrrj/projeto-palavras/security/advisories/new) informando:
+Não publique detalhes de uma vulnerabilidade em uma issue pública. Use o [relato privado de vulnerabilidades do GitHub](https://github.com/Joshpcbrrj/projeto-palavras/security/advisories/new) e inclua o impacto, passos para reproduzir e navegador/sistema afetados. A equipe pretende responder em até sete dias.
 
-- descrição do problema e impacto;
-- passos para reproduzir (por exemplo, um arquivo PDF/JSON que cause o problema);
-- navegador e sistema usados.
+## Dados e privacidade
 
-Você deve receber uma resposta em até 7 dias.
+- O aplicativo roda no navegador, sem backend, conta ou banco de dados de usuário.
+- O texto, os arquivos abertos, as preferências e o progresso da sessão permanecem somente na memória da página e são descartados ao recarregar ou fechar.
+- PDFs baixados ficam sob controle da pessoa e podem ser reabertos manualmente. A agenda de revisão só persiste se for incluída em um novo PDF.
+- Na inicialização, o app remove chaves específicas de versões anteriores (`ap_preferencias`, `progresso_estudo` e `ap_rascunho_texto`). Não remove chaves genéricas que podem pertencer a outros sites na mesma origem.
+- Cache do PWA, bibliotecas e modelo de voz são arquivos técnicos; não contêm os textos de estudo do usuário.
 
-## Escopo e modelo de dados
+## Serviços externos
 
-- O app roda inteiramente no navegador; não há servidor próprio nem contas.
-- Progresso e preferências ficam no `localStorage` do próprio navegador.
-- A **chave do Gemini** (opcional) também fica no `localStorage` deste navegador e é enviada somente ao Google. Qualquer script executado na página poderia lê-la; por isso a página tem uma **Content-Security-Policy** (em `index.html`) que só permite código do próprio site e das CDNs das bibliotecas, e conexões só com a Wikipédia, o Gemini, essas CDNs e o Hugging Face (download do modelo de voz). Mesmo assim, não use o app com a sua chave em computadores compartilhados; você pode removê-la a qualquer momento em Configurações.
-- Arquivos abertos em “Revisar arquivo” são processados localmente. Todo texto vindo de arquivos, da Wikipédia ou de uma IA é escapado antes de ser exibido.
-- Requisições externas, feitas apenas quando o recurso é usado:
+| Destino                                | Uso                                              | Dados enviados pelo aplicativo                                                 |
+| -------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------ |
+| `cdnjs.cloudflare.com`                 | Bibliotecas jsPDF e PDF.js                       | Solicitação dos arquivos da biblioteca.                                        |
+| `cdn.jsdelivr.net`                     | Bibliotecas opcionais de áudio/MP3               | Solicitação dos arquivos da biblioteca.                                        |
+| `huggingface.co` e domínios de modelos | Download do modelo Kokoro no primeiro uso do MP3 | Solicitação dos arquivos do modelo; o texto de estudo não é enviado pelo app.  |
+| Serviço de voz do navegador/sistema    | Algumas vozes de síntese podem ser online        | O processamento depende da voz escolhida e do fornecedor do navegador/sistema. |
 
-  | Destino                                      | Quando                                  | O que é enviado                                                |
-  | -------------------------------------------- | --------------------------------------- | -------------------------------------------------------------- |
-  | `cdnjs.cloudflare.com`, `cdn.jsdelivr.net`   | Ao gerar/abrir PDF ou gerar MP3         | Nada além do pedido do arquivo da biblioteca                   |
-  | `*.wikipedia.org`                            | Criar textos usando a Wikipédia         | O tema digitado                                                |
-  | `generativelanguage.googleapis.com` (Gemini) | Criar textos com a IA online            | O tema, o nível e o texto de referência; a sua chave           |
-  | `generativelanguage.googleapis.com` (Gemini) | Tradução no fim do PDF, se houver chave | O conteúdo a traduzir (texto, palavras ou frases); a sua chave |
-  | `huggingface.co` e repositórios de modelos   | Primeira geração de MP3 (voz Kokoro)    | Nada (apenas o download dos modelos)                           |
+O tradutor nativo do navegador é chamado localmente pela API disponível no navegador; o suporte varia por navegador e par de idiomas. O aplicativo não integra Gemini, Wikipédia ou uma API própria de geração de texto.
 
-- Sem chave do Gemini, a tradução usa o tradutor embutido do Chrome/Edge, que roda no aparelho (o navegador só baixa o pacote do idioma na primeira vez).
-- A síntese de voz dentro do app é feita pelo navegador; algumas vozes “online” do Edge/Chrome são processadas pelo provedor do navegador.
+## Proteções
+
+- `index.html` define uma Content Security Policy restritiva e libera o script inline de tema por hash.
+- Valores interpolados em templates são escapados por `js/core/dom.js`; conteúdo importado é tratado como texto.
+- Arquivos de revisão são analisados localmente. PDFs digitalizados sem texto selecionável não são convertidos por OCR.
+- Alterações de origens externas devem atualizar a CSP e os testes em `tests/project.test.js`.
