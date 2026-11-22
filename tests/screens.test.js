@@ -32,11 +32,11 @@ afterEach(() => {
 const clicar = (seletor) => raiz.querySelector(seletor).click();
 
 describe('Menu', () => {
-  test('mostra os cinco modos (com Criar textos em destaque) e o resumo', () => {
+  test('mostra o CTA de criação, os modos principais e o resumo', () => {
     tela = new MenuScreen();
     tela.montar(raiz);
-    expect(raiz.querySelectorAll('.modo')).toHaveLength(5);
-    expect(raiz.querySelector('.modo--destaque').getAttribute('href')).toBe('#/criar');
+    expect(raiz.querySelectorAll('.modo')).toHaveLength(3);
+    expect(raiz.querySelector('.menu__criar').getAttribute('href')).toBe('#/criar');
     expect(raiz.querySelector('.resumo').textContent).toContain('sessões');
     expect(raiz.querySelector('.cartao--destaque')).toBeNull();
   });

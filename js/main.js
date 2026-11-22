@@ -15,6 +15,7 @@ import { CreateScreen } from './screens/CreateScreen.js';
 import { SettingsScreen } from './screens/SettingsScreen.js';
 import { iniciarTema } from './ui/theme.js';
 import { toast } from './ui/toast.js';
+import { settings } from './services/settings.js';
 
 function iniciar() {
   iniciarTema();
@@ -22,7 +23,32 @@ function iniciar() {
   if (versao) versao.textContent = `v${APP.versao}`;
 
   const raiz = document.getElementById('app');
-  const botaoInicio = document.getElementById('btnInicio');
+  const idiomaTopo = document.getElementById('idiomaTopo');
+  if (idiomaTopo) {
+    const idiomaAtual = settings.get('idioma');
+    if (idiomaTopo.querySelector(`option[value="${idiomaAtual}"]`)) {
+      idiomaTopo.value = idiomaAtual;
+    } else {
+      const option = document.createElement('option');
+      option.value = idiomaAtual;
+      option.textContent = idiomaAtual.split('-')[0].toUpperCase();
+      idiomaTopo.append(option);
+      idiomaTopo.value = idiomaAtual;
+    }
+    idiomaTopo.addEventListener('change', (evento) => {
+      settings.set('idioma', evento.target.value);
+    });
+    settings.aoMudar((chave, valor) => {
+      if (chave !== 'idioma') return;
+      if (!idiomaTopo.querySelector(`option[value="${valor}"]`)) {
+        const option = document.createElement('option');
+        option.value = valor;
+        option.textContent = valor.split('-')[0].toUpperCase();
+        idiomaTopo.append(option);
+      }
+      idiomaTopo.value = valor;
+    });
+  }
 
   const router = criarRouter({
     raiz,
@@ -37,12 +63,15 @@ function iniciar() {
       [ROTAS.CONFIGURACOES]: () => new SettingsScreen(),
     },
     aoNavegar: (rota) => {
-      botaoInicio.hidden = rota === ROTAS.MENU;
       document.title = rota ? `${tituloDaRota(rota)} · Aprendendo Palavras` : 'Aprendendo Palavras';
+      document.querySelectorAll('.nav-mobile [data-rota]').forEach((link) => {
+        const ativa = link.dataset.rota === rota;
+        if (ativa) link.setAttribute('aria-current', 'page');
+        else link.removeAttribute('aria-current');
+      });
     },
   });
   definirNavegador(router.navegar);
-  botaoInicio.addEventListener('click', () => router.navegar(ROTAS.MENU));
 
   // iOS/Safari só libera a voz após um gesto do usuário.
   const desbloquear = () => speaker.desbloquear();

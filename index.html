@@ -98,29 +98,33 @@
         <img class="marca__logo" src="icons/icon.svg" alt="" width="40" height="40" />
         <span class="marca__textos">
           <span class="marca__nome">Aprendendo Palavras</span>
-          <span class="marca__slogan">Aprenda inglês de forma simples</span>
+          <span class="marca__slogan">Estude idiomas todos os dias</span>
         </span>
       </a>
       <nav class="topo__acoes">
-        <button type="button" id="btnInicio" class="btn btn--vidro" hidden>
-          🏠 <span class="so-desktop">Início</span>
-        </button>
+        <label class="idioma-topo" title="Idioma de estudo">
+          <span class="sr-only">Idioma de estudo</span>
+          <select id="idiomaTopo" aria-label="Idioma de estudo">
+            <option value="en-US">EN</option>
+            <option value="es-ES">ES</option>
+          </select>
+        </label>
         <a
           href="#/configuracoes"
-          class="btn btn--vidro btn--icone"
+          class="btn btn--topo btn--icone"
           aria-label="Configurações"
           title="Configurações"
-          >⚙️</a
+          >⚙</a
         >
         <button
           type="button"
           id="btnTema"
-          class="btn btn--vidro btn--icone"
+          class="btn btn--topo btn--icone"
           aria-pressed="false"
           aria-label="Alternar tema"
         >
-          <span class="icone-tema icone-tema--lua" aria-hidden="true">🌙</span>
-          <span class="icone-tema icone-tema--sol" aria-hidden="true">☀️</span>
+          <span class="icone-tema icone-tema--lua" aria-hidden="true">◐</span>
+          <span class="icone-tema icone-tema--sol" aria-hidden="true">☀</span>
         </button>
       </nav>
     </header>
@@ -130,6 +134,25 @@
         <div class="cartao">Ative o JavaScript para usar o Aprendendo Palavras.</div>
       </noscript>
     </main>
+
+    <nav class="nav-mobile" aria-label="Navegação principal">
+      <a href="#/" data-rota="" aria-current="page">
+        <span aria-hidden="true">⌂</span>
+        <span>Início</span>
+      </a>
+      <a href="#/criar" data-rota="criar">
+        <span aria-hidden="true">＋</span>
+        <span>Criar</span>
+      </a>
+      <a href="#/palavras" data-rota="palavras">
+        <span aria-hidden="true">▰</span>
+        <span>Estudar</span>
+      </a>
+      <a href="#/progresso" data-rota="progresso">
+        <span aria-hidden="true">◷</span>
+        <span>Progresso</span>
+      </a>
+    </nav>
 
     <footer class="rodape">
       <span class="rodape__textos">

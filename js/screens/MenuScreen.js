@@ -11,40 +11,25 @@ import { seloRevisao } from '../ui/components.js';
 
 const MODOS = [
   {
-    rota: ROTAS.CRIAR,
-    icone: '✨',
-    titulo: 'Criar textos',
-    descricao: 'Diálogos, explicações sobre qualquer tema e textos no seu nível — de graça.',
-    cor: 'verde',
-    destaque: true,
-  },
-  {
     rota: ROTAS.PALAVRAS,
-    icone: '📖',
-    titulo: 'Estudar palavras',
-    descricao: 'Cole um texto e pratique as palavras em flashcards com pronúncia.',
+    icone: '▰',
+    titulo: 'Palavras',
+    descricao: 'Flashcards com voz',
     cor: 'violeta',
   },
   {
     rota: ROTAS.FRASES,
-    icone: '💬',
-    titulo: 'Estudar frases',
-    descricao: 'Treine frases completas, uma por vez, ouvindo cada uma.',
+    icone: '“ ”',
+    titulo: 'Frases',
+    descricao: 'Pratique trechos',
     cor: 'azul',
   },
   {
     rota: ROTAS.TEXTO,
-    icone: '🎧',
-    titulo: 'Ler e ouvir um texto',
-    descricao: 'Escute seu texto frase a frase, com destaque e controle de velocidade.',
+    icone: '▶',
+    titulo: 'Ouvir',
+    descricao: 'Leia frase a frase',
     cor: 'ambar',
-  },
-  {
-    rota: ROTAS.REVISAR,
-    icone: '📂',
-    titulo: 'Revisar arquivo',
-    descricao: 'Abra um PDF exportado pelo app e retome o estudo de onde parou.',
-    cor: 'rosa',
   },
 ];
 
@@ -58,10 +43,32 @@ export class MenuScreen {
       raiz,
       html`
         <section class="tela tela--menu">
+          <div class="menu__cabecalho">
+            <div>
+              <p class="menu__saudacao">Bom estudo</p>
+              <h1 class="menu__titulo">O que você quer estudar hoje?</h1>
+            </div>
+            ${
+              stats.diasSeguidos
+                ? html`
+              <span class="menu__sequencia">${stats.diasSeguidos} dias seguidos</span>
+            `
+                : ''
+            }
+          </div>
+
           ${pendentes.length ? this.painelRevisoes(pendentes) : ''}
 
-          <div class="cartao">
-            <h2 class="secao__titulo">O que você quer estudar hoje?</h2>
+          <a class="menu__criar" href="#/${ROTAS.CRIAR}">
+            <span>
+              <strong>Criar novo texto</strong>
+              <small>Escolha um tema e comece a praticar</small>
+            </span>
+            <span class="menu__criar-seta" aria-hidden="true">→</span>
+          </a>
+
+          <div class="menu__modulos">
+            <h2 class="secao__titulo">Continue estudando</h2>
             <div class="grade-modos">
               ${MODOS.map(
                 (modo) => html`
@@ -114,14 +121,15 @@ export class MenuScreen {
 
   painelRevisoes(pendentes) {
     return html`
-      <div class="cartao cartao--destaque">
-        <div class="secao__cabecalho">
-          <h2 class="secao__titulo">🔔 Revisões para hoje</h2>
-          <button class="btn btn--primario btn--pequeno" id="btnAbrirRevisar">
-            Abrir PDF para revisar
-          </button>
+      <div class="menu__revisoes cartao--destaque">
+        <div class="menu__revisoes-cabecalho">
+          <div>
+            <p class="menu__revisoes-titulo">Revisar hoje</p>
+            <p class="menu__revisoes-meta">${pendentes[0]?.titulo || 'Seu material'} · ${pendentes.length} pendências</p>
+          </div>
+          <button class="btn btn--secundario btn--pequeno" id="btnAbrirRevisar">Abrir</button>
         </div>
-        <ul class="lista-revisoes">
+        <ul class="lista-revisoes" hidden>
           ${pendentes.slice(0, 4).map(
             (m) => html`
               <li class="lista-revisoes__item">
