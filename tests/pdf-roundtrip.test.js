@@ -7,7 +7,7 @@ import { createRequire } from 'node:module';
 import { describe, expect, test } from 'vitest';
 import { jsPDF } from 'jspdf';
 import { criarPacote, criarRevisao } from '../js/pdf/format.js';
-import { gerarDocumentoPdf } from '../js/pdf/exporter.js';
+import { cabeEmLatin1, gerarDocumentoPdf, paraLatin1 } from '../js/pdf/exporter.js';
 import { ORIGENS, extrairTextoPdf, interpretarPdf } from '../js/pdf/importer.js';
 
 const require = createRequire(import.meta.url);
@@ -19,6 +19,61 @@ function gerarBytes(pacote) {
 }
 
 describe('PDF: geração e revisão (ida e volta)', () => {
+  test('adapta títulos longos, revisão opcional, contextos parciais e atribuição', async () => {
+    const pacote = criarPacote({
+      tipo: 'palavras',
+      titulo: 'Título longo '.repeat(5),
+      idioma: 'en-US',
+      itens: ['apple', 'pear'],
+      contextos: ['An apple fell.', ''],
+      traducao: ['maçã', 'pera'],
+      revisao: null,
+      fonte: {
+        nome: 'Artigo',
+        titulo: 'Conteúdo original',
+        url: 'https://example.com/article',
+        licenca: 'CC BY-SA',
+      },
+    });
+    const doc = gerarDocumentoPdf(pacote, {
+      jsPDF,
+      rasterizar: null,
+      hoje: new Date(2026, 9, 18),
+    });
+    const pdf = await pdfjsLib.getDocument({ data: doc.output('arraybuffer'), verbosity: 0 })
+      .promise;
+    const texto = await extrairTextoPdf(pdf);
+
+    expect(texto).toContain('Contexto: An apple fell.');
+    expect(texto).toContain('Fonte: Artigo');
+    expect(texto).toContain('Tradução (português)');
+    expect(pacote.revisao).toBeNull();
+  });
+
+  test('usa rasterização para caracteres fora de Latin-1', () => {
+    const pacote = criarPacote({
+      tipo: 'palavras',
+      titulo: '日本語',
+      idioma: 'en-US',
+      itens: ['日本語'],
+      revisao: null,
+    });
+    const rasterizar = (texto) => {
+      expect(texto).toContain('日本語');
+      return {
+        imagem:
+          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+        larguraMm: 10,
+        alturaMm: 5,
+      };
+    };
+
+    const doc = gerarDocumentoPdf(pacote, { jsPDF, rasterizar });
+    expect(doc.output('arraybuffer').byteLength).toBeGreaterThan(0);
+    expect(cabeEmLatin1('coração')).toBe(true);
+    expect(paraLatin1(null)).toBe('');
+  });
+
   test('palavras com acentos voltam idênticas e na mesma ordem', async () => {
     const itens = ['coração', 'ação', 'über', 'niño', 'garçon', 'straße', "don't", 'casa'];
     const pacote = criarPacote({

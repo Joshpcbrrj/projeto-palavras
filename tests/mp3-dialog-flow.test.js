@@ -114,9 +114,12 @@ describe('fluxo de exportação MP3', () => {
   test('gera MP3 com progresso, prévia, download e limpeza ao fechar', async () => {
     const blob = new Blob(['mp3'], { type: 'audio/mpeg' });
     mocks.gerarMp3.mockImplementation(async (_conteudo, opcoes) => {
+      opcoes.aoProgresso({ fase: 'carregando', progresso: 0 });
       opcoes.aoProgresso({ fase: 'carregando', progresso: 0.5 });
       opcoes.aoProgresso({ fase: 'gerando', atual: 1, total: 2 });
       opcoes.aoProgresso({ fase: 'finalizando' });
+      dialogoAtual().querySelector('#mp3Barra').remove();
+      opcoes.aoProgresso({ fase: 'carregando', progresso: 0.25 });
       opcoes.aoTrecho(new Float32Array([0.1]), 24000, 300);
       return { blob, nome: 'palavras_vocabulario_2026-11-22_00h00.mp3', duracao: 1, trechos: 2 };
     });
@@ -206,5 +209,11 @@ describe('fluxo de exportação MP3', () => {
     );
     expect(sinal.aborted).toBe(true);
     expect(mocks.toast.erro).toHaveBeenCalledOnce();
+
+    mocks.gerarMp3.mockRejectedValueOnce({});
+    dialogoAtual().querySelector('#mp3Gerar').click();
+    await vi.waitFor(() =>
+      expect(mocks.toast.erro).toHaveBeenCalledWith('Não foi possível gerar o áudio.')
+    );
   });
 });

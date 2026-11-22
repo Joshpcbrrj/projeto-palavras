@@ -202,7 +202,8 @@ describe('Reabrir material para revisão', () => {
     };
     mocks.lerArquivo
       .mockResolvedValueOnce([material])
-      .mockRejectedValueOnce(new Error('Arquivo inválido.'));
+      .mockRejectedValueOnce(new Error('Arquivo inválido.'))
+      .mockRejectedValueOnce({});
 
     tela = new ReviewScreen();
     tela.montar(raiz);
@@ -210,15 +211,17 @@ describe('Reabrir material para revisão', () => {
       { name: 'notes.mp3', type: 'audio/mpeg' },
       { name: 'notes.pdf', type: 'application/pdf' },
       { name: 'broken.txt', type: 'text/plain' },
+      { name: 'unknown.txt', type: 'text/plain' },
     ]);
 
-    expect(mocks.lerArquivo).toHaveBeenCalledTimes(2);
+    expect(mocks.lerArquivo).toHaveBeenCalledTimes(3);
     expect(toast.info).toHaveBeenCalledWith(
       'O MP3 foi ignorado: o PDF do kit já guarda o conteúdo e a revisão.'
     );
     expect(toast.sucesso).toHaveBeenCalledWith('Arquivo aberto.');
     expect(toast.erro).toHaveBeenCalledWith('Arquivo inválido.');
-    expect(erro).toHaveBeenCalledOnce();
+    expect(toast.erro).toHaveBeenCalledWith('Falha ao ler unknown.txt.');
+    expect(erro).toHaveBeenCalledTimes(2);
     expect(raiz.querySelector('.material__titulo').textContent).toBe('Notas');
 
     raiz.querySelector('#btnLimparLista').click();
@@ -256,5 +259,164 @@ describe('Reabrir material para revisão', () => {
 
     await vi.waitFor(() => expect(mocks.confirmar).toHaveBeenCalledOnce());
     expect(mocks.exportarPdfComBotao).not.toHaveBeenCalled();
+  });
+
+  test('ignora vários arquivos de áudio sem tentar importar arquivos', async () => {
+    tela = new ReviewScreen();
+    tela.montar(raiz);
+    await tela.abrir([
+      { name: 'one.mp3', type: 'audio/mpeg' },
+      { name: 'two.wav', type: 'audio/wav' },
+    ]);
+
+    expect(toast.info).toHaveBeenCalledWith(
+      '2 arquivos de áudio ignorados: os PDFs do kit já guardam o conteúdo e a revisão.'
+    );
+    expect(mocks.lerArquivo).not.toHaveBeenCalled();
+    expect(raiz.textContent).toContain('Nenhum arquivo aberto');
+  });
+
+  test('abre listas de frases, ignora controles obsoletos e permite remover materiais', async () => {
+    const material = {
+      ...criarPacote({
+        tipo: 'frases',
+        titulo: 'Frases',
+        idioma: 'en-US',
+        id: 'frases',
+        itens: ['Good morning.'],
+      }),
+      nomeArquivo: 'frases.pdf',
+    };
+    mocks.lerArquivo.mockResolvedValue([material]);
+    tela = new ReviewScreen();
+    tela.montar(raiz);
+    await tela.abrir([{ name: 'frases.pdf' }]);
+
+    raiz.querySelector('#areaMateriais').click();
+    const obsoleto = document.createElement('button');
+    obsoleto.dataset.acao = 'estudar';
+    obsoleto.dataset.i = '99';
+    raiz.querySelector('#areaMateriais').append(obsoleto);
+    obsoleto.click();
+    expect(navegar).not.toHaveBeenCalled();
+
+    raiz.querySelector('[data-acao="estudar"]').click();
+    expect(navegar).toHaveBeenCalledWith(
+      'frases',
+      expect.objectContaining({ itens: ['Good morning.'], material: expect.any(Object) })
+    );
+
+    raiz.querySelector('[data-acao="remover"]').click();
+    expect(raiz.textContent).toContain('Nenhum arquivo aberto');
+  });
+
+  test('avisa quando um texto importado não tem palavras nem frases e combina frases sem contexto', async () => {
+    const aviso = vi.spyOn(toast, 'aviso').mockImplementation(() => {});
+    const textoVazio = {
+      ...criarPacote({
+        tipo: 'texto',
+        titulo: 'Sinais',
+        idioma: 'en-US',
+        texto: '... !!!',
+      }),
+      nomeArquivo: 'sinais.pdf',
+    };
+    const primeira = {
+      ...criarPacote({
+        tipo: 'frases',
+        titulo: 'A',
+        idioma: 'en-US',
+        id: 'a',
+        itens: ['Good morning.'],
+      }),
+      nomeArquivo: 'a.pdf',
+    };
+    const segunda = {
+      ...criarPacote({
+        tipo: 'frases',
+        titulo: 'B',
+        idioma: 'en-US',
+        id: 'b',
+        itens: ['Good evening.'],
+      }),
+      nomeArquivo: 'b.pdf',
+    };
+    mocks.lerArquivo
+      .mockResolvedValueOnce([textoVazio])
+      .mockResolvedValueOnce([primeira])
+      .mockResolvedValueOnce([segunda]);
+
+    tela = new ReviewScreen();
+    tela.montar(raiz);
+    await tela.abrir([{ name: 'sinais.pdf' }]);
+    raiz.querySelector('[data-acao="palavras"]').click();
+    raiz.querySelector('[data-acao="frases"]').click();
+    expect(aviso).toHaveBeenCalledTimes(2);
+
+    await tela.abrir([{ name: 'a.pdf' }, { name: 'b.pdf' }]);
+    raiz.querySelector('[data-combinar="frases"]').click();
+    expect(navegar).toHaveBeenLastCalledWith(
+      'frases',
+      expect.objectContaining({
+        itens: ['Good morning.', 'Good evening.'],
+        contextos: undefined,
+      })
+    );
+  });
+
+  test('atualiza um material já aberto com a versão mais recente do mesmo ID', async () => {
+    const pacote = (titulo) => ({
+      ...criarPacote({
+        tipo: 'palavras',
+        titulo,
+        idioma: 'en-US',
+        id: 'same-id',
+        itens: ['apple'],
+      }),
+      nomeArquivo: `${titulo}.pdf`,
+    });
+    mocks.lerArquivo
+      .mockResolvedValueOnce([pacote('Original')])
+      .mockResolvedValueOnce([pacote('Atualizado')]);
+
+    tela = new ReviewScreen();
+    tela.montar(raiz);
+    await tela.abrir([{ name: 'original.pdf' }]);
+    await tela.abrir([{ name: 'atualizado.pdf' }]);
+
+    expect(raiz.querySelectorAll('.material')).toHaveLength(1);
+    expect(raiz.querySelector('.material__titulo').textContent).toBe('Atualizado');
+  });
+
+  test('combina palavras sem contexto e encaminha uma lista individual para estudar', async () => {
+    const pacote = (id, itens) => ({
+      ...criarPacote({
+        tipo: 'palavras',
+        titulo: id,
+        idioma: 'en-US',
+        id,
+        itens,
+      }),
+      nomeArquivo: `${id}.pdf`,
+    });
+    const primeiro = pacote('one', ['apple']);
+    const segundo = pacote('two', ['pear']);
+    mocks.lerArquivo.mockResolvedValueOnce([primeiro]).mockResolvedValueOnce([segundo]);
+
+    tela = new ReviewScreen();
+    tela.montar(raiz);
+    await tela.abrir([{ name: 'one.pdf' }]);
+    raiz.querySelector('[data-acao="estudar"]').click();
+    expect(navegar).toHaveBeenLastCalledWith(
+      'palavras',
+      expect.objectContaining({ itens: ['apple'], material: expect.any(Object) })
+    );
+
+    await tela.abrir([{ name: 'two.pdf' }]);
+    raiz.querySelector('[data-combinar="palavras"]').click();
+    expect(navegar).toHaveBeenLastCalledWith(
+      'palavras',
+      expect.objectContaining({ itens: ['apple', 'pear'], contextos: ['', ''] })
+    );
   });
 });

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { abrirExportacaoMp3 } from '../js/ui/mp3Dialog.js';
 import { settings } from '../js/services/settings.js';
 
@@ -66,5 +66,26 @@ describe('diálogo de exportação MP3', () => {
     expect(dialogo.querySelector('#mp3Voz')).not.toBeNull();
     expect(dialogo.querySelector('#mp3Voz2')).not.toBeNull();
     expect(dialogo.querySelector('#mp3Velocidade')).toBeNull();
+  });
+
+  test('usa aviso genérico para idiomas desconhecidos e chama showModal quando disponível', () => {
+    const showModalAnterior = HTMLDialogElement.prototype.showModal;
+    const mostrar = vi.fn();
+    HTMLDialogElement.prototype.showModal = mostrar;
+    try {
+      abrirExportacaoMp3({
+        tipo: 'palavras',
+        idioma: 'xx-XX',
+        itens: ['word'],
+      });
+
+      expect(mostrar).toHaveBeenCalledOnce();
+      expect(document.querySelector('dialog').textContent).toContain(
+        'em outro idioma a pronúncia sairá com sotaque inglês'
+      );
+    } finally {
+      if (showModalAnterior) HTMLDialogElement.prototype.showModal = showModalAnterior;
+      else delete HTMLDialogElement.prototype.showModal;
+    }
   });
 });

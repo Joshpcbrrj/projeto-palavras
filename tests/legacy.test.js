@@ -1,5 +1,10 @@
 import { describe, expect, test } from 'vitest';
-import { extrairItensNumerados, interpretarLegado, refluirTexto } from '../js/pdf/legacy.js';
+import {
+  extrairItensNumerados,
+  interpretarLegado,
+  lerCampos,
+  refluirTexto,
+} from '../js/pdf/legacy.js';
 
 describe('formatos das versões anteriores', () => {
   test('lê lista de palavras com metadados (PDF v2)', () => {
@@ -73,11 +78,50 @@ describe('formatos das versões anteriores', () => {
 
   test('retorna null para texto que não é de uma versão antiga', () => {
     expect(interpretarLegado('Um texto qualquer sem marcadores.')).toBeNull();
+    expect(interpretarLegado('')).toBeNull();
   });
 
   test('refluirTexto junta linhas quebradas pela largura da página', () => {
     expect(refluirTexto('uma linha que foi\nquebrada no meio.\n\nNovo parágrafo')).toBe(
       'uma linha que foi quebrada no meio.\nNovo parágrafo'
     );
+    expect(refluirTexto('')).toBe('');
+    expect(refluirTexto('linha sem pontuação')).toBe('linha sem pontuação');
+    expect(refluirTexto('parágrafo sem pontuação\n\npróximo parágrafo')).toBe(
+      'parágrafo sem pontuação\npróximo parágrafo'
+    );
+    expect(refluirTexto('linha curta.\ncontinuação')).toBe('linha curta.\ncontinuação');
+    expect(refluirTexto('\n\n')).toBe('');
+    expect(extrairItensNumerados('')).toEqual([]);
+  });
+
+  test('lê listas antigas sem metadados e ignora revisões inválidas', () => {
+    expect(interpretarLegado('Palavras Estudadas\n1. casa\n2. sol')).toMatchObject({
+      tipo: 'palavras',
+      itens: ['casa', 'sol'],
+    });
+    expect(
+      interpretarLegado(
+        '=== TEXTO PERSONALIZADO ===\n=== CONTEUDO ===\nOlá.\n=== FIM CONTEUDO ===\n=== REVISÃO (offline) ===\nDATA_REVISAR: inválida\n=== FIM REVISÃO ==='
+      )
+    ).toMatchObject({ tipo: 'texto', revisao: null });
+    expect(interpretarLegado('Frases Estudadas')).toBeNull();
+  });
+
+  test('lê campos apenas quando estão no formato esperado', () => {
+    expect(lerCampos(null)).toEqual({});
+    expect(lerCampos('IDIOMA: en-US\nlinha inválida\nTIPO: frases')).toEqual({
+      IDIOMA: 'en-US',
+      TIPO: 'frases',
+    });
+  });
+
+  test('aceita conteúdo personalizado sem marcador final nem bloco de revisão', () => {
+    expect(interpretarLegado('=== CONTEUDO ===\nConteúdo sem fechamento.')).toMatchObject({
+      tipo: 'texto',
+      titulo: 'Texto de estudo',
+      texto: 'Conteúdo sem fechamento.',
+      revisao: null,
+    });
   });
 });

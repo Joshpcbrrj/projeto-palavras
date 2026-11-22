@@ -216,6 +216,7 @@ describe('MP3', () => {
 
 describe('motores de voz', () => {
   test('escolhe WebGPU quando disponível e usa WASM como fallback', async () => {
+    await expect(escolherDispositivo()).resolves.toBe('wasm');
     await expect(escolherDispositivo({ requestAdapter: async () => ({}) })).resolves.toBe('webgpu');
     await expect(escolherDispositivo({ requestAdapter: async () => null })).resolves.toBe('wasm');
     await expect(
@@ -235,6 +236,10 @@ describe('motores de voz', () => {
             this.onmessage({
               data: { tipo: 'progresso', arquivo: 'model.onnx', carregado: 50, total: 100 },
             });
+            this.onmessage({
+              data: { tipo: 'progresso', arquivo: 'empty', carregado: 0, total: 0 },
+            });
+            this.onmessage({ data: { tipo: 'audio', id: -1 } });
             this.onmessage({ data: { tipo: 'pronto', id: msg.id } });
           } else if (msg.texto === 'falha') {
             this.onmessage({ data: { tipo: 'erro', id: msg.id, mensagem: 'boom' } });
@@ -250,7 +255,7 @@ describe('motores de voz', () => {
     const motor = new KokoroMotor({ criarWorker: () => new WorkerFalso() });
     const progresso = [];
     await motor.carregar((p) => progresso.push(p));
-    expect(progresso).toEqual([0.5]);
+    expect(progresso).toEqual([0.5, 0.5]);
     const r = await motor.sintetizar('Hello', { voz: 'af_heart' });
     expect(r.taxa).toBe(24000);
     await expect(motor.sintetizar('falha', { voz: 'af_heart' })).rejects.toThrow('boom');
@@ -274,5 +279,31 @@ describe('motores de voz', () => {
     expect(criarWorker).toHaveBeenCalledOnce();
     expect(worker.terminate).toHaveBeenCalledOnce();
     expect(motor.pendentes.size).toBe(0);
+  });
+
+  test('cria o worker padrão e rejeita com uma mensagem genérica quando ele falha', async () => {
+    class WorkerFalso {
+      postMessage(mensagem) {
+        queueMicrotask(() => this.onmessage({ data: { tipo: 'pronto', id: mensagem.id } }));
+      }
+
+      terminate() {}
+    }
+    vi.stubGlobal('Worker', WorkerFalso);
+    try {
+      const motor = new KokoroMotor();
+      await motor.carregar();
+      expect(motor.dispositivo).toBe('wasm');
+      motor.destruir();
+
+      const worker = { postMessage: vi.fn(), terminate: vi.fn() };
+      const motorComErro = new KokoroMotor({ criarWorker: () => worker });
+      const carregamento = motorComErro.carregar();
+      await vi.waitFor(() => expect(worker.postMessage).toHaveBeenCalledOnce());
+      worker.onerror({});
+      await expect(carregamento).rejects.toThrow('Falha no motor de voz Kokoro.');
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

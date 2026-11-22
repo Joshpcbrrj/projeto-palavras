@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import {
   contarPalavras,
   dividirParaLeitura,
@@ -47,6 +47,12 @@ describe('extrairPalavras', () => {
     expect(extrairPalavras('a a b', { removerDuplicadas: false })).toEqual(['a', 'a', 'b']);
   });
 
+  test('pode remover palavras comuns quando solicitado', () => {
+    expect(
+      extrairPalavras('the apple and the pear', { idioma: 'en', ignorarComuns: true })
+    ).toEqual(['apple', 'pear']);
+  });
+
   test('retorna lista vazia para texto vazio', () => {
     expect(extrairPalavras('')).toEqual([]);
     expect(extrairPalavras('   ...  ')).toEqual([]);
@@ -86,9 +92,19 @@ describe('extrairFrases', () => {
       '元気ですか',
     ]);
   });
+
+  test('retorna lista vazia para texto sem frases', () => {
+    expect(extrairFrases('')).toEqual([]);
+    expect(extrairFrases('   \n   ')).toEqual([]);
+  });
 });
 
 describe('dividirParaLeitura', () => {
+  test('retorna lista vazia para texto ausente ou em branco', () => {
+    expect(dividirParaLeitura(null)).toEqual([]);
+    expect(dividirParaLeitura('   ')).toEqual([]);
+  });
+
   test('divide em frases com a posição exata no texto original', () => {
     const texto = 'Primeira frase. Segunda frase!\n\nTerceira?';
     const trechos = dividirParaLeitura(texto);
@@ -142,6 +158,19 @@ test('usa segmentação alternativa quando o código de idioma é inválido', ()
       (trecho) => trecho.texto
     )
   ).toEqual(['A sentence.', 'Another sentence.']);
+});
+
+test('usa os separadores de compatibilidade quando Intl.Segmenter não existe', () => {
+  vi.stubGlobal('Intl', { Segmenter: undefined });
+  try {
+    expect(extrairPalavras('Hello, world!')).toEqual(['Hello', 'world']);
+    expect(extrairFrases('First. Second!')).toEqual(['First', 'Second']);
+    expect(
+      dividirParaLeitura('First sentence.\nSecond sentence.').map((trecho) => trecho.texto)
+    ).toEqual(['First sentence.', 'Second sentence.']);
+  } finally {
+    vi.unstubAllGlobals();
+  }
 });
 
 test('quebra frases longas em espaços e preserva o texto original em cada trecho', () => {
